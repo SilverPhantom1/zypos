@@ -1,0 +1,7 @@
+{
+  "name": "zypos",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}
