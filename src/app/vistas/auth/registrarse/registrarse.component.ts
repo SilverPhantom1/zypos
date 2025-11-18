@@ -5,6 +5,7 @@ import { eye, eyeOff } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { Auth, createUserWithEmailAndPassword } from '@angular/fire/auth';
 import { Firestore, doc, setDoc, serverTimestamp, Timestamp } from '@angular/fire/firestore';
 
@@ -13,7 +14,7 @@ import { Firestore, doc, setDoc, serverTimestamp, Timestamp } from '@angular/fir
   templateUrl: './registrarse.component.html',
   styleUrls: ['./registrarse.component.scss'],
   standalone: true,
-  imports: [IonHeader,IonToolbar,IonTitle, IonContent,IonItem,IonLabel,IonInput,IonButton,IonIcon,ReactiveFormsModule,CommonModule]
+  imports: [IonHeader,IonToolbar,IonTitle, IonContent,IonItem,IonLabel,IonInput,IonButton,IonIcon,ReactiveFormsModule,CommonModule,RouterLink]
 })
 export class RegistrarseComponent implements OnInit {
   // Formulario
@@ -88,7 +89,7 @@ export class RegistrarseComponent implements OnInit {
         });
         
 
-        this.router.navigate(['/home']);
+        this.router.navigate(['/iniciar-sesion']);
         
       } catch (error: any) {
         console.error('Error al registrar usuario:', error);

@@ -1,0 +1,148 @@
+.contenido-login {
+  --background: #f4e9e0; // Color de fondo
+}
+
+.contenedor-login {
+  max-width: 500px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  min-height: calc(100vh - 120px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  
+  // Responsividad para pantallas pequeñas
+  @media (max-width: 576px) {
+    padding: 1.5rem 0.75rem;
+    max-width: 100%;
+    width: 100%;
+    min-height: calc(100vh - 100px);
+  }
+  
+  // Responsividad pantallas medianas
+  @media (min-width: 577px) and (max-width: 768px) {
+    max-width: 600px;
+    padding: 1.5rem;
+  }
+  
+  // Responsividad para pantallas grandes
+  @media (min-width: 769px) {
+    max-width: 500px;
+    padding: 2rem;
+  }
+}
+
+.titulo-login {
+  color: #0a3254ff; 
+  text-align: center;
+  margin-bottom: 2rem;
+  font-size: 1.75rem;
+  
+  // Tamaño de fuente más pequeño para móvil
+  @media (max-width: 576px) {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+}
+
+.campo-formulario {
+  --background: #ffffff;
+  margin-bottom: 1rem;
+  border-radius: 8px;
+  --padding-start: 1rem;
+  --padding-end: 1rem;
+  
+  ion-label {
+    color: #0a3254ff;
+    font-weight: 500;
+  }
+  
+  ion-input {
+    color: #0a3254ff;
+  }
+  
+  // Ajustes para móvil
+  @media (max-width: 576px) {
+    margin-bottom: 0.75rem;
+    --padding-start: 0.75rem;
+    --padding-end: 0.75rem;
+  }
+}
+
+.mensaje-error {
+  color: #f89585ff; 
+  font-size: 0.875rem;
+  margin-left: 1rem;
+  margin-bottom: 0.5rem;
+  
+  // Tamaño de fuente más pequeño en móvil
+  @media (max-width: 576px) {
+    font-size: 0.75rem;
+    margin-left: 0.75rem;
+  }
+}
+
+.boton-login {
+  --background: #f89585ff;
+  --color: #ffffff;
+  margin-top: 1.5rem;
+  --border-radius: 8px;
+  height: 48px;
+  font-weight: 600;
+  
+
+  @media (max-width: 576px) {
+    height: 44px;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+  }
+  
+  &:disabled {
+    --background: #cccccc;
+    opacity: 0.6;
+  }
+}
+
+.boton-ojo {
+  --color: #6381e4ff;
+  margin: 0;
+  --padding-start: 0.5rem;
+  --padding-end: 0.5rem;
+  min-width: auto;
+  height: auto;
+  align-self: center; 
+  margin-top: 0.5rem;
+  
+  ion-icon {
+    font-size: 1.5rem;
+  }
+}
+
+.link-registro {
+  text-align: center;
+  margin-top: 1.5rem;
+  
+  p {
+    color: #0a3254ff;
+    font-size: 0.9rem;
+    margin: 0;
+  }
+  
+  a {
+    color: #6381e4ff;
+    text-decoration: none;
+    font-weight: 600;
+    
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+  
+  // Ajustes para móvil
+  @media (max-width: 576px) {
+    margin-top: 1rem;
+    font-size: 0.85rem;
+  }
+}
+

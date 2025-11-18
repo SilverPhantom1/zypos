@@ -118,3 +118,30 @@
       font-size: 1.5rem;
     }
   }
+
+  .link-login {
+    text-align: center;
+    margin-top: 1.5rem;
+    
+    p {
+      color: #0a3254ff; // Color letras
+      font-size: 0.9rem;
+      margin: 0;
+    }
+    
+    a {
+      color: #6381e4ff; // Color módulos/iconos
+      text-decoration: none;
+      font-weight: 600;
+      
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+    
+    // Ajustes para móvil
+    @media (max-width: 576px) {
+      margin-top: 1rem;
+      font-size: 0.85rem;
+    }
+  }

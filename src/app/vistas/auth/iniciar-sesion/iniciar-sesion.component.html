@@ -1,0 +1,75 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Iniciar Sesión</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="contenido-login" [scrollY]="true">
+  <div class="ion-padding contenedor-login">
+    <h2 class="titulo-login">Iniciar Sesión</h2>
+    
+    <!-- Formulario -->
+    <form [formGroup]="formularioLogin" (ngSubmit)="enviarFormulario()">
+      
+      <!-- Email -->
+      <ion-item class="campo-formulario">
+        <ion-label position="stacked">Email</ion-label>
+        <ion-input 
+          type="email" 
+          formControlName="email"
+          placeholder="tu@email.com">
+        </ion-input>
+      </ion-item>
+      <!-- Mensaje de error para email -->
+      <div *ngIf="formularioLogin.get('email')?.invalid && formularioLogin.get('email')?.touched" 
+           class="mensaje-error">
+        <span *ngIf="formularioLogin.get('email')?.errors?.['required']">
+          El email es requerido
+        </span>
+        <span *ngIf="formularioLogin.get('email')?.errors?.['email']">
+          Ingresa un email válido
+        </span>
+      </div>
+
+      <!-- Contraseña -->
+      <ion-item class="campo-formulario">
+        <ion-label position="stacked">Contraseña</ion-label>
+        <ion-input 
+          [type]="mostrarPassword ? 'text' : 'password'" 
+          formControlName="contraseña"
+          placeholder="Ingresa tu contraseña">
+        </ion-input>
+        <ion-button 
+          fill="clear" 
+          slot="end" 
+          (click)="alternarVisibilidadPassword()"
+          class="boton-ojo">
+          <ion-icon [name]="mostrarPassword ? 'eye-off' : 'eye'"></ion-icon>
+        </ion-button>
+      </ion-item>
+      <!-- Mensaje de error para contraseña -->
+      <div *ngIf="formularioLogin.get('contraseña')?.invalid && formularioLogin.get('contraseña')?.touched" 
+           class="mensaje-error">
+        <span *ngIf="formularioLogin.get('contraseña')?.errors?.['required']">
+          La contraseña es requerida
+        </span>
+      </div>
+
+      <!-- Botón para el formulario -->
+      <ion-button 
+        expand="block" 
+        type="submit" 
+        class="boton-login"
+        [disabled]="formularioLogin.invalid || estaCargando">
+        <span *ngIf="!estaCargando">Iniciar Sesión</span>
+        <span *ngIf="estaCargando">Iniciando sesión...</span>
+      </ion-button>
+
+      <!-- ir a registro -->
+      <div class="link-registro">
+        <p>¿No tienes cuenta? <a routerLink="/registrarse">Regístrate</a></p>
+      </div>
+
+    </form>
+  </div>
+</ion-content>
