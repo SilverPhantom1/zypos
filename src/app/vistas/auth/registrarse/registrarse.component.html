@@ -1,13 +1,117 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>
-      Registrarse
-    </ion-title>
+    <ion-title>Registrarse</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <div class="ion-padding">
-    <h2>Registro de Usuario</h2>
+<ion-content [fullscreen]="true" class="contenido-registro" [scrollY]="true">
+  <div class="ion-padding contenedor-registro">
+    <h2 class="titulo-registro">Crear cuenta</h2>
+    
+    <!-- Formulario -->
+    <form [formGroup]="formularioRegistro" (ngSubmit)="enviarFormulario()">
+      
+      <ion-item class="campo-formulario">
+        <ion-label position="stacked">Nombre</ion-label>
+        <ion-input 
+          type="text" 
+          formControlName="nombre"
+          placeholder="Ingresa tu nombre">
+        </ion-input>
+      </ion-item>
+      <!-- Mensaje de error -->
+      <div *ngIf="formularioRegistro.get('nombre')?.invalid && formularioRegistro.get('nombre')?.touched" 
+           class="mensaje-error">
+        El nombre es requerido
+      </div>
+
+      <!-- Email -->
+      <ion-item class="campo-formulario">
+        <ion-label position="stacked">Email</ion-label>
+        <ion-input 
+          type="email" 
+          formControlName="email"
+          placeholder="tu@email.com">
+        </ion-input>
+      </ion-item>
+
+      <!-- Mensaje de error para email -->
+      <div *ngIf="formularioRegistro.get('email')?.invalid && formularioRegistro.get('email')?.touched" 
+           class="mensaje-error">
+        <span *ngIf="formularioRegistro.get('email')?.errors?.['required']">
+          El email es requerido
+        </span>
+        <span *ngIf="formularioRegistro.get('email')?.errors?.['email']">
+          Ingresa un email válido
+        </span>
+      </div>
+
+      <!-- Contraseña -->
+      <ion-item class="campo-formulario">
+        <ion-label position="stacked">Contraseña</ion-label>
+        <ion-input 
+          [type]="mostrarPassword ? 'text' : 'password'" 
+          formControlName="contraseña"
+          placeholder="Mínimo 6 caracteres">
+        </ion-input>
+        <ion-button 
+          fill="clear" 
+          slot="end" 
+          (click)="alternarVisibilidadPassword()"
+          class="boton-ojo">
+          <ion-icon [name]="mostrarPassword ? 'eye-off' : 'eye'"></ion-icon>
+        </ion-button>
+      </ion-item>
+
+      <!-- Mensaje de error para contraseña -->
+      <div *ngIf="formularioRegistro.get('contraseña')?.invalid && formularioRegistro.get('contraseña')?.touched" 
+           class="mensaje-error">
+        <span *ngIf="formularioRegistro.get('contraseña')?.errors?.['required']">
+          La contraseña es requerida
+        </span>
+        <span *ngIf="formularioRegistro.get('contraseña')?.errors?.['minlength']">
+          La contraseña debe tener al menos 6 caracteres
+        </span>
+      </div>
+
+      <!-- Confirmar Contraseña -->
+      <ion-item class="campo-formulario">
+        <ion-label position="stacked">Confirmar Contraseña</ion-label>
+        <ion-input 
+          [type]="mostrarConfirmarPassword ? 'text' : 'password'" 
+          formControlName="confirmarContraseña"
+          placeholder="Repite tu contraseña">
+        </ion-input>
+        <ion-button 
+          fill="clear" 
+          slot="end" 
+          (click)="alternarVisibilidadConfirmarPassword()"
+          class="boton-ojo">
+          <ion-icon [name]="mostrarConfirmarPassword ? 'eye-off' : 'eye'"></ion-icon>
+        </ion-button>
+      </ion-item>
+
+      <!-- Mensaje de error para confirmar contraseña -->
+      <div *ngIf="formularioRegistro.get('confirmarContraseña')?.invalid && formularioRegistro.get('confirmarContraseña')?.touched" 
+           class="mensaje-error">
+        <span *ngIf="formularioRegistro.get('confirmarContraseña')?.errors?.['required']">
+          Debes confirmar tu contraseña
+        </span>
+        <span *ngIf="formularioRegistro.get('confirmarContraseña')?.errors?.['contraseñasNoCoinciden']">
+          Las contraseñas no coinciden
+        </span>
+      </div>
+
+      <!-- Botón para envíar el formulario -->
+      <ion-button 
+        expand="block" 
+        type="submit" 
+        class="boton-registro"
+        [disabled]="formularioRegistro.invalid || estaCargando">
+        <span *ngIf="!estaCargando">Registrarse</span>
+        <span *ngIf="estaCargando">Creando cuenta...</span>
+      </ion-button>
+
+    </form>
   </div>
 </ion-content>
