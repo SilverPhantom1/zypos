@@ -1,0 +1,139 @@
+import { Component, OnInit } from '@angular/core';
+import { Router, ActivatedRoute, RouterLink } from '@angular/router';
+import { IonHeader, IonToolbar, IonTitle, IonContent, IonItem, IonLabel, IonInput, IonButton, ToastController, IonIcon } from '@ionic/angular/standalone';
+import { eye, eyeOff, checkmarkCircle } from 'ionicons/icons';
+import { addIcons } from 'ionicons';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { Auth, confirmPasswordReset } from '@angular/fire/auth';
+
+@Component({
+  selector: 'app-nueva-contrasena',
+  templateUrl: './nueva-contrasena.component.html',
+  styleUrls: ['./nueva-contrasena.component.scss'],
+  standalone: true,
+  imports: [IonHeader, IonToolbar, IonTitle, IonContent, IonItem, IonLabel, IonInput, IonButton, IonIcon, ReactiveFormsModule, CommonModule, RouterLink]
+})
+export class NuevaContrasenaComponent implements OnInit {
+  formularioNuevaContrasena!: FormGroup;
+  estaCargando: boolean = false;
+  contrasenaCambiada: boolean = false;
+  codigoOOB: string = '';
+  mostrarPassword: boolean = false;
+  mostrarConfirmarPassword: boolean = false;
+
+  constructor(
+    private formBuilder: FormBuilder,
+    private auth: Auth,
+    private router: Router,
+    private route: ActivatedRoute,
+    private toastController: ToastController
+  ) {
+    addIcons({ eye, eyeOff, checkmarkCircle });
+  }
+
+  ngOnInit() {
+    this.route.queryParams.subscribe(params => {
+      this.codigoOOB = params['oobCode'] || params['code'] || '';
+      
+      if (!this.codigoOOB) {
+        const urlCompleta = window.location.href;
+        const match = urlCompleta.match(/[?&]oobCode=([^&]+)/);
+        if (match) {
+          this.codigoOOB = decodeURIComponent(match[1]);
+        }
+      }
+      
+      if (!this.codigoOOB) {
+        this.mostrarToast('El enlace de recuperación no es válido', 'danger');
+        setTimeout(() => {
+          this.router.navigate(['/recuperar-contrasena']);
+        }, 2000);
+      }
+    });
+
+    this.formularioNuevaContrasena = this.formBuilder.group({
+      nuevaContrasena: ['', [Validators.required, Validators.minLength(6)]],
+      confirmarContrasena: ['', [Validators.required]]
+    }, {
+      validators: this.validarContraseñasCoinciden
+    });
+  }
+
+  validarContraseñasCoinciden(formGroup: FormGroup) {
+    const nuevaContrasena = formGroup.get('nuevaContrasena')?.value;
+    const confirmarContrasena = formGroup.get('confirmarContrasena')?.value;
+    
+    if (nuevaContrasena && confirmarContrasena && nuevaContrasena !== confirmarContrasena) {
+      formGroup.get('confirmarContrasena')?.setErrors({ noCoinciden: true });
+      return { noCoinciden: true };
+    }
+    return null;
+  }
+
+  async enviarFormulario() {
+    if (this.formularioNuevaContrasena.valid && this.codigoOOB) {
+      this.estaCargando = true;
+      
+      try {
+        const { nuevaContrasena } = this.formularioNuevaContrasena.value;
+        
+        await confirmPasswordReset(this.auth, this.codigoOOB, nuevaContrasena);
+        
+        this.contrasenaCambiada = true;
+        
+        this.mostrarToast('Tu contraseña ha sido restablecida exitosamente', 'success');
+        
+        setTimeout(() => {
+          this.router.navigate(['/iniciar-sesion']);
+        }, 3000);
+        
+      } catch (error: any) {
+        let mensajeError = 'Error al restablecer la contraseña. Por favor, intenta nuevamente.';
+        
+        if (error.code === 'auth/expired-action-code') {
+          mensajeError = 'El enlace de recuperación ha expirado. Solicita uno nuevo.';
+        } else if (error.code === 'auth/invalid-action-code') {
+          mensajeError = 'El enlace de recuperación no es válido. Solicita uno nuevo.';
+        } else if (error.code === 'auth/weak-password') {
+          mensajeError = 'La contraseña es muy débil. Usa una contraseña más segura.';
+        } else if (error.code === 'auth/network-request-failed') {
+          mensajeError = 'Error de conexión. Verifica tu internet e intenta nuevamente.';
+        }
+        
+        this.mostrarToast(mensajeError, 'danger');
+      } finally {
+        this.estaCargando = false;
+      }
+      
+      } else {
+      Object.keys(this.formularioNuevaContrasena.controls).forEach(key => {
+        this.formularioNuevaContrasena.get(key)?.markAsTouched();
+      });
+    }
+  }
+
+  alternarVisibilidadPassword() {
+    this.mostrarPassword = !this.mostrarPassword;
+  }
+
+  alternarVisibilidadConfirmarPassword() {
+    this.mostrarConfirmarPassword = !this.mostrarConfirmarPassword;
+  }
+
+  async mostrarToast(mensaje: string, color: string = 'danger') {
+    const toast = await this.toastController.create({
+      message: mensaje,
+      duration: 4000,
+      position: 'top',
+      color: color,
+      buttons: [
+        {
+          text: 'Cerrar',
+          role: 'cancel'
+        }
+      ]
+    });
+    await toast.present();
+  }
+}

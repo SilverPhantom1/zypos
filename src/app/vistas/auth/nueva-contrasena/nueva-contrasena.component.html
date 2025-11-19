@@ -1,0 +1,98 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Nueva Contraseña</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="contenido-nueva-contrasena" [scrollY]="true">
+  <div class="ion-padding contenedor-nueva-contrasena">
+    
+    <div *ngIf="!contrasenaCambiada">
+      <h2 class="titulo-nueva-contrasena">Nueva Contraseña</h2>
+      <p class="descripcion-nueva-contrasena">
+        Ingresa tu nueva contraseña. Asegúrate de que sea segura y fácil de recordar.
+      </p>
+      
+      <form [formGroup]="formularioNuevaContrasena" (ngSubmit)="enviarFormulario()">
+        
+        <ion-item class="campo-formulario">
+          <ion-label position="stacked">Nueva Contraseña</ion-label>
+          <ion-input 
+            [type]="mostrarPassword ? 'text' : 'password'" 
+            formControlName="nuevaContrasena"
+            placeholder="Ingresa tu nueva contraseña">
+          </ion-input>
+          <ion-button 
+            fill="clear" 
+            slot="end" 
+            (click)="alternarVisibilidadPassword()"
+            class="boton-ojo">
+            <ion-icon [name]="mostrarPassword ? 'eye-off' : 'eye'"></ion-icon>
+          </ion-button>
+        </ion-item>
+        <div *ngIf="formularioNuevaContrasena.get('nuevaContrasena')?.invalid && formularioNuevaContrasena.get('nuevaContrasena')?.touched" 
+             class="mensaje-error">
+          <span *ngIf="formularioNuevaContrasena.get('nuevaContrasena')?.errors?.['required']">
+            La contraseña es requerida
+          </span>
+          <span *ngIf="formularioNuevaContrasena.get('nuevaContrasena')?.errors?.['minlength']">
+            La contraseña debe tener al menos 6 caracteres
+          </span>
+        </div>
+
+        <ion-item class="campo-formulario">
+          <ion-label position="stacked">Confirmar Contraseña</ion-label>
+          <ion-input 
+            [type]="mostrarConfirmarPassword ? 'text' : 'password'" 
+            formControlName="confirmarContrasena"
+            placeholder="Confirma tu nueva contraseña">
+          </ion-input>
+          <ion-button 
+            fill="clear" 
+            slot="end" 
+            (click)="alternarVisibilidadConfirmarPassword()"
+            class="boton-ojo">
+            <ion-icon [name]="mostrarConfirmarPassword ? 'eye-off' : 'eye'"></ion-icon>
+          </ion-button>
+        </ion-item>
+        <div *ngIf="formularioNuevaContrasena.get('confirmarContrasena')?.invalid && formularioNuevaContrasena.get('confirmarContrasena')?.touched" 
+             class="mensaje-error">
+          <span *ngIf="formularioNuevaContrasena.get('confirmarContrasena')?.errors?.['required']">
+            Debes confirmar la contraseña
+          </span>
+          <span *ngIf="formularioNuevaContrasena.get('confirmarContrasena')?.errors?.['noCoinciden']">
+            Las contraseñas no coinciden
+          </span>
+        </div>
+
+        <ion-button 
+          expand="block" 
+          type="submit" 
+          class="boton-restablecer"
+          [disabled]="formularioNuevaContrasena.invalid || estaCargando">
+          <span *ngIf="!estaCargando">Restablecer Contraseña</span>
+          <span *ngIf="estaCargando">Restableciendo...</span>
+        </ion-button>
+
+        <div class="link-login">
+          <a routerLink="/iniciar-sesion">Volver al inicio de sesión</a>
+        </div>
+
+      </form>
+    </div>
+
+    <div *ngIf="contrasenaCambiada" class="confirmacion-cambiada">
+      <div class="icono-exito">
+        <ion-icon name="checkmark-circle" size="large"></ion-icon>
+      </div>
+      <h2 class="titulo-confirmacion">Contraseña Restablecida</h2>
+      <p class="mensaje-confirmacion">
+        Tu contraseña ha sido restablecida exitosamente.
+      </p>
+      <p class="instrucciones">
+        Serás redirigido al inicio de sesión en unos segundos.
+      </p>
+    </div>
+
+  </div>
+</ion-content>

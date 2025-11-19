@@ -1,8 +1,8 @@
-.contenido-login {
-  --background: #f4e9e0; // Color de fondo
+.contenido-nueva-contrasena {
+  --background: #f4e9e0; // Color de fondo beige
 }
 
-.contenedor-login {
+.contenedor-nueva-contrasena {
   max-width: 500px;
   width: 100%;
   margin: 0 auto;
@@ -33,15 +33,27 @@
   }
 }
 
-.titulo-login {
-  color: #0a3254ff; 
+.titulo-nueva-contrasena {
+  color: #0a3254ff; // Color letras azul oscuro
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   font-size: 1.75rem;
   
-  // Tamaño de fuente más pequeño para móvil
   @media (max-width: 576px) {
     font-size: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+}
+
+.descripcion-nueva-contrasena {
+  color: #0a3254ff;
+  text-align: center;
+  margin-bottom: 2rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  
+  @media (max-width: 576px) {
+    font-size: 0.85rem;
     margin-bottom: 1.5rem;
   }
 }
@@ -62,7 +74,6 @@
     color: #0a3254ff;
   }
   
-  // Ajustes para móvil
   @media (max-width: 576px) {
     margin-bottom: 0.75rem;
     --padding-start: 0.75rem;
@@ -70,20 +81,34 @@
   }
 }
 
+.boton-ojo {
+  --color: #6381e4ff;
+  margin: 0;
+  --padding-start: 0.5rem;
+  --padding-end: 0.5rem;
+  min-width: auto;
+  height: auto;
+  align-self: center;
+  margin-top: 0.5rem;
+  
+  ion-icon {
+    font-size: 1.5rem;
+  }
+}
+
 .mensaje-error {
-  color: #f89585ff; 
+  color: #f89585ff;
   font-size: 0.875rem;
   margin-left: 1rem;
   margin-bottom: 0.5rem;
   
-  // Tamaño de fuente más pequeño en móvil
   @media (max-width: 576px) {
     font-size: 0.75rem;
     margin-left: 0.75rem;
   }
 }
 
-.boton-login {
+.boton-restablecer {
   --background: #f89585ff;
   --color: #ffffff;
   margin-top: 1.5rem;
@@ -91,7 +116,6 @@
   height: 48px;
   font-weight: 600;
   
-
   @media (max-width: 576px) {
     height: 44px;
     margin-top: 1rem;
@@ -104,69 +128,70 @@
   }
 }
 
-.boton-ojo {
-  --color: #6381e4ff;
-  margin: 0;
-  --padding-start: 0.5rem;
-  --padding-end: 0.5rem;
-  min-width: auto;
-  height: auto;
-  align-self: center; 
-  margin-top: 0.5rem;
-  
-  ion-icon {
-    font-size: 1.5rem;
-  }
-}
-
-.link-registro {
+.link-login {
   text-align: center;
   margin-top: 1.5rem;
-  
-  p {
-    color: #0a3254ff;
-    font-size: 0.9rem;
-    margin: 0;
-  }
   
   a {
     color: #6381e4ff;
     text-decoration: none;
     font-weight: 600;
+    font-size: 0.9rem;
     
     &:hover {
       text-decoration: underline;
     }
   }
   
-  // Ajustes para móvil
   @media (max-width: 576px) {
     margin-top: 1rem;
     font-size: 0.85rem;
   }
 }
 
-.link-recuperar {
-  text-align: right;
-  margin-top: 0.5rem;
-  margin-bottom: 1rem;
+// Estilos para la confirmación de contraseña cambiada
+.confirmacion-cambiada {
+  text-align: center;
   
-  a {
-    color: #6381e4ff; // Color iconos
-    text-decoration: none;
-    font-weight: 500;
-    font-size: 0.9rem;
+  .icono-exito {
+    margin-bottom: 1.5rem;
     
-    &:hover {
-      text-decoration: underline;
+    ion-icon {
+      color: #6381e4ff;
+      font-size: 4rem;
     }
   }
   
-  // Ajustes para móvil
-  @media (max-width: 576px) {
-    margin-top: 0.5rem;
-    margin-bottom: 0.75rem;
-    font-size: 0.85rem;
+  .titulo-confirmacion {
+    color: #0a3254ff;
+    margin-bottom: 1rem;
+    font-size: 1.75rem;
+    
+    @media (max-width: 576px) {
+      font-size: 1.5rem;
+    }
+  }
+  
+  .mensaje-confirmacion {
+    color: #0a3254ff;
+    margin-bottom: 1.5rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    
+    @media (max-width: 576px) {
+      font-size: 0.9rem;
+    }
+  }
+  
+  .instrucciones {
+    color: #0a3254ff;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    
+    @media (max-width: 576px) {
+      font-size: 0.85rem;
+    }
   }
 }
 
