@@ -1,6 +1,5 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>Registrarse</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -22,7 +21,12 @@
       <!-- Mensaje de error -->
       <div *ngIf="formularioRegistro.get('nombre')?.invalid && formularioRegistro.get('nombre')?.touched" 
            class="mensaje-error">
-        El nombre es requerido
+        <span *ngIf="formularioRegistro.get('nombre')?.errors?.['required']">
+          El nombre es requerido
+        </span>
+        <span *ngIf="formularioRegistro.get('nombre')?.errors?.['soloLetras']">
+          El nombre solo puede contener letras. Ingresa un nombre válido.
+        </span>
       </div>
 
       <!-- Email -->
@@ -71,6 +75,15 @@
         </span>
         <span *ngIf="formularioRegistro.get('contraseña')?.errors?.['minlength']">
           La contraseña debe tener al menos 6 caracteres
+        </span>
+        <span *ngIf="formularioRegistro.get('contraseña')?.value && formularioRegistro.get('contraseña')?.errors?.['sinMayuscula']">
+          Debe llevar una mayuscula
+        </span>
+        <span *ngIf="formularioRegistro.get('contraseña')?.value && formularioRegistro.get('contraseña')?.errors?.['sinNumero']">
+          Debe llevar un numero
+        </span>
+        <span *ngIf="formularioRegistro.get('contraseña')?.value && formularioRegistro.get('contraseña')?.errors?.['sinCaracterEspecial']">
+          Debe llevar un caracter especial
         </span>
       </div>
 

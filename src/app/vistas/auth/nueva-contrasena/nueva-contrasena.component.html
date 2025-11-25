@@ -1,13 +1,18 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>Nueva Contraseña</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true" class="contenido-nueva-contrasena" [scrollY]="true">
   <div class="ion-padding contenedor-nueva-contrasena">
     
-    <div *ngIf="!contrasenaCambiada">
+    <!-- Mensaje mientras se verifica el token -->
+    <div *ngIf="!tokenVerificado && estaCargando" class="verificando-token">
+      <p>Verificando enlace de recuperación...</p>
+    </div>
+
+    <!-- Formulario solo si el token es válido -->
+    <div *ngIf="!contrasenaCambiada && tokenVerificado && tokenValido">
       <h2 class="titulo-nueva-contrasena">Nueva Contraseña</h2>
       <p class="descripcion-nueva-contrasena">
         Ingresa tu nueva contraseña. Asegúrate de que sea segura y fácil de recordar.
@@ -69,7 +74,7 @@
           expand="block" 
           type="submit" 
           class="boton-restablecer"
-          [disabled]="formularioNuevaContrasena.invalid || estaCargando">
+          [disabled]="formularioNuevaContrasena.invalid || estaCargando || !tokenValido">
           <span *ngIf="!estaCargando">Restablecer Contraseña</span>
           <span *ngIf="estaCargando">Restableciendo...</span>
         </ion-button>
@@ -79,6 +84,23 @@
         </div>
 
       </form>
+    </div>
+
+    <!-- Mensaje si el token es inválido o expirado -->
+    <div *ngIf="tokenVerificado && !tokenValido && !contrasenaCambiada" class="token-invalido">
+      <h2 class="titulo-error">Enlace Inválido o Expirado</h2>
+      <p class="mensaje-error-token">
+        El enlace de recuperación no es válido o ha expirado. Los enlaces de recuperación expiran después de 1 hora.
+      </p>
+      <p class="instrucciones-error">
+        Por favor, solicita un nuevo enlace de recuperación.
+      </p>
+      <ion-button 
+        expand="block" 
+        class="boton-solicitar-nuevo"
+        routerLink="/recuperar-contrasena">
+        Solicitar Nuevo Enlace
+      </ion-button>
     </div>
 
     <div *ngIf="contrasenaCambiada" class="confirmacion-cambiada">

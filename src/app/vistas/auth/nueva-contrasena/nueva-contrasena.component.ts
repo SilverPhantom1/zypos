@@ -1,18 +1,18 @@
 import { Component, OnInit } from '@angular/core';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
-import { IonHeader, IonToolbar, IonTitle, IonContent, IonItem, IonLabel, IonInput, IonButton, ToastController, IonIcon } from '@ionic/angular/standalone';
+import { IonHeader, IonToolbar, IonContent, IonItem, IonLabel, IonInput, IonButton, ToastController, IonIcon } from '@ionic/angular/standalone';
 import { eye, eyeOff, checkmarkCircle } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { Auth, confirmPasswordReset } from '@angular/fire/auth';
+import { Auth, confirmPasswordReset, verifyPasswordResetCode } from '@angular/fire/auth';
 
 @Component({
   selector: 'app-nueva-contrasena',
   templateUrl: './nueva-contrasena.component.html',
   styleUrls: ['./nueva-contrasena.component.scss'],
   standalone: true,
-  imports: [IonHeader, IonToolbar, IonTitle, IonContent, IonItem, IonLabel, IonInput, IonButton, IonIcon, ReactiveFormsModule, CommonModule, RouterLink]
+  imports: [IonHeader, IonToolbar, IonContent, IonItem, IonLabel, IonInput, IonButton, IonIcon, ReactiveFormsModule, CommonModule, RouterLink]
 })
 export class NuevaContrasenaComponent implements OnInit {
   formularioNuevaContrasena!: FormGroup;
@@ -21,19 +21,16 @@ export class NuevaContrasenaComponent implements OnInit {
   codigoOOB: string = '';
   mostrarPassword: boolean = false;
   mostrarConfirmarPassword: boolean = false;
+  tokenValido: boolean = false;
+  tokenVerificado: boolean = false;
 
-  constructor(
-    private formBuilder: FormBuilder,
-    private auth: Auth,
-    private router: Router,
-    private route: ActivatedRoute,
-    private toastController: ToastController
+  constructor(private formBuilder: FormBuilder,private auth: Auth,private router: Router,private route: ActivatedRoute,private toastController: ToastController
   ) {
     addIcons({ eye, eyeOff, checkmarkCircle });
   }
 
-  ngOnInit() {
-    this.route.queryParams.subscribe(params => {
+  async ngOnInit() {
+    this.route.queryParams.subscribe(async params => {
       this.codigoOOB = params['oobCode'] || params['code'] || '';
       
       if (!this.codigoOOB) {
@@ -49,6 +46,9 @@ export class NuevaContrasenaComponent implements OnInit {
         setTimeout(() => {
           this.router.navigate(['/recuperar-contrasena']);
         }, 2000);
+      } else {
+        // Verificar si el token es válido al cargar la página
+        await this.verificarToken();
       }
     });
 
@@ -58,6 +58,40 @@ export class NuevaContrasenaComponent implements OnInit {
     }, {
       validators: this.validarContraseñasCoinciden
     });
+  }
+
+  async verificarToken() {
+    if (!this.codigoOOB) {
+      return;
+    }
+
+    this.estaCargando = true;
+    
+    try {
+      // Verificar si el token es válido y no ha expirado
+      await verifyPasswordResetCode(this.auth, this.codigoOOB);
+      this.tokenValido = true;
+      this.tokenVerificado = true;
+    } catch (error: any) {
+      this.tokenValido = false;
+      this.tokenVerificado = true;
+      
+      let mensajeError = 'El enlace de recuperación no es válido.';
+      
+      if (error.code === 'auth/expired-action-code') {
+        mensajeError = 'El enlace de recuperación ha expirado. Los enlaces de recuperación expiran después de 1 hora. Solicita uno nuevo.';
+      } else if (error.code === 'auth/invalid-action-code') {
+        mensajeError = 'El enlace de recuperación no es válido. Solicita uno nuevo.';
+      }
+      
+      this.mostrarToast(mensajeError, 'danger');
+      
+      setTimeout(() => {
+        this.router.navigate(['/recuperar-contrasena']);
+      }, 7000);
+    } finally {
+      this.estaCargando = false;
+    }
   }
 
   validarContraseñasCoinciden(formGroup: FormGroup) {
@@ -72,7 +106,7 @@ export class NuevaContrasenaComponent implements OnInit {
   }
 
   async enviarFormulario() {
-    if (this.formularioNuevaContrasena.valid && this.codigoOOB) {
+    if (this.formularioNuevaContrasena.valid && this.codigoOOB && this.tokenValido) {
       this.estaCargando = true;
       
       try {
@@ -92,7 +126,7 @@ export class NuevaContrasenaComponent implements OnInit {
         let mensajeError = 'Error al restablecer la contraseña. Por favor, intenta nuevamente.';
         
         if (error.code === 'auth/expired-action-code') {
-          mensajeError = 'El enlace de recuperación ha expirado. Solicita uno nuevo.';
+          mensajeError = 'El enlace de recuperación ha expirado. Los enlaces de recuperación expiran después de 1 hora. Solicita uno nuevo.';
         } else if (error.code === 'auth/invalid-action-code') {
           mensajeError = 'El enlace de recuperación no es válido. Solicita uno nuevo.';
         } else if (error.code === 'auth/weak-password') {
@@ -106,7 +140,9 @@ export class NuevaContrasenaComponent implements OnInit {
         this.estaCargando = false;
       }
       
-      } else {
+    } else if (!this.tokenValido && this.tokenVerificado) {
+      this.mostrarToast('El enlace de recuperación no es válido o ha expirado. Solicita uno nuevo.', 'danger');
+    } else {
       Object.keys(this.formularioNuevaContrasena.controls).forEach(key => {
         this.formularioNuevaContrasena.get(key)?.markAsTouched();
       });
@@ -124,7 +160,7 @@ export class NuevaContrasenaComponent implements OnInit {
   async mostrarToast(mensaje: string, color: string = 'danger') {
     const toast = await this.toastController.create({
       message: mensaje,
-      duration: 4000,
+      duration: 7000,
       position: 'top',
       color: color,
       buttons: [

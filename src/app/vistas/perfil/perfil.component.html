@@ -1,0 +1,264 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-button fill="clear" slot="end" (click)="cerrarSesion()" class="boton-cerrar-sesion-header">
+      <ion-icon name="log-out" slot="start"></ion-icon>
+      <span>Cerrar Sesión</span>
+    </ion-button>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="contenido-perfil" [scrollY]="true">
+  <div class="ion-padding contenedor-perfil">
+    <h1 class="titulo-perfil">Mi Perfil</h1>
+    
+    <!-- Estado de verificación de autenticación -->
+    <div *ngIf="verificandoAuth" class="cargando">
+      <p>Verificando autenticación...</p>
+    </div>
+    
+    <!-- Estado de carga -->
+    <div *ngIf="estaCargando && !datosUsuario && !verificandoAuth" class="cargando">
+      <p>Cargando datos...</p>
+    </div>
+    
+    <!-- Contenido del perfil -->
+    <div *ngIf="datosUsuario && !verificandoAuth">
+      
+      <!-- Sección: Datos Personales -->
+      <div class="seccion-perfil">
+        <h2 class="titulo-seccion">Datos Personales</h2>
+        
+        <div *ngIf="!editandoDatos && !editandoEmpresa && !editandoTelefono" class="datos-visualizacion">
+          <div class="campo-dato">
+            <span class="label-dato">Nombre:</span>
+            <span class="valor-dato">{{ datosUsuario.nombre || 'No especificado' }}</span>
+          </div>
+          <div class="campo-dato">
+            <span class="label-dato">Email:</span>
+            <span class="valor-dato">{{ datosUsuario.email || 'No especificado' }}</span>
+          </div>
+          <div class="campo-dato" *ngIf="datosUsuario.nombreEmpresa">
+            <span class="label-dato">Nombre de Empresa:</span>
+            <span class="valor-dato">{{ datosUsuario.nombreEmpresa }}</span>
+          </div>
+          <div class="campo-dato" *ngIf="datosUsuario.telefono">
+            <span class="label-dato">Teléfono:</span>
+            <span class="valor-dato">{{ datosUsuario.telefono }}</span>
+          </div>
+          <ion-button fill="outline" size="small" (click)="editandoDatos = true" class="boton-editar">
+            Cambiar Nombre
+          </ion-button>
+        </div>
+        
+        <form [formGroup]="formularioDatos" *ngIf="editandoDatos" class="formulario-edicion">
+          <ion-item class="campo-formulario">
+            <ion-label position="stacked">Nombre</ion-label>
+            <ion-input type="text" formControlName="nombre" placeholder="Tu nombre"></ion-input>
+          </ion-item>
+          <div class="mensaje-error" *ngIf="formularioDatos.get('nombre')?.invalid && formularioDatos.get('nombre')?.touched">
+            El nombre es requerido
+          </div>
+          
+          <ion-button expand="block" (click)="guardarDatos()" [disabled]="formularioDatos.invalid || estaCargando" class="boton-guardar">
+            Guardar
+          </ion-button>
+          <ion-button expand="block" fill="outline" (click)="editandoDatos = false" class="boton-cancelar">
+            Cancelar
+          </ion-button>
+        </form>
+      </div>
+      
+      <!-- Sección: Datos de Empresa -->
+      <div class="seccion-perfil">
+        <h2 class="titulo-seccion">Datos de Empresa</h2>
+        
+        <div *ngIf="!editandoEmpresa" class="datos-visualizacion">
+          <div class="campo-dato">
+            <span class="label-dato">Nombre de Empresa:</span>
+            <span class="valor-dato">{{ datosUsuario.nombreEmpresa || 'No especificado' }}</span>
+          </div>
+          <ion-button fill="outline" size="small" (click)="editandoEmpresa = true" class="boton-editar">
+            {{ datosUsuario.nombreEmpresa ? 'Editar' : 'Agregar' }} Empresa
+          </ion-button>
+        </div>
+        
+        <form [formGroup]="formularioDatos" *ngIf="editandoEmpresa" class="formulario-edicion">
+          <ion-item class="campo-formulario">
+            <ion-label position="stacked">Nombre de Empresa</ion-label>
+            <ion-input type="text" formControlName="nombreEmpresa" placeholder="Nombre de tu empresa"></ion-input>
+          </ion-item>
+          
+          <ion-button expand="block" (click)="guardarEmpresa()" [disabled]="estaCargando" class="boton-guardar">
+            Guardar
+          </ion-button>
+          <ion-button expand="block" fill="outline" (click)="editandoEmpresa = false" class="boton-cancelar">
+            Cancelar
+          </ion-button>
+        </form>
+      </div>
+      
+      <!-- Sección: Teléfono -->
+      <div class="seccion-perfil">
+        <h2 class="titulo-seccion">Teléfono</h2>
+        
+        <div *ngIf="!editandoTelefono" class="datos-visualizacion">
+          <div class="campo-dato">
+            <span class="label-dato">Teléfono:</span>
+            <span class="valor-dato">{{ datosUsuario.telefono || 'No especificado' }}</span>
+          </div>
+          <ion-button fill="outline" size="small" (click)="editandoTelefono = true" class="boton-editar">
+            {{ datosUsuario.telefono ? 'Editar' : 'Agregar' }} Teléfono
+          </ion-button>
+        </div>
+        
+        <form [formGroup]="formularioTelefono" *ngIf="editandoTelefono" class="formulario-edicion">
+          <ion-item class="campo-formulario">
+            <ion-label position="stacked">Teléfono</ion-label>
+            <ion-input type="tel" formControlName="telefono" placeholder="+56 9 1234 5678"></ion-input>
+          </ion-item>
+          <div class="mensaje-error" *ngIf="formularioTelefono.get('telefono')?.invalid && formularioTelefono.get('telefono')?.touched">
+            Ingresa un teléfono válido
+          </div>
+          
+          <ion-button expand="block" (click)="guardarTelefono()" [disabled]="formularioTelefono.invalid || estaCargando" class="boton-guardar">
+            Guardar
+          </ion-button>
+          <ion-button expand="block" fill="outline" (click)="editandoTelefono = false" class="boton-cancelar">
+            Cancelar
+          </ion-button>
+        </form>
+      </div>
+      
+      <!-- Sección: Cambiar Email -->
+      <div class="seccion-perfil">
+        <h2 class="titulo-seccion">Cambiar Email</h2>
+        
+        <div *ngIf="!editandoEmail" class="datos-visualizacion">
+          <ion-button fill="outline" size="small" (click)="editandoEmail = true" class="boton-editar">
+            Cambiar Email
+          </ion-button>
+        </div>
+        
+        <form [formGroup]="formularioEmail" *ngIf="editandoEmail" class="formulario-edicion">
+          <ion-item class="campo-formulario">
+            <ion-label position="stacked">Contraseña Actual</ion-label>
+            <ion-input type="password" formControlName="passwordActual" placeholder="Ingresa tu contraseña actual"></ion-input>
+          </ion-item>
+          <div class="mensaje-error" *ngIf="formularioEmail.get('passwordActual')?.invalid && formularioEmail.get('passwordActual')?.touched">
+            La contraseña actual es requerida
+          </div>
+          
+          <ion-item class="campo-formulario">
+            <ion-label position="stacked">Nuevo Email</ion-label>
+            <ion-input type="email" formControlName="nuevoEmail" placeholder="nuevo@email.com"></ion-input>
+          </ion-item>
+          <div class="mensaje-error" *ngIf="formularioEmail.get('nuevoEmail')?.invalid && formularioEmail.get('nuevoEmail')?.touched">
+            <span *ngIf="formularioEmail.get('nuevoEmail')?.errors?.['required']">El email es requerido</span>
+            <span *ngIf="formularioEmail.get('nuevoEmail')?.errors?.['email']">Email inválido</span>
+          </div>
+          
+          <ion-item class="campo-formulario">
+            <ion-label position="stacked">Confirmar Email</ion-label>
+            <ion-input type="email" formControlName="confirmarEmail" placeholder="Confirma el nuevo email"></ion-input>
+          </ion-item>
+          <div class="mensaje-error" *ngIf="formularioEmail.get('confirmarEmail')?.invalid && formularioEmail.get('confirmarEmail')?.touched">
+            <span *ngIf="formularioEmail.get('confirmarEmail')?.errors?.['required']">Confirma el email</span>
+            <span *ngIf="formularioEmail.get('confirmarEmail')?.errors?.['emailsNoCoinciden']">Los emails no coinciden</span>
+          </div>
+          
+          <ion-button expand="block" (click)="guardarEmail()" [disabled]="formularioEmail.invalid || estaCargando" class="boton-guardar">
+            Guardar
+          </ion-button>
+          <ion-button expand="block" fill="outline" (click)="editandoEmail = false; formularioEmail.reset()" class="boton-cancelar">
+            Cancelar
+          </ion-button>
+        </form>
+      </div>
+      
+      <!-- Sección: Cambiar Contraseña -->
+      <div class="seccion-perfil">
+        <h2 class="titulo-seccion">Cambiar Contraseña</h2>
+        
+        <div *ngIf="!editandoPassword" class="datos-visualizacion">
+          <ion-button fill="outline" size="small" (click)="editandoPassword = true" class="boton-editar">
+            Cambiar Contraseña
+          </ion-button>
+        </div>
+        
+        <form [formGroup]="formularioPassword" *ngIf="editandoPassword" class="formulario-edicion">
+          <ion-item class="campo-formulario">
+            <ion-label position="stacked">Contraseña Actual</ion-label>
+            <ion-input [type]="mostrarPasswordActual ? 'text' : 'password'" formControlName="passwordActual" placeholder="Ingresa tu contraseña actual"></ion-input>
+            <ion-button fill="clear" slot="end" (click)="alternarVisibilidadPasswordActual()" class="boton-ojo">
+              <ion-icon [name]="mostrarPasswordActual ? 'eye-off' : 'eye'"></ion-icon>
+            </ion-button>
+          </ion-item>
+          <div class="mensaje-error" *ngIf="formularioPassword.get('passwordActual')?.invalid && formularioPassword.get('passwordActual')?.touched">
+            La contraseña actual es requerida
+          </div>
+          
+          <ion-item class="campo-formulario">
+            <ion-label position="stacked">Nueva Contraseña</ion-label>
+            <ion-input [type]="mostrarPasswordNueva ? 'text' : 'password'" formControlName="passwordNueva" placeholder="Mínimo 6 caracteres"></ion-input>
+            <ion-button fill="clear" slot="end" (click)="alternarVisibilidadPasswordNueva()" class="boton-ojo">
+              <ion-icon [name]="mostrarPasswordNueva ? 'eye-off' : 'eye'"></ion-icon>
+            </ion-button>
+          </ion-item>
+          <div class="mensaje-error" *ngIf="formularioPassword.get('passwordNueva')?.invalid && formularioPassword.get('passwordNueva')?.touched">
+            <span *ngIf="formularioPassword.get('passwordNueva')?.errors?.['required']">La nueva contraseña es requerida</span>
+            <span *ngIf="formularioPassword.get('passwordNueva')?.errors?.['minlength']">Mínimo 6 caracteres</span>
+          </div>
+          
+          <ion-item class="campo-formulario">
+            <ion-label position="stacked">Confirmar Nueva Contraseña</ion-label>
+            <ion-input [type]="mostrarPasswordConfirmar ? 'text' : 'password'" formControlName="passwordConfirmar" placeholder="Confirma la nueva contraseña"></ion-input>
+            <ion-button fill="clear" slot="end" (click)="alternarVisibilidadPasswordConfirmar()" class="boton-ojo">
+              <ion-icon [name]="mostrarPasswordConfirmar ? 'eye-off' : 'eye'"></ion-icon>
+            </ion-button>
+          </ion-item>
+          <div class="mensaje-error" *ngIf="formularioPassword.get('passwordConfirmar')?.invalid && formularioPassword.get('passwordConfirmar')?.touched">
+            <span *ngIf="formularioPassword.get('passwordConfirmar')?.errors?.['required']">Confirma la contraseña</span>
+            <span *ngIf="formularioPassword.get('passwordConfirmar')?.errors?.['passwordsNoCoinciden']">Las contraseñas no coinciden</span>
+          </div>
+          
+          <ion-button expand="block" (click)="guardarPassword()" [disabled]="formularioPassword.invalid || estaCargando" class="boton-guardar">
+            Guardar
+          </ion-button>
+          <ion-button expand="block" fill="outline" (click)="editandoPassword = false; formularioPassword.reset()" class="boton-cancelar">
+            Cancelar
+          </ion-button>
+        </form>
+      </div>
+      
+      <!-- Sección: Plan y Membresía -->
+      <div class="seccion-perfil">
+        <h2 class="titulo-seccion">Plan y Membresía</h2>
+        
+        <div class="datos-visualizacion">
+          <div class="campo-dato">
+            <span class="label-dato">Plan Actual:</span>
+            <span class="valor-dato plan-badge" [class.plan-free]="planActual === 'free'" [class.plan-plus]="planActual === 'plus'">
+              {{ planActual === 'plus' ? 'Plus' : 'Free' }}
+            </span>
+          </div>
+          
+          <div *ngIf="planActual === 'plus' && fechaVencimiento" class="campo-dato">
+            <span class="label-dato">Vence:</span>
+            <span class="valor-dato">{{ formatearFecha(fechaVencimiento) }}</span>
+          </div>
+          
+          <ion-button *ngIf="planActual === 'plus' && fechaVencimiento" expand="block" fill="outline" routerLink="/planes" class="boton-renovar">
+            Renovar Suscripción
+          </ion-button>
+        </div>
+      </div>
+      
+    </div>
+    
+    <!-- Botón de volver atrás en la parte inferior -->
+    <ion-button expand="block" (click)="volverAtras()" class="boton-volver-inferior">
+      <ion-icon name="arrow-back" slot="start"></ion-icon>
+      <span>Volver</span>
+    </ion-button>
+  </div>
+</ion-content>

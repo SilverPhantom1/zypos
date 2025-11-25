@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import {IonHeader,IonToolbar, IonTitle, IonContent,IonItem,IonLabel,IonInput,IonButton, ToastController,IonIcon} from '@ionic/angular/standalone';
+import {IonHeader,IonToolbar, IonContent,IonItem,IonLabel,IonInput,IonButton, ToastController,IonIcon} from '@ionic/angular/standalone';
 import { checkmarkCircle } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
@@ -12,7 +12,7 @@ import { Auth, sendPasswordResetEmail } from '@angular/fire/auth';
   templateUrl: './recuperar-contrasena.component.html',
   styleUrls: ['./recuperar-contrasena.component.scss'],
   standalone: true,
-  imports: [IonHeader,IonToolbar,IonTitle, IonContent,IonItem,IonLabel,IonInput,IonButton,IonIcon,ReactiveFormsModule,CommonModule,RouterLink]
+  imports: [IonHeader,IonToolbar, IonContent,IonItem,IonLabel,IonInput,IonButton,IonIcon,ReactiveFormsModule,CommonModule,RouterLink]
 })
 export class RecuperarContrasenaComponent implements OnInit {
   // Formulario

@@ -1,0 +1,66 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="contenido-planes" [scrollY]="true">
+  <div class="ion-padding contenedor-planes">
+    <!-- Estado de verificación de autenticación -->
+    <div *ngIf="verificandoAuth" class="cargando-planes">
+      <p>Verificando autenticación...</p>
+    </div>
+    
+    <!-- Contenido de planes -->
+    <div *ngIf="!verificandoAuth">
+      <h1 class="titulo-principal-planes">Planes Disponibles</h1>
+      <h2 class="titulo-planes">Elige tu plan</h2>
+      <p class="subtitulo-planes">Selecciona el plan que mejor se adapte a tus necesidades</p>
+      
+      <!-- Contenedor de tarjetas de planes -->
+      <div class="contenedor-tarjetas" *ngIf="!estaCargandoPlanes">
+      <div 
+        *ngFor="let plan of planes" 
+        class="tarjeta-plan"
+        [class.plan-seleccionado]="planSeleccionado === plan.nombre.toLowerCase()"
+        (click)="seleccionarPlan(plan.nombre)">
+        
+        <div class="plan-header">
+          <h3 class="plan-nombre">{{ plan.nombre }}</h3>
+          <div class="plan-precio">
+            <span class="precio-valor">{{ formatearPrecio(plan.precio) }}</span>
+            <span class="precio-periodo" *ngIf="plan.precio > 0">/mes</span>
+          </div>
+        </div>
+        
+        <div class="plan-descripcion">
+          <p>{{ plan.descripcion }}</p>
+        </div>
+        
+        <div class="plan-duracion">
+          <span>Duración: {{ plan.duracionDias }} días</span>
+        </div>
+        
+        <div class="plan-seleccion-indicador" [class.visible]="planSeleccionado === plan.nombre.toLowerCase()">
+          <ion-icon name="checkmark-circle"></ion-icon>
+          <span>Seleccionado</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Estado de carga -->
+    <div class="cargando-planes" *ngIf="estaCargandoPlanes">
+      <p>Cargando planes...</p>
+    </div>
+
+      <!-- Botón de confirmación -->
+      <ion-button 
+        expand="block" 
+        class="boton-confirmar"
+        (click)="confirmarPlan()"
+        [disabled]="estaProcesando || estaCargandoPlanes">
+        <span *ngIf="!estaProcesando">Confirmar Plan</span>
+        <span *ngIf="estaProcesando">Procesando...</span>
+      </ion-button>
+    </div>
+  </div>
+</ion-content>

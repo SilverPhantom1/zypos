@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { IonHeader,IonToolbar, IonTitle, IonContent,IonItem,IonLabel,IonInput,IonButton, ToastController, IonIcon} from '@ionic/angular/standalone';
+import { IonHeader,IonToolbar, IonContent,IonItem,IonLabel,IonInput,IonButton, ToastController, IonIcon} from '@ionic/angular/standalone';
 import { eye, eyeOff } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
@@ -14,7 +14,7 @@ import { Firestore, doc, setDoc, serverTimestamp, Timestamp } from '@angular/fir
   templateUrl: './registrarse.component.html',
   styleUrls: ['./registrarse.component.scss'],
   standalone: true,
-  imports: [IonHeader,IonToolbar,IonTitle, IonContent,IonItem,IonLabel,IonInput,IonButton,IonIcon,ReactiveFormsModule,CommonModule,RouterLink]
+  imports: [IonHeader,IonToolbar, IonContent,IonItem,IonLabel,IonInput,IonButton,IonIcon,ReactiveFormsModule,CommonModule,RouterLink]
 })
 export class RegistrarseComponent implements OnInit {
   // Formulario
@@ -38,14 +38,60 @@ export class RegistrarseComponent implements OnInit {
   ngOnInit() {
     //  formulario con validaciones
     this.formularioRegistro = this.formBuilder.group({
-      nombre: ['', [Validators.required]],
+      nombre: ['', [Validators.required, this.validarSoloLetras]],
       email: ['', [Validators.required, Validators.email]],
-      contraseña: ['', [Validators.required, Validators.minLength(6)]],
+      contraseña: ['', [Validators.required, Validators.minLength(6), this.validarContraseñaSegura]],
       confirmarContraseña: ['', [Validators.required]]
     }, {
       //  verificar que las contraseñas coincidan
       validators: this.validarContraseñasCoinciden
     });
+  }
+
+ 
+  validarSoloLetras(control: any) {
+    const valor = control.value;
+    if (!valor) {
+      return null; // Si está vacío, el validador required se encargará
+    }
+
+    const soloLetrasRegex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/;
+    if (soloLetrasRegex.test(valor)) {
+      return null; // Válido
+    }
+    return { soloLetras: true }; // Inválido
+  }
+
+  // Validador personalizado para contraseña segura
+  validarContraseñaSegura(control: any) {
+    const valor = control.value;
+    if (!valor) {
+      return null; // Si está vacío, el validador required se encargará
+    }
+    
+    const errores: any = {};
+    
+    // Verificar si tiene al menos una mayúscula
+    if (!/[A-Z]/.test(valor)) {
+      errores.sinMayuscula = true;
+    }
+    
+    // Verificar si tiene al menos un número
+    if (!/[0-9]/.test(valor)) {
+      errores.sinNumero = true;
+    }
+    
+    // Verificar si tiene al menos un carácter especial
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(valor)) {
+      errores.sinCaracterEspecial = true;
+    }
+    
+    // Si hay errores, retornarlos
+    if (Object.keys(errores).length > 0) {
+      return errores;
+    }
+    
+    return null; // Válido
   }
 
   // Función que valida que las contraseñas coincidan
@@ -89,7 +135,7 @@ export class RegistrarseComponent implements OnInit {
         });
         
 
-        this.router.navigate(['/iniciar-sesion']);
+        this.router.navigate(['/planes'], { replaceUrl: true });
         
       } catch (error: any) {
         console.error('Error al registrar usuario:', error);

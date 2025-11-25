@@ -195,3 +195,73 @@
   }
 }
 
+// Estilos para el mensaje de verificación del token
+.verificando-token {
+  text-align: center;
+  padding: 2rem;
+  
+  p {
+    color: #0a3254ff;
+    font-size: 1rem;
+    
+    @media (max-width: 576px) {
+      font-size: 0.9rem;
+    }
+  }
+}
+
+// Estilos para el mensaje de token inválido o expirado
+.token-invalido {
+  text-align: center;
+  padding: 2rem 1rem;
+  
+  .titulo-error {
+    color: #000000;
+    margin-bottom: 1.5rem;
+    font-size: 1.75rem;
+    font-weight: 600;
+    
+    @media (max-width: 576px) {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+  }
+  
+  .mensaje-error-token {
+    color: #000000;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+    line-height: 1.6;
+    
+    @media (max-width: 576px) {
+      font-size: 0.9rem;
+    }
+  }
+  
+  .instrucciones-error {
+    color: #000000;
+    margin-bottom: 2rem;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    
+    @media (max-width: 576px) {
+      font-size: 0.85rem;
+      margin-bottom: 1.5rem;
+    }
+  }
+  
+  .boton-solicitar-nuevo {
+    --background: #6381e4ff;
+    --color: #ffffff;
+    --border-radius: 8px;
+    height: 48px;
+    font-weight: 600;
+    margin-top: 1rem;
+    
+    @media (max-width: 576px) {
+      height: 44px;
+      font-size: 0.9rem;
+    }
+  }
+}
+

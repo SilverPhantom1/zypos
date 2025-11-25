@@ -25,5 +25,13 @@ export const routes: Routes = [
   {
     path: 'home',
     loadComponent: () => import('./vistas/home/home.component').then(m => m.HomeComponent)
+  },
+  {
+    path: 'planes',
+    loadComponent: () => import('./vistas/planes/planes.component').then(m => m.PlanesComponent)
+  },
+  {
+    path: 'perfil',
+    loadComponent: () => import('./vistas/perfil/perfil.component').then(m => m.PerfilComponent)
   }
 ];

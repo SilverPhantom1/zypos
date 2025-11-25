@@ -1,11 +1,32 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>Inicio</ion-title>
+    <ion-button fill="clear" slot="end" (click)="cerrarSesion()" class="boton-cerrar-sesion-header">
+      <ion-icon name="log-out" slot="start"></ion-icon>
+      <span>Cerrar Sesión</span>
+    </ion-button>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <div class="ion-padding">
-    <h2>Bienvenido</h2>
+<ion-content [fullscreen]="true" class="contenido-home">
+  <div class="ion-padding contenedor-home">
+    <!-- Estado de verificación de autenticación -->
+    <div *ngIf="verificandoAuth" class="cargando">
+      <p>Verificando autenticación...</p>
+    </div>
+    
+    <!-- Contenido del home -->
+    <div *ngIf="!verificandoAuth">
+      <h2 class="titulo-home">Bienvenido</h2>
+      
+      <!-- Botón para acceder al perfil -->
+      <ion-button 
+        expand="block" 
+        fill="outline"
+        class="boton-perfil"
+        routerLink="/perfil">
+        <ion-icon name="person-circle" slot="start"></ion-icon>
+        <span>Mi Perfil</span>
+      </ion-button>
+    </div>
   </div>
 </ion-content>
