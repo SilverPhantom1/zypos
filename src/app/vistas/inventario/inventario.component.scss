@@ -1,0 +1,312 @@
+.contenido-inventario {
+  --background: #f4e9e0; // Color de fondo
+}
+
+.contenedor-inventario {
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  min-height: calc(100vh - 120px);
+  
+  @media (max-width: 576px) {
+    padding: 1.5rem 0.75rem;
+    max-width: 100%;
+    min-height: calc(100vh - 100px);
+  }
+  
+  @media (min-width: 577px) and (max-width: 768px) {
+    max-width: 900px;
+    padding: 1.5rem;
+  }
+  
+  @media (min-width: 769px) {
+    max-width: 1200px;
+    padding: 2rem;
+  }
+}
+
+.titulo-inventario {
+  color: #0a3254ff; // Color letras azul oscuro
+  text-align: center;
+  margin-bottom: 2rem;
+  font-size: 2rem;
+  font-weight: 700;
+  
+  @media (max-width: 576px) {
+    font-size: 1.75rem;
+    margin-bottom: 1.5rem;
+  }
+}
+
+.contenedor-boton-crear {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+  
+  @media (max-width: 576px) {
+    margin-bottom: 1.5rem;
+  }
+}
+
+.boton-crear-producto {
+  --border-radius: 12px;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  
+  @media (max-width: 576px) {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.9rem;
+  }
+}
+
+.contenedor-formulario {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  
+  @media (max-width: 576px) {
+    padding: 1rem;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+  }
+  
+  @media (min-width: 769px) {
+    padding: 2rem;
+    max-width: 800px;
+    margin: 0 auto 2rem;
+  }
+}
+
+.campo-formulario {
+  --background: #f8f8f8;
+  --border-radius: 8px;
+  margin-bottom: 1rem;
+  border: 1px solid #e0e0e0;
+  
+  ion-label {
+    color: #0a3254ff;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+  }
+  
+  ion-input,
+  ion-textarea,
+  ion-select {
+    --color: #0a3254ff;
+  }
+  
+  ion-select {
+    --placeholder-color: #666;
+    --placeholder-opacity: 0.6;
+    
+    // Asegurar que el valor seleccionado se muestre
+    &::part(text) {
+      color: #0a3254ff;
+    }
+    
+    // Si tiene un valor, mostrar el texto en lugar del placeholder
+    &[value]:not([value=""]) {
+      --placeholder-opacity: 0;
+    }
+  }
+}
+
+.mensaje-error {
+  color: #eb445a;
+  font-size: 0.875rem;
+  margin-top: -0.75rem;
+  margin-bottom: 0.75rem;
+  margin-left: 1rem;
+  
+  @media (max-width: 576px) {
+    font-size: 0.8rem;
+    margin-left: 0.75rem;
+  }
+}
+
+.texto-ayuda {
+  color: #666;
+  font-size: 0.875rem;
+  margin-top: -0.5rem;
+  margin-bottom: 1rem;
+  margin-left: 1rem;
+  font-style: italic;
+  
+  @media (max-width: 576px) {
+    font-size: 0.8rem;
+    margin-left: 0.75rem;
+  }
+}
+
+.texto-valor-seleccionado {
+  color: #0a3254ff;
+  font-size: 0.875rem;
+  margin-top: -0.5rem;
+  margin-bottom: 0.5rem;
+  margin-left: 1rem;
+  font-weight: 500;
+  
+  strong {
+    color: #6381e4ff;
+  }
+  
+  @media (max-width: 576px) {
+    font-size: 0.8rem;
+    margin-left: 0.75rem;
+  }
+}
+
+.campo-foto {
+  margin-bottom: 1.5rem;
+  
+  .label-foto {
+    display: block;
+    color: #0a3254ff;
+    font-weight: 500;
+    margin-bottom: 0.75rem;
+    font-size: 0.9rem;
+  }
+}
+
+.preview-foto {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  
+  .imagen-preview {
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: 12px;
+    object-fit: contain;
+    border: 2px solid #e0e0e0;
+    background: #f8f8f8;
+    
+    @media (max-width: 576px) {
+      max-height: 250px;
+    }
+  }
+  
+  .boton-eliminar-foto {
+    --color: #eb445a;
+    font-size: 0.875rem;
+  }
+}
+
+.boton-seleccionar-foto {
+  --border-radius: 12px;
+  --border-color: #6381e4ff;
+  --color: #6381e4ff;
+  font-weight: 500;
+  margin-top: 0.5rem;
+  
+  &[disabled] {
+    opacity: 0.5;
+  }
+}
+
+.contenedor-botones-formulario {
+  margin-top: 1.5rem;
+  
+  @media (max-width: 576px) {
+    margin-top: 1.25rem;
+  }
+}
+
+.boton-guardar {
+  --border-radius: 12px;
+  font-weight: 600;
+  height: 48px;
+  
+  @media (max-width: 576px) {
+    height: 44px;
+    font-size: 0.9rem;
+  }
+  
+  &[disabled] {
+    opacity: 0.5;
+  }
+}
+
+.contenedor-lista-productos {
+  margin-top: 2rem;
+  
+  @media (max-width: 576px) {
+    margin-top: 1.5rem;
+  }
+}
+
+.boton-volver-header {
+  --background: #6381e4ff; // Color módulos/iconos
+  --color: white;
+  --border-radius: 12px;
+  --padding-start: 0.75rem;
+  --padding-end: 1rem;
+  --padding-top: 0.5rem;
+  --padding-bottom: 0.5rem;
+  height: auto;
+  font-weight: 500;
+  margin-left: 0.5rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  
+  ion-icon {
+    font-size: 1.2rem;
+    margin-right: 0.25rem;
+  }
+  
+  .texto-boton-volver {
+    font-size: 0.9rem;
+  }
+
+  @media (max-width: 576px) {
+    --padding-start: 0.625rem;
+    --padding-end: 0.875rem;
+    --padding-top: 0.4rem;
+    --padding-bottom: 0.4rem;
+    margin-left: 0.25rem;
+    margin-top: 0.25rem;
+    margin-bottom: 0.25rem;
+    
+    ion-icon {
+      font-size: 1.1rem;
+      margin-right: 0.2rem;
+    }
+    
+    .texto-boton-volver {
+      font-size: 0.85rem;
+    }
+  }
+  
+  @media (min-width: 769px) {
+    --padding-start: 1rem;
+    --padding-end: 1.25rem;
+    --padding-top: 0.625rem;
+    --padding-bottom: 0.625rem;
+    
+    ion-icon {
+      font-size: 1.3rem;
+      margin-right: 0.375rem;
+    }
+    
+    .texto-boton-volver {
+      font-size: 0.95rem;
+    }
+  }
+}
+
+.cargando-auth {
+  text-align: center;
+  color: #0a3254ff;
+  padding: 2rem;
+  font-size: 1rem;
+  min-height: calc(100vh - 120px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+

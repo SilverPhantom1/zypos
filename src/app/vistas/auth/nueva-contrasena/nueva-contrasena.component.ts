@@ -19,8 +19,8 @@ export class NuevaContrasenaComponent implements OnInit {
   estaCargando: boolean = false;
   contrasenaCambiada: boolean = false;
   codigoOOB: string = '';
-  mostrarPassword: boolean = false;
-  mostrarConfirmarPassword: boolean = false;
+  mostrarContrasena: boolean = false;
+  mostrarConfirmarContrasena: boolean = false;
   tokenValido: boolean = false;
   tokenVerificado: boolean = false;
 
@@ -149,12 +149,12 @@ export class NuevaContrasenaComponent implements OnInit {
     }
   }
 
-  alternarVisibilidadPassword() {
-    this.mostrarPassword = !this.mostrarPassword;
+  alternarVisibilidadContrasena() {
+    this.mostrarContrasena = !this.mostrarContrasena;
   }
 
-  alternarVisibilidadConfirmarPassword() {
-    this.mostrarConfirmarPassword = !this.mostrarConfirmarPassword;
+  alternarVisibilidadConfirmarContrasena() {
+    this.mostrarConfirmarContrasena = !this.mostrarConfirmarContrasena;
   }
 
   async mostrarToast(mensaje: string, color: string = 'danger') {

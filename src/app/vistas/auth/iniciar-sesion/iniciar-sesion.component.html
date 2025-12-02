@@ -34,16 +34,16 @@
       <ion-item class="campo-formulario">
         <ion-label position="stacked">Contraseña</ion-label>
         <ion-input 
-          [type]="mostrarPassword ? 'text' : 'password'" 
+          [type]="mostrarContrasena ? 'text' : 'password'" 
           formControlName="contraseña"
           placeholder="Ingresa tu contraseña">
         </ion-input>
         <ion-button 
           fill="clear" 
           slot="end" 
-          (click)="alternarVisibilidadPassword()"
+          (click)="alternarVisibilidadContrasena()"
           class="boton-ojo">
-          <ion-icon [name]="mostrarPassword ? 'eye-off' : 'eye'"></ion-icon>
+          <ion-icon [name]="mostrarContrasena ? 'eye-off' : 'eye'"></ion-icon>
         </ion-button>
       </ion-item>
       <!-- Mensaje de error para contraseña -->

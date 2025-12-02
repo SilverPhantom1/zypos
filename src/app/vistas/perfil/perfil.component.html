@@ -134,6 +134,10 @@
         <h2 class="titulo-seccion">Cambiar Email</h2>
         
         <div *ngIf="!editandoEmail" class="datos-visualizacion">
+          <div class="campo-dato">
+            <span class="label-dato">Email:</span>
+            <span class="valor-dato">{{ datosUsuario.email || 'No especificado' }}</span>
+          </div>
           <ion-button fill="outline" size="small" (click)="editandoEmail = true" class="boton-editar">
             Cambiar Email
           </ion-button>
@@ -142,9 +146,9 @@
         <form [formGroup]="formularioEmail" *ngIf="editandoEmail" class="formulario-edicion">
           <ion-item class="campo-formulario">
             <ion-label position="stacked">Contraseña Actual</ion-label>
-            <ion-input type="password" formControlName="passwordActual" placeholder="Ingresa tu contraseña actual"></ion-input>
+            <ion-input type="password" formControlName="contrasenaActual" placeholder="Ingresa tu contraseña actual"></ion-input>
           </ion-item>
-          <div class="mensaje-error" *ngIf="formularioEmail.get('passwordActual')?.invalid && formularioEmail.get('passwordActual')?.touched">
+          <div class="mensaje-error" *ngIf="formularioEmail.get('contrasenaActual')?.invalid && formularioEmail.get('contrasenaActual')?.touched">
             La contraseña actual es requerida
           </div>
           
@@ -180,6 +184,10 @@
         <h2 class="titulo-seccion">Cambiar Contraseña</h2>
         
         <div *ngIf="!editandoPassword" class="datos-visualizacion">
+          <div class="campo-dato">
+            <span class="label-dato">Contraseña:</span>
+            <span class="valor-dato password-oculta">••••••••</span>
+          </div>
           <ion-button fill="outline" size="small" (click)="editandoPassword = true" class="boton-editar">
             Cambiar Contraseña
           </ion-button>
@@ -188,37 +196,37 @@
         <form [formGroup]="formularioPassword" *ngIf="editandoPassword" class="formulario-edicion">
           <ion-item class="campo-formulario">
             <ion-label position="stacked">Contraseña Actual</ion-label>
-            <ion-input [type]="mostrarPasswordActual ? 'text' : 'password'" formControlName="passwordActual" placeholder="Ingresa tu contraseña actual"></ion-input>
+            <ion-input [type]="mostrarPasswordActual ? 'text' : 'password'" formControlName="contrasenaActual" placeholder="Ingresa tu contraseña actual"></ion-input>
             <ion-button fill="clear" slot="end" (click)="alternarVisibilidadPasswordActual()" class="boton-ojo">
               <ion-icon [name]="mostrarPasswordActual ? 'eye-off' : 'eye'"></ion-icon>
             </ion-button>
           </ion-item>
-          <div class="mensaje-error" *ngIf="formularioPassword.get('passwordActual')?.invalid && formularioPassword.get('passwordActual')?.touched">
+          <div class="mensaje-error" *ngIf="formularioPassword.get('contrasenaActual')?.invalid && formularioPassword.get('contrasenaActual')?.touched">
             La contraseña actual es requerida
           </div>
           
           <ion-item class="campo-formulario">
             <ion-label position="stacked">Nueva Contraseña</ion-label>
-            <ion-input [type]="mostrarPasswordNueva ? 'text' : 'password'" formControlName="passwordNueva" placeholder="Mínimo 6 caracteres"></ion-input>
+            <ion-input [type]="mostrarPasswordNueva ? 'text' : 'password'" formControlName="contrasenaNueva" placeholder="Mínimo 6 caracteres"></ion-input>
             <ion-button fill="clear" slot="end" (click)="alternarVisibilidadPasswordNueva()" class="boton-ojo">
               <ion-icon [name]="mostrarPasswordNueva ? 'eye-off' : 'eye'"></ion-icon>
             </ion-button>
           </ion-item>
-          <div class="mensaje-error" *ngIf="formularioPassword.get('passwordNueva')?.invalid && formularioPassword.get('passwordNueva')?.touched">
-            <span *ngIf="formularioPassword.get('passwordNueva')?.errors?.['required']">La nueva contraseña es requerida</span>
-            <span *ngIf="formularioPassword.get('passwordNueva')?.errors?.['minlength']">Mínimo 6 caracteres</span>
+          <div class="mensaje-error" *ngIf="formularioPassword.get('contrasenaNueva')?.invalid && formularioPassword.get('contrasenaNueva')?.touched">
+            <span *ngIf="formularioPassword.get('contrasenaNueva')?.errors?.['required']">La nueva contraseña es requerida</span>
+            <span *ngIf="formularioPassword.get('contrasenaNueva')?.errors?.['minlength']">Mínimo 6 caracteres</span>
           </div>
           
           <ion-item class="campo-formulario">
             <ion-label position="stacked">Confirmar Nueva Contraseña</ion-label>
-            <ion-input [type]="mostrarPasswordConfirmar ? 'text' : 'password'" formControlName="passwordConfirmar" placeholder="Confirma la nueva contraseña"></ion-input>
+            <ion-input [type]="mostrarPasswordConfirmar ? 'text' : 'password'" formControlName="contrasenaConfirmar" placeholder="Confirma la nueva contraseña"></ion-input>
             <ion-button fill="clear" slot="end" (click)="alternarVisibilidadPasswordConfirmar()" class="boton-ojo">
               <ion-icon [name]="mostrarPasswordConfirmar ? 'eye-off' : 'eye'"></ion-icon>
             </ion-button>
           </ion-item>
-          <div class="mensaje-error" *ngIf="formularioPassword.get('passwordConfirmar')?.invalid && formularioPassword.get('passwordConfirmar')?.touched">
-            <span *ngIf="formularioPassword.get('passwordConfirmar')?.errors?.['required']">Confirma la contraseña</span>
-            <span *ngIf="formularioPassword.get('passwordConfirmar')?.errors?.['passwordsNoCoinciden']">Las contraseñas no coinciden</span>
+          <div class="mensaje-error" *ngIf="formularioPassword.get('contrasenaConfirmar')?.invalid && formularioPassword.get('contrasenaConfirmar')?.touched">
+            <span *ngIf="formularioPassword.get('contrasenaConfirmar')?.errors?.['required']">Confirma la contraseña</span>
+            <span *ngIf="formularioPassword.get('contrasenaConfirmar')?.errors?.['contrasenasNoCoinciden']">Las contraseñas no coinciden</span>
           </div>
           
           <ion-button expand="block" (click)="guardarPassword()" [disabled]="formularioPassword.invalid || estaCargando" class="boton-guardar">
@@ -242,8 +250,13 @@
             </span>
           </div>
           
-          <div *ngIf="planActual === 'plus' && fechaVencimiento" class="campo-dato">
-            <span class="label-dato">Vence:</span>
+          <div *ngIf="fechaVencimiento" class="campo-dato">
+            <span class="label-dato">Vence en:</span>
+            <span class="valor-dato">{{ calcularTiempoRestante() }}</span>
+          </div>
+          
+          <div *ngIf="fechaVencimiento" class="campo-dato">
+            <span class="label-dato">Fecha de vencimiento:</span>
             <span class="valor-dato">{{ formatearFecha(fechaVencimiento) }}</span>
           </div>
           

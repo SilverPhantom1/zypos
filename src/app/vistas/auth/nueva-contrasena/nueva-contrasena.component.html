@@ -23,16 +23,16 @@
         <ion-item class="campo-formulario">
           <ion-label position="stacked">Nueva Contraseña</ion-label>
           <ion-input 
-            [type]="mostrarPassword ? 'text' : 'password'" 
+            [type]="mostrarContrasena ? 'text' : 'password'" 
             formControlName="nuevaContrasena"
             placeholder="Ingresa tu nueva contraseña">
           </ion-input>
           <ion-button 
             fill="clear" 
             slot="end" 
-            (click)="alternarVisibilidadPassword()"
+            (click)="alternarVisibilidadContrasena()"
             class="boton-ojo">
-            <ion-icon [name]="mostrarPassword ? 'eye-off' : 'eye'"></ion-icon>
+            <ion-icon [name]="mostrarContrasena ? 'eye-off' : 'eye'"></ion-icon>
           </ion-button>
         </ion-item>
         <div *ngIf="formularioNuevaContrasena.get('nuevaContrasena')?.invalid && formularioNuevaContrasena.get('nuevaContrasena')?.touched" 
@@ -48,16 +48,16 @@
         <ion-item class="campo-formulario">
           <ion-label position="stacked">Confirmar Contraseña</ion-label>
           <ion-input 
-            [type]="mostrarConfirmarPassword ? 'text' : 'password'" 
+            [type]="mostrarConfirmarContrasena ? 'text' : 'password'" 
             formControlName="confirmarContrasena"
             placeholder="Confirma tu nueva contraseña">
           </ion-input>
           <ion-button 
             fill="clear" 
             slot="end" 
-            (click)="alternarVisibilidadConfirmarPassword()"
+            (click)="alternarVisibilidadConfirmarContrasena()"
             class="boton-ojo">
-            <ion-icon [name]="mostrarConfirmarPassword ? 'eye-off' : 'eye'"></ion-icon>
+            <ion-icon [name]="mostrarConfirmarContrasena ? 'eye-off' : 'eye'"></ion-icon>
           </ion-button>
         </ion-item>
         <div *ngIf="formularioNuevaContrasena.get('confirmarContrasena')?.invalid && formularioNuevaContrasena.get('confirmarContrasena')?.touched" 

@@ -27,8 +27,8 @@ export class RegistrarseComponent implements OnInit {
   mensajeError: string = '';
   
   // Variables para mostrar/ocultar contraseñas
-  mostrarPassword: boolean = false;
-  mostrarConfirmarPassword: boolean = false;
+  mostrarContrasena: boolean = false;
+  mostrarConfirmarContrasena: boolean = false;
 
   constructor(private formBuilder: FormBuilder,private auth: Auth, private firestore: Firestore,private router: Router,private toastController: ToastController) {
     // Registrar iconos
@@ -184,12 +184,12 @@ export class RegistrarseComponent implements OnInit {
   }
 
   // Función para alternar visibilidad de la contraseña
-  alternarVisibilidadPassword() {
-    this.mostrarPassword = !this.mostrarPassword;
+  alternarVisibilidadContrasena() {
+    this.mostrarContrasena = !this.mostrarContrasena;
   }
 
   // Función para alternar visibilidad de confirmar contraseña
-  alternarVisibilidadConfirmarPassword() {
-    this.mostrarConfirmarPassword = !this.mostrarConfirmarPassword;
+  alternarVisibilidadConfirmarContrasena() {
+    this.mostrarConfirmarContrasena = !this.mostrarConfirmarContrasena;
   }
 }

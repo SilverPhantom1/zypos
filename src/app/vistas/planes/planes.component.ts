@@ -32,30 +32,19 @@ export class PlanesComponent implements OnInit {
   }
 
   async ngOnInit() {
-    // Verificación síncrona inmediata del estado de autenticación
-    const usuarioActual = this.auth.currentUser;
-    
-    if (!usuarioActual) {
-      // Si no hay usuario, redirigir inmediatamente sin esperar
-      this.router.navigate(['/iniciar-sesion'], { replaceUrl: true });
-      return;
-    }
-    
-    // Si hay usuario, cargar datos
-    this.usuarioId = usuarioActual.uid;
-    this.verificandoAuth = false;
-    await this.cargarPlanes();
-    
-    // Listener para cambios futuros en el estado de autenticación
+    // Esperar a que Firebase Auth se inicialice completamente (importante después de refresh)
+    // onAuthStateChanged se ejecuta cuando Firebase Auth termina de inicializarse
     onAuthStateChanged(this.auth, async (user) => {
-      if (user) {
-        if (user.uid !== this.usuarioId) {
-          // Si cambió el usuario, actualizar
-          this.usuarioId = user.uid;
-        }
-      } else {
-        // Si se cerró sesión, redirigir inmediatamente
+      if (!user) {
+        // Si no hay usuario después de la inicialización, redirigir
         this.router.navigate(['/iniciar-sesion'], { replaceUrl: true });
+      } else {
+        // Si hay usuario, cargar datos
+        if (user.uid !== this.usuarioId) {
+          this.usuarioId = user.uid;
+          this.verificandoAuth = false;
+          await this.cargarPlanes();
+        }
       }
     });
   }

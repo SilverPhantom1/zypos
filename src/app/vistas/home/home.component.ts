@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { IonHeader, IonToolbar, IonContent, IonButton, IonIcon, ToastController } from '@ionic/angular/standalone';
-import { personCircle, logOut } from 'ionicons/icons';
+import { personCircle, logOut, cube } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 import { RouterLink, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -21,27 +21,19 @@ export class HomeComponent implements OnInit {
     private router: Router,
     private toastController: ToastController
   ) {
-    addIcons({ personCircle, logOut });
+    addIcons({ personCircle, logOut, cube });
   }
 
   async ngOnInit() {
-    // Verificación síncrona inmediata del estado de autenticación
-    const usuarioActual = this.auth.currentUser;
-    
-    if (!usuarioActual) {
-      // Si no hay usuario, redirigir inmediatamente sin esperar
-      this.router.navigate(['/iniciar-sesion'], { replaceUrl: true });
-      return;
-    }
-    
-    // Si hay usuario, permitir acceso
-    this.verificandoAuth = false;
-    
-    // Listener para cambios futuros en el estado de autenticación
+    // Esperar a que Firebase Auth se inicialice completamente (importante después de refresh)
+    // onAuthStateChanged se ejecuta cuando Firebase Auth termina de inicializarse
     onAuthStateChanged(this.auth, async (user) => {
       if (!user) {
-        // Si se cerró sesión, redirigir inmediatamente
+        // Si no hay usuario después de la inicialización, redirigir
         this.router.navigate(['/iniciar-sesion'], { replaceUrl: true });
+      } else {
+        // Si hay usuario, permitir acceso
+        this.verificandoAuth = false;
       }
     });
   }

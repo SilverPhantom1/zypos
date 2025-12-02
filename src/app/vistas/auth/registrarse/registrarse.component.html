@@ -54,16 +54,16 @@
       <ion-item class="campo-formulario">
         <ion-label position="stacked">Contraseña</ion-label>
         <ion-input 
-          [type]="mostrarPassword ? 'text' : 'password'" 
+          [type]="mostrarContrasena ? 'text' : 'password'" 
           formControlName="contraseña"
           placeholder="Mínimo 6 caracteres">
         </ion-input>
         <ion-button 
           fill="clear" 
           slot="end" 
-          (click)="alternarVisibilidadPassword()"
+          (click)="alternarVisibilidadContrasena()"
           class="boton-ojo">
-          <ion-icon [name]="mostrarPassword ? 'eye-off' : 'eye'"></ion-icon>
+          <ion-icon [name]="mostrarContrasena ? 'eye-off' : 'eye'"></ion-icon>
         </ion-button>
       </ion-item>
 
@@ -91,16 +91,16 @@
       <ion-item class="campo-formulario">
         <ion-label position="stacked">Confirmar Contraseña</ion-label>
         <ion-input 
-          [type]="mostrarConfirmarPassword ? 'text' : 'password'" 
+          [type]="mostrarConfirmarContrasena ? 'text' : 'password'" 
           formControlName="confirmarContraseña"
           placeholder="Repite tu contraseña">
         </ion-input>
         <ion-button 
           fill="clear" 
           slot="end" 
-          (click)="alternarVisibilidadConfirmarPassword()"
+          (click)="alternarVisibilidadConfirmarContrasena()"
           class="boton-ojo">
-          <ion-icon [name]="mostrarConfirmarPassword ? 'eye-off' : 'eye'"></ion-icon>
+          <ion-icon [name]="mostrarConfirmarContrasena ? 'eye-off' : 'eye'"></ion-icon>
         </ion-button>
       </ion-item>
 

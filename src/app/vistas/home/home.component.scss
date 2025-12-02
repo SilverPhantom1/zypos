@@ -45,6 +45,30 @@
   --border-color: #6381e4ff; // Color módulos/iconos
   --color: #6381e4ff;
   margin-top: auto;
+  margin-bottom: 1rem;
+  --border-radius: 8px;
+  height: 48px;
+  font-weight: 600;
+  
+  ion-icon {
+    font-size: 1.5rem;
+    margin-right: 0.5rem;
+  }
+  
+  @media (max-width: 576px) {
+    height: 44px;
+    font-size: 0.9rem;
+    margin-bottom: 0.75rem;
+    
+    ion-icon {
+      font-size: 1.25rem;
+    }
+  }
+}
+
+.boton-inventario {
+  --border-color: #6381e4ff; // Color módulos/iconos
+  --color: #6381e4ff;
   --border-radius: 8px;
   height: 48px;
   font-weight: 600;

@@ -45,12 +45,7 @@ export class PerfilComponent implements OnInit {
   planActual: string = '';
   fechaVencimiento: Date | null = null;
 
-  constructor(
-    private formBuilder: FormBuilder,
-    private auth: Auth,
-    private firestore: Firestore,
-    private router: Router,
-    private toastController: ToastController
+  constructor(private formBuilder: FormBuilder,private auth: Auth,private firestore: Firestore,private router: Router,private toastController: ToastController
   ) {
     addIcons({ personCircle, logOut, save, eye, eyeOff, checkmarkCircle, arrowBack });
     
@@ -62,7 +57,7 @@ export class PerfilComponent implements OnInit {
     
     // Formulario de email
     this.formularioEmail = this.formBuilder.group({
-      passwordActual: ['', [Validators.required]],
+      contrasenaActual: ['', [Validators.required]],
       nuevoEmail: ['', [Validators.required, Validators.email]],
       confirmarEmail: ['', [Validators.required, Validators.email]]
     }, {
@@ -71,9 +66,9 @@ export class PerfilComponent implements OnInit {
     
     // Formulario de contraseña
     this.formularioPassword = this.formBuilder.group({
-      passwordActual: ['', [Validators.required]],
-      passwordNueva: ['', [Validators.required, Validators.minLength(6)]],
-      passwordConfirmar: ['', [Validators.required]]
+      contrasenaActual: ['', [Validators.required]],
+      contrasenaNueva: ['', [Validators.required, Validators.minLength(6)]],
+      contrasenaConfirmar: ['', [Validators.required]]
     }, {
       validators: this.validarPasswordsCoinciden
     });
@@ -85,31 +80,19 @@ export class PerfilComponent implements OnInit {
   }
 
   async ngOnInit() {
-    // Verificación síncrona inmediata del estado de autenticación
-    const usuarioActual = this.auth.currentUser;
-    
-    if (!usuarioActual) {
-      // Si no hay usuario, redirigir inmediatamente sin esperar
-      this.router.navigate(['/iniciar-sesion'], { replaceUrl: true });
-      return;
-    }
-    
-    // Si hay usuario, cargar datos
-    this.usuarioId = usuarioActual.uid;
-    this.verificandoAuth = false;
-    await this.cargarDatosUsuario();
-    
-    // Listener para cambios futuros en el estado de autenticación
+    // Esperar a que Firebase Auth se inicialice completamente (importante después de refresh)
+    // onAuthStateChanged se ejecuta cuando Firebase Auth termina de inicializarse
     onAuthStateChanged(this.auth, async (user) => {
-      if (user) {
+      if (!user) {
+        // Si no hay usuario después de la inicialización, redirigir
+        this.router.navigate(['/iniciar-sesion'], { replaceUrl: true });
+      } else {
+        // Si hay usuario, cargar datos
         if (user.uid !== this.usuarioId) {
-          // Si cambió el usuario, actualizar datos
           this.usuarioId = user.uid;
+          this.verificandoAuth = false;
           await this.cargarDatosUsuario();
         }
-      } else {
-        // Si se cerró sesión, redirigir inmediatamente
-        this.router.navigate(['/iniciar-sesion'], { replaceUrl: true });
       }
     });
   }
@@ -164,12 +147,12 @@ export class PerfilComponent implements OnInit {
   }
 
   validarPasswordsCoinciden(formGroup: FormGroup) {
-    const passwordNueva = formGroup.get('passwordNueva')?.value;
-    const passwordConfirmar = formGroup.get('passwordConfirmar')?.value;
+    const contrasenaNueva = formGroup.get('contrasenaNueva')?.value;
+    const contrasenaConfirmar = formGroup.get('contrasenaConfirmar')?.value;
     
-    if (passwordNueva && passwordConfirmar && passwordNueva !== passwordConfirmar) {
-      formGroup.get('passwordConfirmar')?.setErrors({ passwordsNoCoinciden: true });
-      return { passwordsNoCoinciden: true };
+    if (contrasenaNueva && contrasenaConfirmar && contrasenaNueva !== contrasenaConfirmar) {
+      formGroup.get('contrasenaConfirmar')?.setErrors({ contrasenasNoCoinciden: true });
+      return { contrasenasNoCoinciden: true };
     }
     return null;
   }
@@ -226,7 +209,7 @@ export class PerfilComponent implements OnInit {
     
     this.estaCargando = true;
     try {
-      const { passwordActual, nuevoEmail } = this.formularioEmail.value;
+      const { contrasenaActual, nuevoEmail } = this.formularioEmail.value;
       const user = this.auth.currentUser;
       
       if (!user || !user.email) {
@@ -235,7 +218,7 @@ export class PerfilComponent implements OnInit {
       }
       
       // Reautenticar antes de cambiar email (requerido por Firebase)
-      const credential = EmailAuthProvider.credential(user.email, passwordActual);
+      const credential = EmailAuthProvider.credential(user.email, contrasenaActual);
       await reauthenticateWithCredential(user, credential);
       
       // Actualizar email
@@ -276,7 +259,7 @@ export class PerfilComponent implements OnInit {
     
     this.estaCargando = true;
     try {
-      const { passwordActual, passwordNueva } = this.formularioPassword.value;
+      const { contrasenaActual, contrasenaNueva } = this.formularioPassword.value;
       const user = this.auth.currentUser;
       
       if (!user || !user.email) {
@@ -285,11 +268,11 @@ export class PerfilComponent implements OnInit {
       }
       
       // Reautenticar usuario
-      const credential = EmailAuthProvider.credential(user.email, passwordActual);
+      const credential = EmailAuthProvider.credential(user.email, contrasenaActual);
       await reauthenticateWithCredential(user, credential);
       
       // Actualizar contraseña
-      await updatePassword(user, passwordNueva);
+      await updatePassword(user, contrasenaNueva);
       
       this.editandoPassword = false;
       this.formularioPassword.reset();
@@ -383,6 +366,43 @@ export class PerfilComponent implements OnInit {
       month: 'long',
       day: 'numeric'
     });
+  }
+
+  // Calcular tiempo restante hasta el vencimiento
+  calcularTiempoRestante(): string {
+    const ahora = new Date();
+    const vencimiento = new Date(this.fechaVencimiento!);
+    const diferencia = vencimiento.getTime() - ahora.getTime();
+
+    if (diferencia < 0) {
+      return 'Vencido';
+    }
+
+    const dias = Math.floor(diferencia / (1000 * 60 * 60 * 24));
+    const horas = Math.floor((diferencia % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const meses = Math.floor(dias / 30);
+    const semanas = Math.floor(dias / 7);
+
+    if (meses > 0) {
+      const diasRestantes = dias % 30;
+      if (diasRestantes > 0) {
+        return `${meses} ${meses === 1 ? 'mes' : 'meses'} y ${diasRestantes} ${diasRestantes === 1 ? 'día' : 'días'}`;
+      }
+      return `${meses} ${meses === 1 ? 'mes' : 'meses'}`;
+    } else if (semanas > 0) {
+      const diasRestantes = dias % 7;
+      if (diasRestantes > 0) {
+        return `${semanas} ${semanas === 1 ? 'semana' : 'semanas'} y ${diasRestantes} ${diasRestantes === 1 ? 'día' : 'días'}`;
+      }
+      return `${semanas} ${semanas === 1 ? 'semana' : 'semanas'}`;
+    } else if (dias > 0) {
+      if (horas > 0) {
+        return `${dias} ${dias === 1 ? 'día' : 'días'} y ${horas} ${horas === 1 ? 'hora' : 'horas'}`;
+      }
+      return `${dias} ${dias === 1 ? 'día' : 'días'}`;
+    } else {
+      return `${horas} ${horas === 1 ? 'hora' : 'horas'}`;
+    }
   }
 
   // Mostrar toast

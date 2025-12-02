@@ -1,0 +1,200 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-button fill="solid" slot="start" (click)="volverAtras()" class="boton-volver-header">
+      <ion-icon name="arrow-back" slot="start"></ion-icon>
+      <span class="texto-boton-volver">Volver</span>
+    </ion-button>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="contenido-inventario" [scrollY]="true">
+  <div class="ion-padding contenedor-inventario" *ngIf="!verificandoAuth">
+    <h1 class="titulo-inventario">Inventario</h1>
+    
+    <!-- Botón para crear producto -->
+    <div class="contenedor-boton-crear">
+      <ion-button 
+        (click)="toggleFormulario()" 
+        [color]="mostrandoFormulario ? 'danger' : 'primary'"
+        class="boton-crear-producto">
+        <ion-icon [name]="mostrandoFormulario ? 'close' : 'add'" slot="start"></ion-icon>
+        {{ mostrandoFormulario ? 'Cancelar' : 'Crear Producto' }}
+      </ion-button>
+    </div>
+
+    <!-- Formulario de creación de producto -->
+    <div *ngIf="mostrandoFormulario" class="contenedor-formulario">
+      <form [formGroup]="formularioProducto" (ngSubmit)="guardarProducto()">
+        
+        <!-- Nombre (requerido) -->
+        <ion-item class="campo-formulario">
+          <ion-label position="stacked">Nombre del Producto *</ion-label>
+          <ion-input 
+            type="text" 
+            formControlName="nombre"
+            placeholder="Ingresa el nombre del producto">
+          </ion-input>
+        </ion-item>
+        <div *ngIf="formularioProducto.get('nombre')?.invalid && formularioProducto.get('nombre')?.touched" 
+             class="mensaje-error">
+          El nombre es requerido
+        </div>
+
+        <!-- Descripción (opcional) -->
+        <ion-item class="campo-formulario">
+          <ion-label position="stacked">Descripción</ion-label>
+          <ion-textarea 
+            formControlName="descripcion"
+            placeholder="Ingresa una descripción del producto (opcional)"
+            rows="3">
+          </ion-textarea>
+        </ion-item>
+
+        <!-- Precio (requerido) -->
+        <ion-item class="campo-formulario">
+          <ion-label position="stacked">Precio *</ion-label>
+          <ion-input 
+            type="number" 
+            formControlName="precio"
+            placeholder="0.00"
+            step="0.01"
+            min="0.01">
+          </ion-input>
+        </ion-item>
+        <div *ngIf="formularioProducto.get('precio')?.invalid && formularioProducto.get('precio')?.touched" 
+             class="mensaje-error">
+          <span *ngIf="formularioProducto.get('precio')?.errors?.['required']">
+            El precio es requerido
+          </span>
+          <span *ngIf="formularioProducto.get('precio')?.errors?.['precioInvalido']">
+            El precio debe ser mayor a cero
+          </span>
+        </div>
+
+        <!-- Stock inicial (requerido) -->
+        <ion-item class="campo-formulario">
+          <ion-label position="stacked">Stock Inicial *</ion-label>
+          <ion-input 
+            type="number" 
+            formControlName="stock"
+            placeholder="0"
+            min="0">
+          </ion-input>
+        </ion-item>
+        <div *ngIf="formularioProducto.get('stock')?.invalid && formularioProducto.get('stock')?.touched" 
+             class="mensaje-error">
+          <span *ngIf="formularioProducto.get('stock')?.errors?.['required']">
+            El stock inicial es requerido
+          </span>
+          <span *ngIf="formularioProducto.get('stock')?.errors?.['stockInvalido']">
+            El stock no puede ser negativo
+          </span>
+        </div>
+
+        <!-- Código de barras (opcional) -->
+        <ion-item class="campo-formulario">
+          <ion-label position="stacked">Código de Barras</ion-label>
+          <ion-input 
+            type="text" 
+            formControlName="codigoBarras"
+            placeholder="Dejar vacío para generar automáticamente">
+          </ion-input>
+        </ion-item>
+        <p class="texto-ayuda">Si no ingresas un código de barras, se generará uno automáticamente.</p>
+
+        <!-- Foto del producto (opcional) -->
+        <div class="campo-foto">
+          <ion-label class="label-foto">Foto del Producto (opcional)</ion-label>
+          
+          <!-- Preview de la foto seleccionada -->
+          <div *ngIf="fotoSeleccionada" class="preview-foto">
+            <img [src]="fotoSeleccionada" alt="Preview" class="imagen-preview">
+            <ion-button 
+              fill="clear" 
+              color="danger" 
+              size="small" 
+              (click)="eliminarFoto()"
+              class="boton-eliminar-foto">
+              Eliminar foto
+            </ion-button>
+          </div>
+          
+          <!-- Botón para seleccionar foto -->
+          <ion-button 
+            *ngIf="!fotoSeleccionada"
+            fill="outline" 
+            expand="block" 
+            (click)="seleccionarFoto()"
+            [disabled]="estaSubiendoFoto"
+            class="boton-seleccionar-foto">
+            <ion-icon name="camera" slot="start"></ion-icon>
+            {{ estaSubiendoFoto ? 'Subiendo...' : 'Seleccionar Foto' }}
+          </ion-button>
+        </div>
+
+        <!-- Categoría (opcional) -->
+        <ion-item class="campo-formulario">
+          <ion-label position="stacked">Categoría</ion-label>
+          <ion-select formControlName="categoriaId" interface="popover" placeholder="Selecciona una categoría (opcional)">
+            <ion-select-option value="ninguna">Sin categoría</ion-select-option>
+            <ion-select-option *ngFor="let categoria of categorias" [value]="categoria.id">
+              {{ categoria.nombre }}
+            </ion-select-option>
+          </ion-select>
+        </ion-item>
+        <p *ngIf="formularioProducto.get('categoriaId')?.value" class="texto-valor-seleccionado">
+          Seleccionado: <strong>{{ obtenerTextoCategoria() }}</strong>
+        </p>
+
+        <!-- Proveedor (opcional) -->
+        <ion-item class="campo-formulario">
+          <ion-label position="stacked">Proveedor</ion-label>
+          <ion-select formControlName="proveedorId" interface="popover" placeholder="Selecciona un proveedor (opcional)">
+            <ion-select-option value="ninguna">Sin proveedor</ion-select-option>
+            <ion-select-option *ngFor="let proveedor of proveedores" [value]="proveedor.id">
+              {{ proveedor.nombre }}
+            </ion-select-option>
+          </ion-select>
+        </ion-item>
+        <p *ngIf="formularioProducto.get('proveedorId')?.value" class="texto-valor-seleccionado">
+          Seleccionado: <strong>{{ obtenerTextoProveedor() }}</strong>
+        </p>
+
+        <!-- Estado (requerido) -->
+        <ion-item class="campo-formulario">
+          <ion-label position="stacked">Estado *</ion-label>
+          <ion-select formControlName="estado" interface="popover" placeholder="Selecciona el estado">
+            <ion-select-option value="buen estado">Buen Estado</ion-select-option>
+            <ion-select-option value="mal estado">Mal Estado</ion-select-option>
+          </ion-select>
+        </ion-item>
+        <p *ngIf="formularioProducto.get('estado')?.value" class="texto-valor-seleccionado">
+          Seleccionado: <strong>{{ obtenerTextoEstado() }}</strong>
+        </p>
+
+        <!-- Botón guardar -->
+        <div class="contenedor-botones-formulario">
+          <ion-button 
+            type="submit" 
+            expand="block" 
+            [disabled]="estaCargando || estaSubiendoFoto || formularioProducto.invalid"
+            class="boton-guardar">
+            <ion-icon name="save" slot="start"></ion-icon>
+            {{ estaSubiendoFoto ? 'Subiendo foto...' : (estaCargando ? 'Guardando...' : 'Guardar Producto') }}
+          </ion-button>
+        </div>
+
+      </form>
+    </div>
+
+    <!-- Lista de productos (se implementará después) -->
+    <div *ngIf="!mostrandoFormulario" class="contenedor-lista-productos">
+      <!-- Aquí irá la lista de productos -->
+    </div>
+
+  </div>
+  
+  <div *ngIf="verificandoAuth" class="cargando-auth">
+    <p>Verificando autenticación...</p>
+  </div>
+</ion-content>

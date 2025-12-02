@@ -26,7 +26,7 @@ export class IniciarSesionComponent implements OnInit {
   mensajeError: string = '';
   
   // Variable para mostrar/ocultar contraseña
-  mostrarPassword: boolean = false;
+  mostrarContrasena: boolean = false;
 
   constructor(
     private formBuilder: FormBuilder,
@@ -111,7 +111,7 @@ export class IniciarSesionComponent implements OnInit {
   }
 
   // Función para alternar visibilidad de la contraseña
-  alternarVisibilidadPassword() {
-    this.mostrarPassword = !this.mostrarPassword;
+  alternarVisibilidadContrasena() {
+    this.mostrarContrasena = !this.mostrarContrasena;
   }
 }
