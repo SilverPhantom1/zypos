@@ -52,15 +52,28 @@
       <p>Cargando planes...</p>
     </div>
 
-      <!-- Botón de confirmación -->
-      <ion-button 
-        expand="block" 
-        class="boton-confirmar"
-        (click)="confirmarPlan()"
-        [disabled]="estaProcesando || estaCargandoPlanes">
-        <span *ngIf="!estaProcesando">Confirmar Plan</span>
-        <span *ngIf="estaProcesando">Procesando...</span>
-      </ion-button>
+      <!-- Botones de acción -->
+      <div class="contenedor-botones">
+        <!-- Botón de confirmación -->
+        <ion-button 
+          expand="block" 
+          class="boton-confirmar"
+          (click)="confirmarPlan()"
+          [disabled]="estaProcesando || estaCargandoPlanes">
+          <span *ngIf="!estaProcesando">Confirmar Plan</span>
+          <span *ngIf="estaProcesando">Procesando...</span>
+        </ion-button>
+
+        <!-- Botón ver después -->
+        <ion-button 
+          expand="block" 
+          fill="outline"
+          class="boton-saltar"
+          (click)="verDespues()"
+          [disabled]="estaProcesando || estaCargandoPlanes">
+          Ver Después
+        </ion-button>
+      </div>
     </div>
   </div>
 </ion-content>

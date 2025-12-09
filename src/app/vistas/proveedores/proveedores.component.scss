@@ -1,0 +1,401 @@
+.contenido-proveedores {
+  --background: #f4e9e0; // Color de fondo
+  overflow-x: hidden !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box;
+}
+
+.contenedor-proveedores {
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding: clamp(1rem, 2vw, 2rem) clamp(0.75rem, 1.5vw, 1rem);
+  min-height: calc(100vh - 120px);
+  box-sizing: border-box;
+  overflow-x: hidden;
+  
+  @media (max-width: 576px) {
+    padding: clamp(0.75rem, 2vw, 1.5rem) clamp(0.5rem, 1.5vw, 0.75rem);
+    min-height: calc(100vh - 100px);
+    max-width: 100%;
+  }
+  
+  @media (min-width: 577px) and (max-width: 768px) {
+    padding: clamp(1rem, 2vw, 1.5rem);
+    max-width: 95%;
+  }
+  
+  @media (min-width: 769px) {
+    padding: clamp(1.5rem, 2vw, 2rem);
+    max-width: min(1200px, 95%);
+  }
+}
+
+.titulo-proveedores {
+  color: #0a3254ff; // Color letras azul oscuro
+  text-align: center;
+  margin-bottom: clamp(1rem, 2vw, 2rem);
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-weight: 700;
+  word-wrap: break-word;
+  
+  @media (max-width: 576px) {
+    margin-bottom: clamp(0.75rem, 2vw, 1.5rem);
+  }
+}
+
+.contenedor-boton-crear {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+  
+  @media (max-width: 576px) {
+    margin-bottom: 1.5rem;
+  }
+}
+
+.boton-crear-proveedor {
+  --background: #f89585ff; // Color primario coral
+  --color: #ffffff;
+  --border-radius: 12px;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  
+  @media (max-width: 576px) {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.9rem;
+  }
+}
+
+.contenedor-controles {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  
+  @media (min-width: 577px) {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+.barra-busqueda {
+  flex: 1;
+  --background: #ffffff;
+  --border-radius: 12px;
+  padding: 0;
+  
+  @media (max-width: 576px) {
+    width: 100%;
+  }
+}
+
+.boton-ordenar {
+  --border-radius: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  
+  @media (max-width: 576px) {
+    width: 100%;
+  }
+}
+
+.cargando-proveedores,
+.sin-proveedores {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #0a3254ff;
+  font-size: clamp(1rem, 2vw, 1.125rem);
+  
+  @media (max-width: 576px) {
+    padding: 2rem 1rem;
+  }
+}
+
+.grid-proveedores {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  
+  @media (max-width: 576px) {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  @media (min-width: 577px) and (max-width: 768px) {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.25rem;
+  }
+}
+
+.tarjeta-proveedor {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  
+  @media (max-width: 576px) {
+    border-radius: 12px;
+  }
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  ion-card-header {
+    background: #f89585ff; // Color primario coral
+    padding: 0.875rem 1rem;
+    margin-bottom: 0;
+    
+    @media (max-width: 576px) {
+      padding: 0.75rem;
+    }
+  }
+
+  .titulo-proveedor {
+    color: #ffffff; // Texto blanco para contraste
+    font-size: clamp(1.125rem, 2.5vw, 1.25rem);
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+    
+    .icono-proveedor {
+      font-size: 1.5rem;
+    }
+  }
+
+  ion-card-content {
+    background: #f4e9e0; // Color de fondo beige claro
+    padding: 1rem;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    
+    @media (max-width: 576px) {
+      padding: 0.75rem;
+    }
+  }
+}
+
+.info-proveedor {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.campo-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: clamp(0.875rem, 2vw, 1rem);
+  
+  .icono-campo {
+    color: #6381e4ff; // Color módulos/iconos
+    font-size: 1.125rem;
+    margin-top: 0.125rem;
+    flex-shrink: 0;
+  }
+  
+  .etiqueta {
+    color: #0a3254ff; // Color letras azul oscuro
+    font-weight: 600;
+    min-width: 80px;
+    flex-shrink: 0;
+  }
+  
+  .valor {
+    color: #0a3254ff; // Color letras azul oscuro
+    flex: 1;
+    word-wrap: break-word;
+    
+    &.enlace {
+      color: #6381e4ff;
+      text-decoration: underline;
+      cursor: pointer;
+      
+      &:hover {
+        color: #0a3254ff;
+      }
+    }
+    
+    &.descripcion {
+      font-style: italic;
+      line-height: 1.5;
+    }
+  }
+}
+
+.acciones-proveedor {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #d0d0d0;
+  margin-top: auto;
+}
+
+.boton-editar,
+.boton-eliminar {
+  --padding-start: 0.5rem;
+  --padding-end: 0.5rem;
+  margin: 0;
+  
+  ion-icon {
+    font-size: 1.25rem;
+  }
+}
+
+.boton-editar {
+  color: #6381e4ff; // Color módulos/iconos
+  
+  &:hover {
+    --background: #f0f2ff;
+  }
+}
+
+.boton-eliminar {
+  color: #f89585ff; // Color primario coral
+  
+  &:hover {
+    --background: #fff5f5;
+  }
+}
+
+// Estilos del modal
+.contenido-modal {
+  --background: #f4e9e0;
+}
+
+.contenedor-formulario-modal {
+  max-width: 90%;
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+  padding: clamp(1rem, 2vw, 1.5rem);
+  background: #f4e9e0; // Color de fondo beige claro
+  
+  @media (max-width: 576px) {
+    max-width: 100%;
+    padding: 1rem;
+  }
+}
+
+.campo-formulario {
+  --background: #ffffff;
+  --border-radius: 12px;
+  margin-bottom: 1.25rem;
+  border: 2px solid #6381e4ff; // Color módulos/iconos
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 0.5rem;
+  background: #ffffff;
+  
+  ion-label {
+    color: #0a3254ff !important; // Color letras azul oscuro
+    font-weight: 700 !important;
+    font-size: clamp(0.95rem, 2vw, 1.05rem) !important;
+    margin-bottom: 0.75rem !important;
+    display: block !important;
+    opacity: 1 !important;
+  }
+  
+  ion-input,
+  ion-textarea {
+    --color: #0a3254ff !important; // Color letras azul oscuro
+    --placeholder-color: #999999 !important;
+    --placeholder-opacity: 0.8 !important;
+    --padding-start: 0.75rem !important;
+    --padding-end: 0.75rem !important;
+    --padding-top: 0.875rem !important;
+    --padding-bottom: 0.875rem !important;
+    font-size: clamp(0.95rem, 2vw, 1.05rem) !important;
+    background: #f8f8f8 !important;
+    border-radius: 8px !important;
+    border: 1px solid #e0e0e0 !important;
+    min-height: 44px !important;
+  }
+  
+  ion-textarea {
+    min-height: 80px !important;
+  }
+  
+  &:focus-within {
+    border-color: #6381e4ff;
+    box-shadow: 0 2px 6px rgba(99, 129, 228, 0.2);
+  }
+  
+  @media (max-width: 576px) {
+    margin-bottom: 1rem;
+    padding: 0.5rem;
+  }
+}
+
+.mensaje-error {
+  color: #f89585ff; // Color primario coral
+  font-size: 0.875rem;
+  margin-top: -0.75rem;
+  margin-bottom: 0.5rem;
+  padding-left: 1rem;
+}
+
+.contenedor-botones-formulario {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  
+  @media (min-width: 577px) {
+    flex-direction: row;
+  }
+}
+
+.boton-guardar {
+  --background: #f89585ff; // Color primario coral
+  --color: #ffffff;
+  --border-radius: 8px;
+  font-weight: 600;
+  flex: 1;
+}
+
+.boton-cancelar {
+  --border-radius: 8px;
+  font-weight: 600;
+  flex: 1;
+}
+
+// Estilos del header
+.boton-volver-header {
+  --background: #6381e4ff; // Color módulos/iconos
+  --color: white;
+  --border-radius: 12px;
+  --padding-start: 0.75rem;
+  --padding-end: 1rem;
+  --padding-top: 0.5rem;
+  --padding-bottom: 0.5rem;
+  height: auto;
+  font-weight: 500;
+  margin-left: 0.5rem;
+  
+  .texto-boton-volver {
+    margin-left: 0.25rem;
+  }
+  
+  @media (max-width: 576px) {
+    --padding-start: 0.5rem;
+    --padding-end: 0.75rem;
+    font-size: 0.9rem;
+    
+    .texto-boton-volver {
+      font-size: 0.85rem;
+    }
+  }
+}
+

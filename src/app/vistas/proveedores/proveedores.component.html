@@ -1,0 +1,224 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-button fill="solid" slot="start" (click)="volverAtras()" class="boton-volver-header">
+      <ion-icon name="arrow-back" slot="start"></ion-icon>
+      <span class="texto-boton-volver">Volver</span>
+    </ion-button>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="contenido-proveedores" [scrollY]="true">
+  <div class="ion-padding contenedor-proveedores" *ngIf="!verificandoAuth">
+    <h1 class="titulo-proveedores">Proveedores</h1>
+    
+    <!-- Botón para crear proveedor -->
+    <div class="contenedor-boton-crear">
+      <ion-button 
+        (click)="abrirModalCrear()" 
+        color="primary"
+        class="boton-crear-proveedor">
+        <ion-icon name="add" slot="start"></ion-icon>
+        Crear Proveedor
+      </ion-button>
+    </div>
+
+    <!-- Controles de búsqueda y ordenamiento -->
+    <div class="contenedor-controles">
+      <ion-searchbar
+        [(ngModel)]="terminoBusqueda"
+        (ionInput)="onBuscar($event)"
+        placeholder="Buscar por nombre o contacto"
+        class="barra-busqueda">
+      </ion-searchbar>
+
+      <ion-button 
+        fill="outline" 
+        (click)="cambiarOrdenamiento()"
+        class="boton-ordenar">
+        <ion-icon name="swap-vertical" slot="start"></ion-icon>
+        <span>Ordenar: {{ ordenamiento === 'nombre-asc' ? 'A-Z' : 'Z-A' }}</span>
+      </ion-button>
+    </div>
+
+    <!-- Estado de carga -->
+    <div *ngIf="estaCargandoProveedores" class="cargando-proveedores">
+      <p>Cargando proveedores...</p>
+    </div>
+
+    <!-- Lista de proveedores -->
+    <div *ngIf="!estaCargandoProveedores">
+      <div *ngIf="proveedoresFiltrados.length === 0" class="sin-proveedores">
+        <p *ngIf="terminoBusqueda.trim()">No se encontraron proveedores con ese criterio de búsqueda.</p>
+        <p *ngIf="!terminoBusqueda.trim()">No hay proveedores creados aún.</p>
+      </div>
+
+      <div *ngIf="proveedoresFiltrados.length > 0" class="grid-proveedores">
+        <ion-card *ngFor="let proveedor of proveedoresFiltrados" class="tarjeta-proveedor">
+          <ion-card-header>
+            <ion-card-title class="titulo-proveedor">
+              <ion-icon name="storefront" class="icono-proveedor"></ion-icon>
+              {{ proveedor.nombre }}
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="info-proveedor">
+              <div class="campo-info" *ngIf="proveedor.telefono">
+                <ion-icon name="call" class="icono-campo"></ion-icon>
+                <span class="etiqueta">Teléfono:</span>
+                <span class="valor">{{ proveedor.telefono }}</span>
+              </div>
+              <div class="campo-info" *ngIf="proveedor.email">
+                <ion-icon name="mail" class="icono-campo"></ion-icon>
+                <span class="etiqueta">Email:</span>
+                <span class="valor">{{ proveedor.email }}</span>
+              </div>
+              <div class="campo-info" *ngIf="proveedor.direccion">
+                <ion-icon name="location" class="icono-campo"></ion-icon>
+                <span class="etiqueta">Dirección:</span>
+                <span class="valor">{{ proveedor.direccion }}</span>
+              </div>
+              <div class="campo-info" *ngIf="proveedor.enlaceCompra">
+                <ion-icon name="link" class="icono-campo"></ion-icon>
+                <span class="etiqueta">Enlace de compra:</span>
+                <a [href]="proveedor.enlaceCompra" target="_blank" class="valor enlace">Abrir enlace</a>
+              </div>
+              <div class="campo-info" *ngIf="proveedor.descripcion">
+                <ion-icon name="documentText" class="icono-campo"></ion-icon>
+                <span class="etiqueta">Descripción:</span>
+                <span class="valor descripcion">{{ proveedor.descripcion }}</span>
+              </div>
+            </div>
+
+            <div class="acciones-proveedor">
+              <ion-button 
+                fill="clear" 
+                size="small"
+                (click)="abrirModalEditar(proveedor)"
+                class="boton-editar">
+                <ion-icon name="create" slot="icon-only"></ion-icon>
+              </ion-button>
+              <ion-button 
+                fill="clear" 
+                size="small"
+                color="danger"
+                (click)="eliminarProveedor(proveedor)"
+                class="boton-eliminar">
+                <ion-icon name="trash" slot="icon-only"></ion-icon>
+              </ion-button>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </div>
+    </div>
+  </div>
+</ion-content>
+
+<!-- Modal de Crear/Editar Proveedor -->
+<ion-modal [isOpen]="mostrandoModalProveedor" (willDismiss)="cerrarModal()">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>{{ proveedorEditando ? 'Editar Proveedor' : 'Crear Proveedor' }}</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="cerrarModal()">
+            <ion-icon name="close" slot="icon-only"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="contenido-modal">
+      <div class="ion-padding contenedor-formulario-modal" *ngIf="formularioProveedor">
+        <form [formGroup]="formularioProveedor" (ngSubmit)="guardarProveedor()">
+          
+          <!-- Nombre (requerido) -->
+          <ion-item class="campo-formulario">
+            <ion-label position="stacked">Nombre del Proveedor *</ion-label>
+            <ion-input 
+              type="text" 
+              formControlName="nombre"
+              placeholder="Ingresa el nombre del proveedor">
+            </ion-input>
+          </ion-item>
+          <div *ngIf="formularioProveedor.get('nombre')?.invalid && formularioProveedor.get('nombre')?.touched" 
+               class="mensaje-error">
+            El nombre es requerido
+          </div>
+
+          <!-- Teléfono -->
+          <ion-item class="campo-formulario">
+            <ion-label position="stacked">Teléfono</ion-label>
+            <ion-input 
+              type="tel" 
+              formControlName="telefono"
+              placeholder="Ingresa el teléfono (opcional)">
+            </ion-input>
+          </ion-item>
+
+          <!-- Email -->
+          <ion-item class="campo-formulario">
+            <ion-label position="stacked">Email</ion-label>
+            <ion-input 
+              type="email" 
+              formControlName="email"
+              placeholder="Ingresa el email (opcional)">
+            </ion-input>
+          </ion-item>
+          <div *ngIf="formularioProveedor.get('email')?.invalid && formularioProveedor.get('email')?.touched" 
+               class="mensaje-error">
+            El email no es válido
+          </div>
+
+          <!-- Dirección -->
+          <ion-item class="campo-formulario">
+            <ion-label position="stacked">Dirección</ion-label>
+            <ion-input 
+              type="text" 
+              formControlName="direccion"
+              placeholder="Ingresa la dirección (opcional)">
+            </ion-input>
+          </ion-item>
+
+          <!-- Enlace de compra -->
+          <ion-item class="campo-formulario">
+            <ion-label position="stacked">Enlace de Compra (URL)</ion-label>
+            <ion-input 
+              type="url" 
+              formControlName="enlaceCompra"
+              placeholder="https://ejemplo.com (opcional)">
+            </ion-input>
+          </ion-item>
+
+          <!-- Descripción -->
+          <ion-item class="campo-formulario">
+            <ion-label position="stacked">Descripción</ion-label>
+            <ion-textarea 
+              formControlName="descripcion"
+              placeholder="Ingresa una descripción (opcional)"
+              rows="3">
+            </ion-textarea>
+          </ion-item>
+
+          <!-- Botones -->
+          <div class="contenedor-botones-formulario">
+            <ion-button 
+              type="submit" 
+              expand="block"
+              [disabled]="estaCargando || formularioProveedor.invalid"
+              class="boton-guardar">
+              <ion-icon name="save" slot="start"></ion-icon>
+              {{ estaCargando ? 'Guardando...' : (proveedorEditando ? 'Guardar Cambios' : 'Crear Proveedor') }}
+            </ion-button>
+            <ion-button 
+              fill="outline" 
+              expand="block"
+              type="button"
+              (click)="cerrarModal()"
+              class="boton-cancelar">
+              Cancelar
+            </ion-button>
+          </div>
+        </form>
+      </div>
+    </ion-content>
+  </ng-template>
+</ion-modal>

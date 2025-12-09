@@ -1,24 +1,26 @@
-import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
-import { IonHeader, IonToolbar, IonContent, IonButton, IonIcon, IonItem, IonLabel, IonInput, IonTextarea, IonSelect, IonSelectOption, ToastController } from '@ionic/angular/standalone';
-import { arrowBack, add, save, camera, image, close } from 'ionicons/icons';
+import { Component, OnInit, AfterViewChecked, ViewChild, ElementRef } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
+import { IonHeader, IonToolbar, IonContent, IonButton, IonIcon, IonItem, IonLabel, IonInput, IonTextarea, IonSelect, IonSelectOption, ToastController, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonBadge, IonSearchbar, IonModal, IonButtons, IonTitle, IonGrid, IonRow, IonCol, ActionSheetController, AlertController } from '@ionic/angular/standalone';
+import { arrowBack, add, save, camera, image, close, create, trash, warning, checkmarkCircle, barcode, list, grid, search, filter, swapVertical, pricetags, addCircle, checkmark, storefront } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 import { CommonModule } from '@angular/common';
 import { Auth, onAuthStateChanged } from '@angular/fire/auth';
-import { Firestore, collection, addDoc, getDocs, query, where } from '@angular/fire/firestore';
-import { Storage, ref, uploadBytes, getDownloadURL } from '@angular/fire/storage';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { Firestore, collection, addDoc, getDocs, query, where, doc, updateDoc, deleteDoc, orderBy } from '@angular/fire/firestore';
+import { Storage, ref, uploadBytes, getDownloadURL, deleteObject } from '@angular/fire/storage';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Capacitor } from '@capacitor/core';
+import { BrowserMultiFormatReader } from '@zxing/library';
+import JsBarcode from 'jsbarcode';
 
 @Component({
   selector: 'app-inventario',
   templateUrl: './inventario.component.html',
   styleUrls: ['./inventario.component.scss'],
   standalone: true,
-  imports: [IonHeader, IonToolbar, IonContent, IonButton, IonIcon, IonItem, IonLabel, IonInput, IonTextarea, IonSelect, IonSelectOption, CommonModule, ReactiveFormsModule]
+  imports: [IonHeader, IonToolbar, IonContent, IonButton, IonIcon, IonItem, IonLabel, IonInput, IonTextarea, IonSelect, IonSelectOption, CommonModule, ReactiveFormsModule, FormsModule, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonBadge, IonSearchbar, IonModal, IonButtons, IonTitle, IonGrid, IonRow, IonCol, RouterLink]
 })
-export class InventarioComponent implements OnInit {
+export class InventarioComponent implements OnInit, AfterViewChecked {
   verificandoAuth: boolean = true;
   usuarioId: string | null = null;
   mostrandoFormulario: boolean = false;
@@ -37,6 +39,43 @@ export class InventarioComponent implements OnInit {
   
   // Formulario de producto
   formularioProducto!: FormGroup;
+  
+  // Lista de productos
+  productos: any[] = [];
+  productosFiltrados: any[] = [];
+  estaCargandoProductos: boolean = false;
+  
+  // Búsqueda y filtros
+  terminoBusqueda: string = '';
+  categoriaFiltro: string = 'todas';
+  proveedorFiltro: string = 'todos';
+  ordenamiento: string = 'nombre';
+  vistaGrid: boolean = true; // true = grid, false = lista
+  umbralBajoStock: number = 10; // Umbral para considerar bajo stock
+  
+  // Modales y estados
+  mostrandoModalEditar: boolean = false;
+  mostrandoModalAjusteStock: boolean = false;
+  mostrandoModalCategorias: boolean = false;
+  productoEditando: any = null;
+  productoAjustandoStock: any = null;
+  nuevoStock: number = 0;
+  
+  // Detectar si es móvil
+  esPlataformaMovil: boolean = false;
+  
+  // Menú contextual para web
+  mostrandoMenuContextual: boolean = false;
+  productoSeleccionado: any = null;
+  posicionMenu: { x: number, y: number } = { x: 0, y: 0 };
+  
+  // Formulario de edición
+  formularioEdicion!: FormGroup;
+  
+  // Gestión de categorías
+  formularioCategoria!: FormGroup;
+  categoriaEditando: any = null;
+  estaCargandoCategoria: boolean = false;
 
   constructor(
     private auth: Auth,
@@ -44,12 +83,17 @@ export class InventarioComponent implements OnInit {
     private firestore: Firestore,
     private storage: Storage,
     private formBuilder: FormBuilder,
-    private toastController: ToastController
+    private toastController: ToastController,
+    private actionSheetController: ActionSheetController,
+    private alertController: AlertController
   ) {
-    addIcons({ arrowBack, add, save, camera, image, close });
+    addIcons({ arrowBack, add, save, camera, image, close, create, trash, warning, checkmarkCircle, barcode, list, grid, search, filter, swapVertical, pricetags, addCircle, checkmark, storefront });
   }
 
   async ngOnInit() {
+    // Detectar si es plataforma móvil
+    this.esPlataformaMovil = Capacitor.getPlatform() !== 'web';
+    
     // Esperar a que Firebase Auth se inicialice completamente (importante después de refresh)
     // onAuthStateChanged se ejecuta cuando Firebase Auth termina de inicializarse
     onAuthStateChanged(this.auth, async (user) => {
@@ -64,10 +108,14 @@ export class InventarioComponent implements OnInit {
           
           // Inicializar formulario
           this.inicializarFormulario();
+          this.inicializarFormularioCategoria();
           
           // Cargar categorías y proveedores
           await this.cargarCategorias();
           await this.cargarProveedores();
+          
+          // Cargar productos
+          await this.cargarProductos();
         }
       }
     });
@@ -83,6 +131,12 @@ export class InventarioComponent implements OnInit {
       categoriaId: ['ninguna'],
       proveedorId: ['ninguna'],
       estado: ['buen estado', [Validators.required]]
+    });
+  }
+
+  inicializarFormularioCategoria() {
+    this.formularioCategoria = this.formBuilder.group({
+      nombre: ['', [Validators.required]]
     });
   }
 
@@ -114,40 +168,97 @@ export class InventarioComponent implements OnInit {
 
   // Cargar categorías del usuario (y categorías predeterminadas)
   async cargarCategorias() {
-    if (!this.usuarioId) return;
+    if (!this.usuarioId) {
+      console.warn('No hay usuarioId, no se pueden cargar categorías');
+      this.categorias = [];
+      return;
+    }
     
+    console.log('=== INICIANDO CARGA DE CATEGORÍAS ===');
+    console.log('usuarioId:', this.usuarioId);
     this.estaCargandoCategorias = true;
+    
+    const categoriasUsuario: any[] = [];
+    const categoriasPredeterminadas: any[] = [];
+    
     try {
       const categoriasRef = collection(this.firestore, 'categorias');
       
-      // Cargar categorías del usuario
-      const qUsuario = query(categoriasRef, where('userid', '==', this.usuarioId));
-      const snapshotUsuario = await getDocs(qUsuario);
-      const categoriasUsuario = snapshotUsuario.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+      // Cargar categorías del usuario con consulta específica
+      try {
+        console.log('Cargando categorías del usuario...');
+        const qUsuario = query(categoriasRef, where('userId', '==', this.usuarioId));
+        const snapshotUsuario = await getDocs(qUsuario);
+        
+        snapshotUsuario.docs.forEach(doc => {
+          const data = doc.data();
+          categoriasUsuario.push({
+            id: doc.id,
+            nombre: data['nombre'] || '',
+            userId: data['userId']
+          });
+        });
+        console.log('✓ Categorías del usuario cargadas:', categoriasUsuario.length);
+      } catch (errorUsuario: any) {
+        console.error('✗ Error al cargar categorías del usuario:', errorUsuario);
+        // Continuar aunque falle, para intentar cargar las predeterminadas
+      }
       
-      // Cargar categorías predeterminadas (userid == null o no existe)
-      const qPredeterminadas = query(categoriasRef, where('userid', '==', null));
-      const snapshotPredeterminadas = await getDocs(qPredeterminadas);
-      const categoriasPredeterminadas = snapshotPredeterminadas.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+      // Cargar categorías predeterminadas (userId == null)
+      try {
+        console.log('Cargando categorías predeterminadas...');
+        const qPredeterminadas = query(categoriasRef, where('userId', '==', null));
+        const snapshotPredeterminadas = await getDocs(qPredeterminadas);
+        
+        snapshotPredeterminadas.docs.forEach(doc => {
+          const data = doc.data();
+          categoriasPredeterminadas.push({
+            id: doc.id,
+            nombre: data['nombre'] || '',
+            userId: null
+          });
+        });
+        console.log('✓ Categorías predeterminadas cargadas:', categoriasPredeterminadas.length);
+      } catch (errorPredeterminadas: any) {
+        console.error('✗ Error al cargar categorías predeterminadas:', errorPredeterminadas);
+        // Continuar aunque falle
+      }
       
       // Combinar ambas listas
       this.categorias = [...categoriasUsuario, ...categoriasPredeterminadas];
-    } catch (error: any) {
-      // Silenciar el error si es por permisos o colección inexistente (esperado por ahora)
-      // Solo log en consola para desarrollo, no mostrar toast al usuario
-      if (error.code !== 'permission-denied' && error.code !== 'missing-or-insufficient-permissions') {
-        console.error('Error al cargar categorías:', error);
+      
+      console.log('=== CATEGORÍAS CARGADAS ===');
+      console.log('Total categorías:', this.categorias.length);
+      console.log('Categorías:', this.categorias);
+      
+      if (this.categorias.length === 0) {
+        console.warn('⚠ No se encontraron categorías. Verifica las reglas de Firestore.');
       }
-      // Inicializar como lista vacía si hay error
-      this.categorias = [];
+      
+    } catch (error: any) {
+      console.error('=== ERROR GENERAL AL CARGAR CATEGORÍAS ===');
+      console.error('Error:', error);
+      console.error('Código:', error.code);
+      console.error('Mensaje:', error.message);
+      
+      // Mantener las categorías que se pudieron cargar
+      if (categoriasUsuario.length > 0 || categoriasPredeterminadas.length > 0) {
+        this.categorias = [...categoriasUsuario, ...categoriasPredeterminadas];
+        console.log('Se mantienen las categorías cargadas parcialmente:', this.categorias.length);
+      } else {
+        this.categorias = [];
+      }
+      
+      if (error.code === 'permission-denied' || error.code === 'missing-or-insufficient-permissions') {
+        console.error('❌ ERROR DE PERMISOS');
+        console.error('Las reglas de Firestore deben permitir leer categorías donde:');
+        console.error('  1. resource.data.userId == request.auth.uid (categorías del usuario)');
+        console.error('  2. resource.data.userId == null (categorías predeterminadas)');
+        this.mostrarToast('Error de permisos. Verifica las reglas de Firestore para "categorias".', 'danger');
+      }
     } finally {
       this.estaCargandoCategorias = false;
+      console.log('=== FIN CARGA DE CATEGORÍAS ===');
     }
   }
 
@@ -158,7 +269,7 @@ export class InventarioComponent implements OnInit {
     this.estaCargandoProveedores = true;
     try {
       const proveedoresRef = collection(this.firestore, 'proveedores');
-      const q = query(proveedoresRef, where('userid', '==', this.usuarioId));
+      const q = query(proveedoresRef, where('userId', '==', this.usuarioId));
       const querySnapshot = await getDocs(q);
       
       this.proveedores = querySnapshot.docs.map(doc => ({
@@ -431,6 +542,9 @@ export class InventarioComponent implements OnInit {
       this.archivoFoto = null;
       this.mostrandoFormulario = false;
 
+      // Recargar productos
+      await this.cargarProductos();
+
     } catch (error: any) {
       console.error('Error al crear producto:', error);
       await this.mostrarToast('Error al crear el producto. Por favor, intenta nuevamente.', 'danger');
@@ -459,5 +573,907 @@ export class InventarioComponent implements OnInit {
   // Volver al home
   volverAtras() {
     this.router.navigate(['/home'], { replaceUrl: true });
+  }
+
+  // ========== FUNCIONALIDADES DE LISTADO ==========
+
+  // Cargar productos desde Firestore
+  async cargarProductos() {
+    if (!this.usuarioId) return;
+    
+    this.estaCargandoProductos = true;
+    try {
+      const productosRef = collection(this.firestore, 'productos');
+      const q = query(productosRef, where('userId', '==', this.usuarioId));
+      const querySnapshot = await getDocs(q);
+      
+      this.productos = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      
+      // Aplicar filtros y ordenamiento
+      this.aplicarFiltrosYOrdenamiento();
+      
+      // Generar códigos de barras después de cargar
+      setTimeout(() => {
+        this.generarCodigosBarras();
+      }, 100);
+    } catch (error: any) {
+      console.error('Error al cargar productos:', error);
+      this.mostrarToast('Error al cargar los productos', 'danger');
+      this.productos = [];
+    } finally {
+      this.estaCargandoProductos = false;
+    }
+  }
+
+  // Aplicar filtros y ordenamiento
+  aplicarFiltrosYOrdenamiento() {
+    let productosFiltrados = [...this.productos];
+    
+    // Filtro por búsqueda
+    if (this.terminoBusqueda.trim()) {
+      const busqueda = this.terminoBusqueda.toLowerCase().trim();
+      productosFiltrados = productosFiltrados.filter(producto => {
+        const nombre = (producto.nombre || '').toLowerCase();
+        const descripcion = (producto.descripcion || '').toLowerCase();
+        const codigoBarras = (producto.codigoBarras || '').toLowerCase();
+        const categoriaNombre = this.obtenerNombreCategoria(producto.categoriaId)?.toLowerCase() || '';
+        
+        return nombre.includes(busqueda) ||
+               descripcion.includes(busqueda) ||
+               codigoBarras.includes(busqueda) ||
+               categoriaNombre.includes(busqueda);
+      });
+    }
+    
+    // Filtro por categoría
+    if (this.categoriaFiltro !== 'todas') {
+      productosFiltrados = productosFiltrados.filter(producto => {
+        if (this.categoriaFiltro === 'sin-categoria') {
+          return !producto.categoriaId || producto.categoriaId === 'ninguna';
+        }
+        return producto.categoriaId === this.categoriaFiltro;
+      });
+    }
+    
+    // Filtro por proveedor
+    if (this.proveedorFiltro !== 'todos') {
+      productosFiltrados = productosFiltrados.filter(producto => {
+        if (this.proveedorFiltro === 'sin-proveedor') {
+          return !producto.proveedorId || producto.proveedorId === 'ninguna';
+        }
+        return producto.proveedorId === this.proveedorFiltro;
+      });
+    }
+    
+    // Ordenamiento
+    productosFiltrados.sort((a, b) => {
+      switch (this.ordenamiento) {
+        case 'nombre':
+          return (a.nombre || '').localeCompare(b.nombre || '');
+        case 'precio':
+          return (a.precio || 0) - (b.precio || 0);
+        case 'stock':
+          return (a.stock || 0) - (b.stock || 0);
+        default:
+          return 0;
+      }
+    });
+    
+    this.productosFiltrados = productosFiltrados;
+    
+    // Regenerar códigos de barras después de filtrar
+    setTimeout(() => {
+      this.generarCodigosBarras();
+    }, 100);
+  }
+
+  // Obtener nombre de categoría
+  obtenerNombreCategoria(categoriaId: string | null | undefined): string {
+    if (!categoriaId) return 'Sin categoría';
+    const categoria = this.categorias.find(c => c.id === categoriaId);
+    return categoria?.nombre || 'Sin categoría';
+  }
+
+  // Verificar si una categoría existe en la lista de categorías disponibles
+  tieneCategoriaValida(categoriaId: string | null | undefined): boolean {
+    if (!categoriaId) return false;
+    return this.categorias.some(c => c.id === categoriaId);
+  }
+
+  // Cambiar vista (grid/lista)
+  cambiarVista() {
+    this.vistaGrid = !this.vistaGrid;
+  }
+
+  // Cambiar ordenamiento
+  cambiarOrdenamiento() {
+    const opciones = ['nombre', 'precio', 'stock'];
+    const indiceActual = opciones.indexOf(this.ordenamiento);
+    const siguienteIndice = (indiceActual + 1) % opciones.length;
+    this.ordenamiento = opciones[siguienteIndice];
+    this.aplicarFiltrosYOrdenamiento();
+  }
+
+  // Verificar estado de stock
+  obtenerEstadoStock(stock: number): 'normal' | 'bajo' | 'sin-stock' {
+    if (stock === 0) return 'sin-stock';
+    if (stock <= this.umbralBajoStock) return 'bajo';
+    return 'normal';
+  }
+
+  // Formatear precio
+  formatearPrecio(precio: number): string {
+    return new Intl.NumberFormat('es-MX', {
+      style: 'currency',
+      currency: 'MXN'
+    }).format(precio);
+  }
+
+  // ========== FUNCIONALIDADES DE EDICIÓN ==========
+
+  // Abrir modal de edición
+  abrirModalEditar(producto: any) {
+    this.productoEditando = { ...producto };
+    this.inicializarFormularioEdicion();
+    this.mostrandoModalEditar = true;
+  }
+
+  // Cerrar modal de edición
+  cerrarModalEditar() {
+    this.mostrandoModalEditar = false;
+    this.productoEditando = null;
+    this.fotoSeleccionada = null;
+    this.archivoFoto = null;
+  }
+
+  // Inicializar formulario de edición
+  inicializarFormularioEdicion() {
+    if (!this.productoEditando) return;
+    
+    this.formularioEdicion = this.formBuilder.group({
+      nombre: [this.productoEditando.nombre || '', [Validators.required]],
+      descripcion: [this.productoEditando.descripcion || ''],
+      precio: [this.productoEditando.precio || '', [Validators.required, this.validarPrecioPositivo]],
+      stock: [this.productoEditando.stock || '', [Validators.required, this.validarStockNoNegativo]],
+      codigoBarras: [this.productoEditando.codigoBarras || ''],
+      categoriaId: [this.productoEditando.categoriaId || 'ninguna'],
+      proveedorId: [this.productoEditando.proveedorId || 'ninguna'],
+      estado: [this.productoEditando.estado || 'buen estado', [Validators.required]]
+    });
+    
+    // Cargar foto si existe
+    if (this.productoEditando.fotoUrl) {
+      this.fotoSeleccionada = this.productoEditando.fotoUrl;
+    }
+  }
+
+  // Guardar cambios de edición
+  async guardarEdicion() {
+    if (this.formularioEdicion.invalid || !this.productoEditando || !this.usuarioId) {
+      Object.keys(this.formularioEdicion.controls).forEach(key => {
+        this.formularioEdicion.get(key)?.markAsTouched();
+      });
+      return;
+    }
+
+    this.estaCargando = true;
+
+    try {
+      const valores = this.formularioEdicion.value;
+      
+      // Subir nueva foto si existe
+      let fotoUrl: string | null = this.productoEditando.fotoUrl || null;
+      if (this.archivoFoto) {
+        // Eliminar foto anterior si existe
+        if (fotoUrl) {
+          try {
+            const fotoAnteriorRef = ref(this.storage, fotoUrl);
+            await deleteObject(fotoAnteriorRef);
+          } catch (error) {
+            console.warn('No se pudo eliminar la foto anterior:', error);
+          }
+        }
+        
+        // Subir nueva foto
+        fotoUrl = await this.subirFotoAStorage();
+      }
+
+      // Preparar datos actualizados
+      const datosActualizados: any = {
+        nombre: valores.nombre.trim(),
+        descripcion: valores.descripcion?.trim() || '',
+        precio: parseFloat(valores.precio),
+        stock: parseFloat(valores.stock),
+        codigoBarras: valores.codigoBarras?.trim() || this.productoEditando.codigoBarras,
+        estado: valores.estado
+      };
+
+      // Agregar foto si existe
+      if (fotoUrl) {
+        datosActualizados.fotoUrl = fotoUrl;
+      }
+
+      // Agregar campos opcionales
+      if (valores.categoriaId && valores.categoriaId !== 'ninguna') {
+        datosActualizados.categoriaId = valores.categoriaId;
+      } else {
+        datosActualizados.categoriaId = null;
+      }
+      
+      if (valores.proveedorId && valores.proveedorId !== 'ninguna') {
+        datosActualizados.proveedorId = valores.proveedorId;
+      } else {
+        datosActualizados.proveedorId = null;
+      }
+
+      // Actualizar en Firestore
+      const productoRef = doc(this.firestore, 'productos', this.productoEditando.id);
+      await updateDoc(productoRef, datosActualizados);
+
+      await this.mostrarToast('Producto actualizado exitosamente', 'success');
+
+      // Recargar productos y cerrar modal
+      await this.cargarProductos();
+      this.cerrarModalEditar();
+
+    } catch (error: any) {
+      console.error('Error al actualizar producto:', error);
+      await this.mostrarToast('Error al actualizar el producto. Por favor, intenta nuevamente.', 'danger');
+    } finally {
+      this.estaCargando = false;
+    }
+  }
+
+  // ========== FUNCIONALIDADES DE ELIMINACIÓN ==========
+
+  // Mostrar opciones de acción (editar/eliminar)
+  async mostrarOpcionesProducto(producto: any, event?: MouseEvent) {
+    if (this.esPlataformaMovil) {
+      // En móvil: usar ActionSheet
+      const actionSheet = await this.actionSheetController.create({
+        header: producto.nombre,
+        buttons: [
+          {
+            text: 'Editar',
+            icon: 'create',
+            handler: () => {
+              this.abrirModalEditar(producto);
+            }
+          },
+          {
+            text: 'Ajustar Stock',
+            icon: 'swap-vertical',
+            handler: () => {
+              this.abrirModalAjusteStock(producto);
+            }
+          },
+          {
+            text: 'Eliminar',
+            icon: 'trash',
+            role: 'destructive',
+            handler: () => {
+              this.confirmarEliminacion(producto);
+            }
+          },
+          {
+            text: 'Cancelar',
+            icon: 'close',
+            role: 'cancel'
+          }
+        ]
+      });
+
+      await actionSheet.present();
+    } else {
+      // En web: mostrar menú contextual
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        
+        // Calcular posición del menú (ajustar para que no se salga de la pantalla)
+        const menuWidth = 220;
+        const menuHeight = 200;
+        let x = event.clientX;
+        let y = event.clientY;
+        
+        // Ajustar horizontalmente
+        if (x + menuWidth > window.innerWidth) {
+          x = window.innerWidth - menuWidth - 10;
+        }
+        if (x < 10) {
+          x = 10;
+        }
+        
+        // Ajustar verticalmente
+        if (y + menuHeight > window.innerHeight) {
+          y = window.innerHeight - menuHeight - 10;
+        }
+        if (y < 10) {
+          y = 10;
+        }
+        
+        this.posicionMenu = { x, y };
+      } else {
+        // Si no hay evento, centrar en la pantalla
+        this.posicionMenu = { 
+          x: window.innerWidth / 2 - 110, 
+          y: window.innerHeight / 2 - 100 
+        };
+      }
+      
+      this.productoSeleccionado = producto;
+      this.mostrandoMenuContextual = true;
+    }
+  }
+
+  // Cerrar menú contextual
+  cerrarMenuContextual() {
+    this.mostrandoMenuContextual = false;
+    this.productoSeleccionado = null;
+  }
+
+  // Ejecutar acción desde menú contextual
+  ejecutarAccion(accion: string) {
+    if (!this.productoSeleccionado) return;
+    
+    const producto = { ...this.productoSeleccionado }; // Guardar copia del producto
+    this.cerrarMenuContextual();
+    
+    // Usar setTimeout para asegurar que el menú se cierre antes de abrir modales
+    setTimeout(() => {
+      switch (accion) {
+        case 'editar':
+          this.abrirModalEditar(producto);
+          break;
+        case 'ajustar-stock':
+          this.abrirModalAjusteStock(producto);
+          break;
+        case 'eliminar':
+          this.confirmarEliminacion(producto);
+          break;
+      }
+    }, 100);
+  }
+
+  // Confirmar eliminación
+  async confirmarEliminacion(producto: any) {
+    const alert = await this.alertController.create({
+      header: 'Confirmar eliminación',
+      message: `¿Estás seguro de eliminar el producto "${producto.nombre}"? Esta acción no se puede deshacer.`,
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel'
+        },
+        {
+          text: 'Eliminar',
+          role: 'destructive',
+          handler: () => {
+            this.eliminarProducto(producto);
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  // Eliminar producto
+  async eliminarProducto(producto: any) {
+    if (!producto.id || !this.usuarioId) return;
+
+    this.estaCargando = true;
+
+    try {
+      // Eliminar foto de Storage si existe
+      if (producto.fotoUrl) {
+        try {
+          const fotoRef = ref(this.storage, producto.fotoUrl);
+          await deleteObject(fotoRef);
+        } catch (error) {
+          console.warn('No se pudo eliminar la foto del producto:', error);
+        }
+      }
+
+      // TODO: Eliminar referencias en ventas, historial, etc. (eliminación en cascada)
+      // Por ahora solo eliminamos el producto
+
+      // Eliminar producto de Firestore
+      const productoRef = doc(this.firestore, 'productos', producto.id);
+      await deleteDoc(productoRef);
+
+      await this.mostrarToast('Producto eliminado exitosamente', 'success');
+
+      // Recargar productos
+      await this.cargarProductos();
+
+    } catch (error: any) {
+      console.error('Error al eliminar producto:', error);
+      await this.mostrarToast('Error al eliminar el producto. Por favor, intenta nuevamente.', 'danger');
+    } finally {
+      this.estaCargando = false;
+    }
+  }
+
+  // ========== FUNCIONALIDADES DE BÚSQUEDA ==========
+
+  // Buscar productos
+  onBuscar(event: any) {
+    this.terminoBusqueda = event.detail.value || '';
+    this.aplicarFiltrosYOrdenamiento();
+  }
+
+  // Escanear código de barras
+  async escanearCodigoBarras() {
+    try {
+      // Usar la cámara para tomar foto
+      const imagen = await Camera.getPhoto({
+        quality: 80,
+        allowEditing: false,
+        resultType: CameraResultType.DataUrl,
+        source: CameraSource.Camera
+      });
+
+      if (imagen.dataUrl) {
+        // Crear una imagen para procesar con ZXing
+        const img = new Image();
+        img.src = imagen.dataUrl;
+        
+        await new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = reject;
+        });
+
+        // Usar ZXing para leer el código de barras
+        const codeReader = new BrowserMultiFormatReader();
+        
+        try {
+          const resultado = await codeReader.decodeFromImageElement(img);
+          
+          if (resultado && resultado.getText()) {
+            const codigoBarras = resultado.getText();
+            this.terminoBusqueda = codigoBarras;
+            this.aplicarFiltrosYOrdenamiento();
+            
+            // Si hay un solo resultado, mostrar opciones
+            setTimeout(() => {
+              if (this.productosFiltrados.length === 1) {
+                this.mostrarOpcionesProducto(this.productosFiltrados[0]);
+              }
+            }, 100);
+          } else {
+            this.mostrarToast('No se pudo leer el código de barras', 'warning');
+          }
+        } catch (decodeError) {
+          console.error('Error al decodificar código de barras:', decodeError);
+          this.mostrarToast('No se pudo leer el código de barras. Asegúrate de que la imagen contenga un código de barras válido.', 'warning');
+        }
+      }
+    } catch (error: any) {
+      if (error.message !== 'User cancelled photos app' && !error.message?.includes('cancel')) {
+        console.error('Error al escanear código de barras:', error);
+        this.mostrarToast('Error al escanear el código de barras', 'danger');
+      }
+    }
+  }
+
+  // ========== FUNCIONALIDADES DE AJUSTE DE STOCK ==========
+
+  // Abrir modal de ajuste de stock
+  abrirModalAjusteStock(producto: any) {
+    this.productoAjustandoStock = producto;
+    this.nuevoStock = producto.stock || 0;
+    this.mostrandoModalAjusteStock = true;
+  }
+
+  // Cerrar modal de ajuste de stock
+  cerrarModalAjusteStock() {
+    this.mostrandoModalAjusteStock = false;
+    this.productoAjustandoStock = null;
+    this.nuevoStock = 0;
+  }
+
+  // Guardar ajuste de stock
+  async guardarAjusteStock() {
+    if (!this.productoAjustandoStock || !this.usuarioId) return;
+
+    if (this.nuevoStock < 0) {
+      this.mostrarToast('El stock no puede ser negativo', 'danger');
+      return;
+    }
+
+    this.estaCargando = true;
+
+    try {
+      const productoRef = doc(this.firestore, 'productos', this.productoAjustandoStock.id);
+      await updateDoc(productoRef, {
+        stock: parseFloat(this.nuevoStock.toString())
+      });
+
+      await this.mostrarToast('Stock actualizado exitosamente', 'success');
+
+      // Recargar productos y cerrar modal
+      await this.cargarProductos();
+      this.cerrarModalAjusteStock();
+
+    } catch (error: any) {
+      console.error('Error al actualizar stock:', error);
+      await this.mostrarToast('Error al actualizar el stock. Por favor, intenta nuevamente.', 'danger');
+    } finally {
+      this.estaCargando = false;
+    }
+  }
+
+  // Actualizar productos después de crear uno nuevo
+  async onProductoCreado() {
+    await this.cargarProductos();
+  }
+
+  // Generar código de barras visual
+  ngAfterViewChecked() {
+    // Generar códigos de barras después de que la vista se actualice
+    if (this.productosFiltrados.length > 0) {
+      setTimeout(() => {
+        this.generarCodigosBarras();
+      }, 50);
+    }
+  }
+
+  generarCodigosBarras() {
+    // Generar códigos de barras para todos los productos visibles
+    this.productosFiltrados.forEach((producto, index) => {
+      if (producto.codigoBarras) {
+        const uniqueId = producto.id || `prod-${index}-${Date.now()}`;
+        
+        // Para vista grid
+        const svgId = `barcode-${uniqueId}`;
+        const svgElement = document.getElementById(svgId);
+        
+        if (svgElement && !svgElement.hasAttribute('data-barcode-generated')) {
+          try {
+            // Limpiar el SVG antes de generar
+            svgElement.innerHTML = '';
+            JsBarcode(svgElement, producto.codigoBarras, {
+              format: "CODE128",
+              width: 1.5,
+              height: 40,
+              displayValue: true,
+              fontSize: 10,
+              margin: 2,
+              background: "transparent",
+              lineColor: "#0a3254ff"
+            });
+            svgElement.setAttribute('data-barcode-generated', 'true');
+          } catch (error) {
+            console.error('Error al generar código de barras:', error);
+          }
+        }
+        
+        // Para vista lista
+        const svgIdLista = `barcode-lista-${uniqueId}`;
+        const svgElementLista = document.getElementById(svgIdLista);
+        
+        if (svgElementLista && !svgElementLista.hasAttribute('data-barcode-generated')) {
+          try {
+            // Limpiar el SVG antes de generar
+            svgElementLista.innerHTML = '';
+            JsBarcode(svgElementLista, producto.codigoBarras, {
+              format: "CODE128",
+              width: 1.5,
+              height: 40,
+              displayValue: true,
+              fontSize: 10,
+              margin: 2,
+              background: "transparent",
+              lineColor: "#0a3254ff"
+            });
+            svgElementLista.setAttribute('data-barcode-generated', 'true');
+          } catch (error) {
+            console.error('Error al generar código de barras:', error);
+          }
+        }
+      }
+    });
+  }
+
+  // ========== GESTIÓN DE CATEGORÍAS ==========
+
+  // Abrir modal de categorías
+  async abrirModalCategorias() {
+    this.categoriaEditando = null;
+    this.inicializarFormularioCategoria();
+    // Recargar categorías antes de abrir el modal
+    await this.cargarCategorias();
+    this.mostrandoModalCategorias = true;
+  }
+
+  // Cerrar modal de categorías
+  cerrarModalCategorias() {
+    this.mostrandoModalCategorias = false;
+    this.categoriaEditando = null;
+    this.inicializarFormularioCategoria();
+  }
+
+  // Crear nueva categoría
+  async crearCategoria() {
+    if (this.formularioCategoria.invalid || !this.usuarioId) {
+      this.formularioCategoria.get('nombre')?.markAsTouched();
+      return;
+    }
+
+    const nombre = this.formularioCategoria.value.nombre.trim();
+    
+    if (!nombre) {
+      this.mostrarToast('El nombre de la categoría es requerido', 'danger');
+      return;
+    }
+
+    // Validar que no exista una categoría con el mismo nombre para este usuario
+    const categoriaExistente = this.categorias.find(
+      cat => cat.nombre.toLowerCase() === nombre.toLowerCase() && cat.userId === this.usuarioId
+    );
+
+    if (categoriaExistente) {
+      this.mostrarToast('Ya existe una categoría con ese nombre', 'danger');
+      return;
+    }
+
+    this.estaCargandoCategoria = true;
+
+    try {
+      if (!this.usuarioId) {
+        this.mostrarToast('No se pudo identificar al usuario. Por favor, inicia sesión nuevamente.', 'danger');
+        return;
+      }
+
+      const categoriasRef = collection(this.firestore, 'categorias');
+      const docRef = await addDoc(categoriasRef, {
+        nombre: nombre,
+        userId: this.usuarioId
+      });
+
+      // Log para depuración
+      console.log('Categoría creada con ID:', docRef.id, 'userId:', this.usuarioId);
+
+      // Esperar un momento para que Firestore procese la escritura
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Recargar categorías
+      await this.cargarCategorias();
+      
+      // Limpiar formulario
+      this.inicializarFormularioCategoria();
+      
+      // Log para depuración
+      console.log('Categoría creada, total de categorías:', this.categorias.length);
+      
+      this.mostrarToast('Categoría creada exitosamente', 'success');
+    } catch (error: any) {
+      console.error('Error al crear categoría:', error);
+      
+      let mensajeError = 'Error al crear la categoría';
+      if (error.code === 'permission-denied' || error.code === 'missing-or-insufficient-permissions') {
+        mensajeError = 'No tienes permisos para crear categorías. Verifica las reglas de seguridad de Firestore.';
+      } else if (error.message) {
+        mensajeError = `Error: ${error.message}`;
+      }
+      
+      this.mostrarToast(mensajeError, 'danger');
+    } finally {
+      this.estaCargandoCategoria = false;
+    }
+  }
+
+  // Editar categoría
+  editarCategoria(categoria: any) {
+    this.categoriaEditando = categoria;
+    this.formularioCategoria.patchValue({
+      nombre: categoria.nombre
+    });
+  }
+
+  // Cancelar edición de categoría
+  cancelarEdicionCategoria() {
+    this.categoriaEditando = null;
+    this.inicializarFormularioCategoria();
+  }
+
+  // Guardar edición de categoría
+  async guardarEdicionCategoria() {
+    if (this.formularioCategoria.invalid || !this.usuarioId || !this.categoriaEditando) {
+      this.formularioCategoria.get('nombre')?.markAsTouched();
+      return;
+    }
+
+    const nombre = this.formularioCategoria.value.nombre.trim();
+    
+    if (!nombre) {
+      this.mostrarToast('El nombre de la categoría es requerido', 'danger');
+      return;
+    }
+
+    // Validar que no exista otra categoría con el mismo nombre para este usuario
+    const categoriaExistente = this.categorias.find(
+      cat => cat.id !== this.categoriaEditando.id && 
+            cat.nombre.toLowerCase() === nombre.toLowerCase() && 
+            cat.userId === this.usuarioId
+    );
+
+    if (categoriaExistente) {
+      this.mostrarToast('Ya existe una categoría con ese nombre', 'danger');
+      return;
+    }
+
+    this.estaCargandoCategoria = true;
+
+    try {
+      const categoriaRef = doc(this.firestore, 'categorias', this.categoriaEditando.id);
+      await updateDoc(categoriaRef, {
+        nombre: nombre
+      });
+
+      // Recargar categorías
+      await this.cargarCategorias();
+      
+      // Limpiar formulario y cancelar edición
+      this.cancelarEdicionCategoria();
+      
+      this.mostrarToast('Categoría actualizada exitosamente', 'success');
+    } catch (error: any) {
+      console.error('Error al actualizar categoría:', error);
+      
+      let mensajeError = 'Error al actualizar la categoría';
+      if (error.code === 'permission-denied' || error.code === 'missing-or-insufficient-permissions') {
+        mensajeError = 'No tienes permisos para actualizar categorías. Verifica las reglas de seguridad de Firestore.';
+      } else if (error.message) {
+        mensajeError = `Error: ${error.message}`;
+      }
+      
+      this.mostrarToast(mensajeError, 'danger');
+    } finally {
+      this.estaCargandoCategoria = false;
+    }
+  }
+
+  // Contar productos de una categoría
+  async contarProductosCategoria(categoriaId: string): Promise<number> {
+    if (!this.usuarioId) return 0;
+
+    try {
+      const productosRef = collection(this.firestore, 'productos');
+      const q = query(
+        productosRef,
+        where('userId', '==', this.usuarioId),
+        where('categoriaId', '==', categoriaId)
+      );
+      const snapshot = await getDocs(q);
+      return snapshot.size;
+    } catch (error) {
+      console.error('Error al contar productos:', error);
+      return 0;
+    }
+  }
+
+  // Eliminar categoría
+  async eliminarCategoria(categoria: any) {
+    if (!this.usuarioId) return;
+
+    // Contar productos de esta categoría
+    const cantidadProductos = await this.contarProductosCategoria(categoria.id);
+
+    // Mostrar alerta de confirmación con advertencia
+    const alert = await this.alertController.create({
+      header: 'Eliminar Categoría',
+      message: cantidadProductos > 0
+        ? `¿Estás seguro de eliminar la categoría "${categoria.nombre}"? Esta acción eliminará la categoría y dejará ${cantidadProductos} producto(s) sin categoría.`
+        : `¿Estás seguro de eliminar la categoría "${categoria.nombre}"?`,
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel'
+        },
+        {
+          text: 'Eliminar',
+          role: 'destructive',
+          handler: async () => {
+            try {
+              const categoriaRef = doc(this.firestore, 'categorias', categoria.id);
+              await deleteDoc(categoriaRef);
+
+              // Recargar categorías
+              await this.cargarCategorias();
+              
+              // Recargar productos para actualizar la vista
+              await this.cargarProductos();
+              
+              this.mostrarToast('Categoría eliminada exitosamente', 'success');
+            } catch (error: any) {
+              console.error('Error al eliminar categoría:', error);
+              
+              let mensajeError = 'Error al eliminar la categoría';
+              if (error.code === 'permission-denied' || error.code === 'missing-or-insufficient-permissions') {
+                mensajeError = 'No tienes permisos para eliminar categorías. Verifica las reglas de seguridad de Firestore.';
+              } else if (error.message) {
+                mensajeError = `Error: ${error.message}`;
+              }
+              
+              this.mostrarToast(mensajeError, 'danger');
+            }
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  // Asignar categoría rápidamente a un producto
+  async asignarCategoriaRapida(producto: any) {
+    if (!this.usuarioId || !producto) return;
+
+    // Asegurarse de que las categorías estén cargadas
+    await this.cargarCategorias();
+
+    // Verificar que hay categorías disponibles
+    if (this.categorias.length === 0) {
+      this.mostrarToast('No hay categorías disponibles. Crea una categoría primero.', 'warning');
+      return;
+    }
+
+    const alert = await this.alertController.create({
+      header: 'Asignar Categoría',
+      message: `Selecciona una categoría para "${producto.nombre}"`,
+      inputs: this.categorias.map(cat => ({
+        type: 'radio',
+        label: cat.nombre,
+        value: cat.id,
+        checked: producto.categoriaId === cat.id
+      })),
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel'
+        },
+        {
+          text: 'Sin categoría',
+          handler: async () => {
+            await this.actualizarCategoriaProducto(producto.id, null);
+          }
+        },
+        {
+          text: 'Asignar',
+          handler: async (categoriaId) => {
+            if (categoriaId) {
+              await this.actualizarCategoriaProducto(producto.id, categoriaId);
+            }
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  // Actualizar categoría de un producto
+  async actualizarCategoriaProducto(productoId: string, categoriaId: string | null) {
+    if (!this.usuarioId) return;
+
+    try {
+      const productoRef = doc(this.firestore, 'productos', productoId);
+      await updateDoc(productoRef, {
+        categoriaId: categoriaId
+      });
+
+      // Recargar productos
+      await this.cargarProductos();
+      
+      this.mostrarToast('Categoría asignada exitosamente', 'success');
+    } catch (error: any) {
+      console.error('Error al actualizar categoría del producto:', error);
+      this.mostrarToast('Error al asignar la categoría', 'danger');
+    }
   }
 }

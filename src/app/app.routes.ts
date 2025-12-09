@@ -37,5 +37,9 @@ export const routes: Routes = [
   {
     path: 'inventario',
     loadComponent: () => import('./vistas/inventario/inventario.component').then(m => m.InventarioComponent)
+  },
+  {
+    path: 'proveedores',
+    loadComponent: () => import('./vistas/proveedores/proveedores.component').then(m => m.ProveedoresComponent)
   }
 ];

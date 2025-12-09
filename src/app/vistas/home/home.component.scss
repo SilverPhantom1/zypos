@@ -3,91 +3,512 @@
 }
 
 .contenedor-home {
-  max-width: 500px;
+  max-width: 1200px;
   width: 100%;
   margin: 0 auto;
   padding: 2rem 1rem;
-  min-height: calc(100vh - 120px);
+  min-height: calc(100vh - 200px);
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  padding-bottom: 280px; // Espacio para el footer
   
   @media (max-width: 576px) {
     padding: 1.5rem 0.75rem;
     max-width: 100%;
-    min-height: calc(100vh - 100px);
+    padding-bottom: 200px; // Menos espacio para footer más compacto
   }
   
   @media (min-width: 577px) and (max-width: 768px) {
-    max-width: 600px;
-    padding: 1.5rem;
+    max-width: 100%;
+    padding: 1.75rem;
+    padding-bottom: 300px;
   }
   
   @media (min-width: 769px) {
-    max-width: 500px;
     padding: 2rem;
+    padding-bottom: 280px;
   }
 }
 
-.titulo-home {
+.dashboard-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  
+  @media (max-width: 576px) {
+    gap: 1.5rem;
+  }
+}
+
+// Sección Superior
+.seccion-superior {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  
+  @media (min-width: 769px) {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 2rem;
+  }
+}
+
+.header-bienvenida {
+  flex: 1;
+  
+  @media (min-width: 769px) {
+    flex: 1.5;
+  }
+}
+
+.titulo-principal {
   color: #0a3254ff; // Color letras azul oscuro
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+  line-height: 1.2;
+  
+  @media (max-width: 576px) {
+    font-size: 2rem;
+  }
+  
+  @media (min-width: 577px) and (max-width: 768px) {
+    font-size: 2.25rem;
+  }
+}
+
+.subtitulo-principal {
+  color: #0a3254ff;
+  font-size: 1.1rem;
+  opacity: 0.8;
+  margin: 0;
+  font-weight: 400;
+  
+  @media (max-width: 576px) {
+    font-size: 1rem;
+  }
+}
+
+// Tarjeta de Plan
+.tarjeta-plan-dashboard {
+  background: linear-gradient(135deg, #ffffff 0%, #f4e9e0 100%); // Usando color de fondo corporativo
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(248, 149, 133, 0.2); // Sombra con color coral
+  border: 2px solid rgba(248, 149, 133, 0.2); // Borde sutil con color coral
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin: 0;
+  flex: 1;
+  
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(248, 149, 133, 0.3); // Hover con color coral
+    border-color: rgba(248, 149, 133, 0.4);
+  }
+  
+  ion-card-header {
+    padding: 1.5rem 1.5rem 1rem;
+    
+    @media (max-width: 576px) {
+      padding: 1.25rem 1.25rem 0.75rem;
+    }
+  }
+  
+  ion-card-content {
+    padding: 1rem 1.5rem 1.5rem;
+    
+    @media (max-width: 576px) {
+      padding: 0.75rem 1.25rem 1.25rem;
+    }
+  }
+}
+
+.plan-header-dashboard {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.plan-info-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.plan-titulo-dashboard {
+  color: #0a3254ff;
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+  
+  @media (max-width: 576px) {
+    font-size: 1.1rem;
+  }
+}
+
+.plan-badge-dashboard {
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 0.4rem 0.85rem;
+  width: fit-content;
+  
+  @media (max-width: 576px) {
+    font-size: 0.85rem;
+    padding: 0.35rem 0.75rem;
+  }
+  
+  // Si el plan no es free, usar color coral
+  &[color="primary"] {
+    --background: #f89585ff; // Color coral corporativo
+    --color: #ffffff;
+  }
+}
+
+.plan-icon-dashboard {
+  font-size: 2.5rem;
+  color: #6381e4ff;
+  flex-shrink: 0;
+  
+  @media (max-width: 576px) {
+    font-size: 2rem;
+  }
+}
+
+.plan-detalles-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.plan-dias-dashboard {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #0a3254ff;
+  font-weight: 600;
+  font-size: 1.1rem;
+  
+  @media (max-width: 576px) {
+    font-size: 1rem;
+  }
+  
+  ion-icon {
+    font-size: 1.5rem;
+    color: #6381e4ff;
+    
+    @media (max-width: 576px) {
+      font-size: 1.25rem;
+    }
+  }
+}
+
+.plan-texto-dashboard {
+  color: #0a3254ff;
+  font-size: 0.9rem;
+  opacity: 0.7;
+  margin: 0;
+  
+  @media (max-width: 576px) {
+    font-size: 0.85rem;
+    line-height: 1.4;
+  }
+}
+
+// Grid de Módulos
+.grid-modulos-dashboard {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  
+  @media (max-width: 576px) {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+  
+  @media (min-width: 577px) and (max-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.375rem;
+  }
+  
+  @media (min-width: 769px) {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+  }
+}
+
+.modulo-card {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin: 0;
+  border: 2px solid transparent;
+  height: 100%;
+  
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 20px rgba(99, 129, 228, 0.25);
+    border-color: rgba(99, 129, 228, 0.3);
+    
+    // Efecto especial para la tarjeta de proveedores (que usa color coral)
+    &.proveedores-card {
+      box-shadow: 0 6px 20px rgba(248, 149, 133, 0.3);
+      border-color: rgba(248, 149, 133, 0.4);
+    }
+  }
+  
+  &:active {
+    transform: translateY(-2px);
+  }
+  
+  ion-card-content {
+    padding: 2rem;
+    
+    @media (max-width: 576px) {
+      padding: 1.5rem;
+    }
+  }
+}
+
+.modulo-card-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
-  margin-bottom: 2rem;
-  font-size: 1.75rem;
+  gap: 1.25rem;
   
   @media (max-width: 576px) {
-    font-size: 1.5rem;
-    margin-bottom: 1.5rem;
+    gap: 1rem;
   }
 }
 
-.boton-perfil {
-  --border-color: #6381e4ff; // Color módulos/iconos
-  --color: #6381e4ff;
-  margin-top: auto;
-  margin-bottom: 1rem;
-  --border-radius: 8px;
-  height: 48px;
-  font-weight: 600;
+.modulo-icono-container {
+  width: 80px;
+  height: 80px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   
   ion-icon {
-    font-size: 1.5rem;
-    margin-right: 0.5rem;
+    font-size: 3rem;
+    color: #ffffff;
+  }
+  
+  &.perfil {
+    background: linear-gradient(135deg, #6381e4ff 0%, #7a95f0 100%);
+  }
+  
+  &.proveedores {
+    background: linear-gradient(135deg, #f89585ff 0%, #ffa99a 100%);
+  }
+  
+  &.inventario {
+    background: linear-gradient(135deg, #6381e4ff 0%, #7a95f0 100%);
   }
   
   @media (max-width: 576px) {
-    height: 44px;
-    font-size: 0.9rem;
-    margin-bottom: 0.75rem;
+    width: 70px;
+    height: 70px;
     
     ion-icon {
-      font-size: 1.25rem;
+      font-size: 2.5rem;
     }
   }
 }
 
-.boton-inventario {
-  --border-color: #6381e4ff; // Color módulos/iconos
-  --color: #6381e4ff;
-  --border-radius: 8px;
-  height: 48px;
-  font-weight: 600;
-  
-  ion-icon {
-    font-size: 1.5rem;
-    margin-right: 0.5rem;
-  }
+.modulo-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.modulo-titulo-card {
+  color: #0a3254ff;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
   
   @media (max-width: 576px) {
-    height: 44px;
-    font-size: 0.9rem;
-    
-    ion-icon {
-      font-size: 1.25rem;
-    }
+    font-size: 1.3rem;
   }
 }
 
+.modulo-descripcion-card {
+  color: #0a3254ff;
+  font-size: 1rem;
+  opacity: 0.75;
+  margin: 0;
+  line-height: 1.5;
+  
+  @media (max-width: 576px) {
+    font-size: 0.9rem;
+  }
+}
+
+// Footer Completo
+.footer-dashboard {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #ffffff; // Fondo blanco para contraste con el contenido
+  border-top: 3px solid rgba(248, 149, 133, 0.4); // Borde más visible con color coral corporativo
+  padding: 2rem 1rem 1rem;
+  z-index: 10;
+  box-shadow: 0 -4px 16px rgba(248, 149, 133, 0.2); // Sombra más visible con color coral
+  
+  @media (max-width: 576px) {
+    padding: 1rem 0.75rem 0.5rem; // Padding más compacto en móvil
+    border-top-width: 2px;
+  }
+}
+
+.footer-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 2rem;
+  margin-bottom: 1.5rem;
+  
+  @media (max-width: 576px) {
+    grid-template-columns: 1fr;
+    gap: 1rem; // Gap más pequeño en móvil
+    padding: 0 0.5rem;
+    margin-bottom: 0.75rem; // Menos espacio inferior
+  }
+  
+  @media (min-width: 577px) and (max-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.75rem;
+  }
+}
+
+.footer-seccion {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  
+  @media (max-width: 576px) {
+    gap: 0.5rem; // Gap más pequeño entre elementos en móvil
+  }
+}
+
+.footer-titulo {
+  color: #0a3254ff; // Color letras azul oscuro
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+  position: relative;
+  
+  // Línea decorativa con color coral
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -0.25rem;
+    left: 0;
+    width: 30px;
+    height: 2px;
+    background: linear-gradient(90deg, #f89585ff 0%, #ffa99a 100%); // Gradiente coral
+    border-radius: 2px;
+  }
+  
+  @media (max-width: 576px) {
+    font-size: 0.9rem; // Título más pequeño en móvil
+    margin-bottom: 0.35rem; // Menos espacio inferior
+  }
+}
+
+.footer-descripcion {
+  color: #0a3254ff;
+  font-size: 0.9rem;
+  opacity: 0.7;
+  margin: 0;
+  line-height: 1.5;
+  
+  @media (max-width: 576px) {
+    font-size: 0.8rem; // Texto más pequeño
+    line-height: 1.4; // Line-height más compacto
+  }
+}
+
+.footer-contacto {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  
+  @media (max-width: 576px) {
+    gap: 0.35rem; // Gap más pequeño entre items de contacto
+  }
+}
+
+.contacto-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #0a3254ff;
+  font-size: 0.9rem;
+  opacity: 0.8;
+  
+  ion-icon {
+    font-size: 1.1rem;
+    color: #6381e4ff;
+  }
+  
+  @media (max-width: 576px) {
+    font-size: 0.85rem;
+  }
+}
+
+.footer-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  
+  @media (max-width: 576px) {
+    gap: 0.15rem; // Gap más pequeño entre items de info
+  }
+}
+
+.info-item {
+  color: #0a3254ff;
+  font-size: 0.9rem;
+  opacity: 0.7;
+  margin: 0;
+  
+  @media (max-width: 576px) {
+    font-size: 0.85rem;
+  }
+}
+
+.footer-bottom {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(10, 50, 84, 0.1);
+  text-align: center;
+  
+  @media (max-width: 576px) {
+    padding-top: 0.5rem; // Menos padding superior en móvil
+  }
+}
+
+.footer-copyright {
+  color: #0a3254ff;
+  font-size: 0.85rem;
+  opacity: 0.6;
+  margin: 0;
+  
+  @media (max-width: 576px) {
+    font-size: 0.8rem;
+  }
+}
+
+// Estados de carga
 .cargando {
   text-align: center;
   padding: 2rem;
@@ -100,6 +521,7 @@
   }
 }
 
+// Botón cerrar sesión en header
 .boton-cerrar-sesion-header {
   --color: #f89585ff; // Color coral
   margin: 0;

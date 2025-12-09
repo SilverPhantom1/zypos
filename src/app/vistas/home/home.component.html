@@ -8,35 +8,123 @@
 </ion-header>
 
 <ion-content [fullscreen]="true" class="contenido-home">
-  <div class="ion-padding contenedor-home">
+  <div class="contenedor-home">
     <!-- Estado de verificación de autenticación -->
     <div *ngIf="verificandoAuth" class="cargando">
       <p>Verificando autenticación...</p>
     </div>
     
     <!-- Contenido del home -->
-    <div *ngIf="!verificandoAuth">
-      <h2 class="titulo-home">Bienvenido</h2>
-      
-      <!-- Botón para acceder al perfil -->
-      <ion-button 
-        expand="block" 
-        fill="outline"
-        class="boton-perfil"
-        routerLink="/perfil">
-        <ion-icon name="person-circle" slot="start"></ion-icon>
-        <span>Mi Perfil</span>
-      </ion-button>
-      
-      <!-- Botón para acceder al inventario -->
-      <ion-button 
-        expand="block" 
-        fill="outline"
-        class="boton-inventario"
-        routerLink="/inventario">
-        <ion-icon name="cube" slot="start"></ion-icon>
-        <span>Inventario</span>
-      </ion-button>
+    <div *ngIf="!verificandoAuth" class="dashboard-content">
+      <!-- Sección Superior: Saludo y Plan -->
+      <div class="seccion-superior">
+        <div class="header-bienvenida">
+          <h1 class="titulo-principal">¡Bienvenido, {{ obtenerNombreUsuario() }}!</h1>
+          <p class="subtitulo-principal">Gestiona tu negocio de forma eficiente</p>
+        </div>
+
+        <!-- Tarjeta de Plan -->
+        <ion-card class="tarjeta-plan-dashboard" routerLink="/planes">
+          <ion-card-header>
+            <div class="plan-header-dashboard">
+              <div class="plan-info-header">
+                <ion-card-title class="plan-titulo-dashboard">Plan Actual</ion-card-title>
+                <ion-badge [color]="planActual === 'free' ? 'medium' : 'primary'" class="plan-badge-dashboard">
+                  {{ obtenerNombrePlan() }}
+                </ion-badge>
+              </div>
+              <ion-icon name="checkmark-circle" class="plan-icon-dashboard"></ion-icon>
+            </div>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="plan-detalles-dashboard">
+              <div class="plan-dias-dashboard">
+                <ion-icon name="time-outline"></ion-icon>
+                <span *ngIf="diasRestantes > 0">{{ diasRestantes }} {{ diasRestantes === 1 ? 'día' : 'días' }} restantes</span>
+                <span *ngIf="diasRestantes === 0">Plan vencido</span>
+              </div>
+              <p class="plan-texto-dashboard">Toca para ver detalles o cambiar tu plan</p>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </div>
+
+      <!-- Grid de Módulos -->
+      <div class="grid-modulos-dashboard">
+        <!-- Módulo Perfil -->
+        <ion-card class="modulo-card" routerLink="/perfil">
+          <ion-card-content>
+            <div class="modulo-card-content">
+              <div class="modulo-icono-container perfil">
+                <ion-icon name="person-circle"></ion-icon>
+              </div>
+              <div class="modulo-texto">
+                <h3 class="modulo-titulo-card">Mi Perfil</h3>
+                <p class="modulo-descripcion-card">Gestiona tu información personal y configuración de cuenta</p>
+              </div>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+        <!-- Módulo Proveedores -->
+        <ion-card class="modulo-card proveedores-card" routerLink="/proveedores">
+          <ion-card-content>
+            <div class="modulo-card-content">
+              <div class="modulo-icono-container proveedores">
+                <ion-icon name="storefront"></ion-icon>
+              </div>
+              <div class="modulo-texto">
+                <h3 class="modulo-titulo-card">Proveedores</h3>
+                <p class="modulo-descripcion-card">Administra y gestiona todos tus proveedores</p>
+              </div>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+        <!-- Módulo Inventario -->
+        <ion-card class="modulo-card" routerLink="/inventario">
+          <ion-card-content>
+            <div class="modulo-card-content">
+              <div class="modulo-icono-container inventario">
+                <ion-icon name="cube"></ion-icon>
+              </div>
+              <div class="modulo-texto">
+                <h3 class="modulo-titulo-card">Inventario</h3>
+                <p class="modulo-descripcion-card">Controla el stock y productos de tu negocio</p>
+              </div>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </div>
     </div>
   </div>
+
+  <!-- Footer Completo -->
+  <footer class="footer-dashboard">
+    <div class="footer-container">
+      <div class="footer-seccion">
+        <h4 class="footer-titulo">Contacto</h4>
+        <div class="footer-contacto">
+          <div class="contacto-item">
+            <ion-icon name="mail-outline"></ion-icon>
+            <span>zyposmaydi&#64;gmail.com</span>
+          </div>
+          <div class="contacto-item">
+            <ion-icon name="call-outline"></ion-icon>
+            <span>+569 73146125</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="footer-seccion">
+        <h4 class="footer-titulo">Información</h4>
+        <div class="footer-info">
+          <p class="info-item">© 2024 Zypos</p>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p class="footer-copyright">Todos los derechos reservados</p>
+    </div>
+  </footer>
 </ion-content>

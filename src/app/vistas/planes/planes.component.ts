@@ -142,6 +142,12 @@ export class PlanesComponent implements OnInit {
     }
   }
 
+  verDespues() {
+    // El usuario ya tiene el plan gratuito asignado por defecto al registrarse
+    // Redirigir directamente al home
+    this.router.navigate(['/home'], { replaceUrl: true });
+  }
+
   async mostrarToast(mensaje: string, color: string = 'danger') {
     const toast = await this.toastController.create({
       message: mensaje,

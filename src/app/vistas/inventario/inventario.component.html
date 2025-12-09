@@ -11,14 +11,28 @@
   <div class="ion-padding contenedor-inventario" *ngIf="!verificandoAuth">
     <h1 class="titulo-inventario">Inventario</h1>
     
-    <!-- Botón para crear producto -->
-    <div class="contenedor-boton-crear">
+    <!-- Botones para crear producto, gestionar categorías y proveedores -->
+    <div class="contenedor-botones-crear">
       <ion-button 
         (click)="toggleFormulario()" 
         [color]="mostrandoFormulario ? 'danger' : 'primary'"
         class="boton-crear-producto">
         <ion-icon [name]="mostrandoFormulario ? 'close' : 'add'" slot="start"></ion-icon>
         {{ mostrandoFormulario ? 'Cancelar' : 'Crear Producto' }}
+      </ion-button>
+      <ion-button 
+        (click)="abrirModalCategorias()" 
+        color="tertiary"
+        class="boton-gestionar-categorias">
+        <ion-icon name="pricetags" slot="start"></ion-icon>
+        Gestionar Categorías
+      </ion-button>
+      <ion-button 
+        routerLink="/proveedores" 
+        color="secondary"
+        class="boton-gestionar-proveedores">
+        <ion-icon name="storefront" slot="start"></ion-icon>
+        Gestionar Proveedores
       </ion-button>
     </div>
 
@@ -187,9 +201,623 @@
       </form>
     </div>
 
-    <!-- Lista de productos (se implementará después) -->
+    <!-- Lista de productos -->
     <div *ngIf="!mostrandoFormulario" class="contenedor-lista-productos">
-      <!-- Aquí irá la lista de productos -->
+      
+      <!-- Controles de búsqueda y filtros -->
+      <div class="contenedor-controles">
+        <!-- Búsqueda -->
+        <div class="contenedor-busqueda">
+          <ion-searchbar
+            [(ngModel)]="terminoBusqueda"
+            (ionInput)="onBuscar($event)"
+            placeholder="Buscar por nombre, descripción, código de barras o categoría..."
+            class="barra-busqueda">
+          </ion-searchbar>
+          <ion-button 
+            *ngIf="esPlataformaMovil"
+            fill="outline" 
+            (click)="escanearCodigoBarras()"
+            class="boton-escanear">
+            <ion-icon name="barcode" slot="icon-only"></ion-icon>
+          </ion-button>
+        </div>
+
+        <!-- Filtros y ordenamiento -->
+        <div class="contenedor-filtros">
+          <!-- Filtro por categoría -->
+          <ion-item class="filtro-item">
+            <ion-label>Categoría:</ion-label>
+            <ion-select 
+              [(ngModel)]="categoriaFiltro" 
+              (ionChange)="aplicarFiltrosYOrdenamiento()"
+              interface="popover">
+              <ion-select-option value="todas">Todas</ion-select-option>
+              <ion-select-option value="sin-categoria">Sin categoría</ion-select-option>
+              <ion-select-option *ngFor="let categoria of categorias" [value]="categoria.id">
+                {{ categoria.nombre }}
+              </ion-select-option>
+            </ion-select>
+          </ion-item>
+
+          <!-- Filtro por proveedor -->
+          <ion-item class="filtro-item">
+            <ion-label>Proveedor:</ion-label>
+            <ion-select 
+              [(ngModel)]="proveedorFiltro" 
+              (ionChange)="aplicarFiltrosYOrdenamiento()"
+              interface="popover">
+              <ion-select-option value="todos">Todos</ion-select-option>
+              <ion-select-option value="sin-proveedor">Sin proveedor</ion-select-option>
+              <ion-select-option *ngFor="let proveedor of proveedores" [value]="proveedor.id">
+                {{ proveedor.nombre }}
+              </ion-select-option>
+            </ion-select>
+          </ion-item>
+
+          <!-- Ordenamiento -->
+          <ion-button 
+            fill="outline" 
+            (click)="cambiarOrdenamiento()"
+            class="boton-ordenar">
+            <ion-icon name="swap-vertical" slot="start"></ion-icon>
+            <span>Ordenar: {{ ordenamiento === 'nombre' ? 'Nombre' : (ordenamiento === 'precio' ? 'Precio' : 'Stock') }}</span>
+          </ion-button>
+
+          <!-- Cambiar vista -->
+          <ion-button 
+            fill="outline" 
+            (click)="cambiarVista()"
+            class="boton-vista">
+            <ion-icon [name]="vistaGrid ? 'list' : 'grid'" slot="icon-only"></ion-icon>
+          </ion-button>
+        </div>
+      </div>
+
+      <!-- Estado de carga -->
+      <div *ngIf="estaCargandoProductos" class="cargando-productos">
+        <p>Cargando productos...</p>
+      </div>
+
+      <!-- Lista de productos -->
+      <div *ngIf="!estaCargandoProductos">
+        
+        <!-- Vista Grid -->
+        <ion-grid *ngIf="vistaGrid && productosFiltrados.length > 0" class="grid-productos">
+          <ion-row>
+            <ion-col 
+              size="12" 
+              size-sm="6" 
+              size-md="4" 
+              size-lg="3"
+              *ngFor="let producto of productosFiltrados">
+              <ion-card class="tarjeta-producto" (click)="mostrarOpcionesProducto(producto, $event)">
+                <div class="contenedor-imagen-producto">
+                  <img 
+                    *ngIf="producto.fotoUrl" 
+                    [src]="producto.fotoUrl" 
+                    [alt]="producto.nombre"
+                    class="imagen-producto">
+                  <div *ngIf="!producto.fotoUrl" class="sin-foto">
+                    <ion-icon name="image" class="icono-sin-foto"></ion-icon>
+                    <p>Sin foto</p>
+                  </div>
+                  <!-- Badge de estado de stock -->
+                  <ion-badge 
+                    *ngIf="obtenerEstadoStock(producto.stock) === 'sin-stock'"
+                    color="danger"
+                    class="badge-stock badge-sin-stock">
+                    <ion-icon name="warning"></ion-icon>
+                    Sin stock
+                  </ion-badge>
+                  <ion-badge 
+                    *ngIf="obtenerEstadoStock(producto.stock) === 'bajo'"
+                    color="warning"
+                    class="badge-stock badge-bajo-stock">
+                    <ion-icon name="warning"></ion-icon>
+                    Bajo stock
+                  </ion-badge>
+                </div>
+                
+                <ion-card-header>
+                  <ion-card-title class="titulo-producto">{{ producto.nombre }}</ion-card-title>
+                </ion-card-header>
+                
+                <ion-card-content>
+                  <div class="info-producto">
+                    <div class="campo-info">
+                      <span class="etiqueta">Precio:</span>
+                      <span class="valor precio">{{ formatearPrecio(producto.precio) }}</span>
+                    </div>
+                    <div class="campo-info">
+                      <span class="etiqueta">Stock:</span>
+                      <span class="valor stock" [class.stock-bajo]="obtenerEstadoStock(producto.stock) === 'bajo'" [class.stock-sin]="obtenerEstadoStock(producto.stock) === 'sin-stock'">
+                        {{ producto.stock || 0 }}
+                      </span>
+                    </div>
+                    <div class="campo-info">
+                      <span class="etiqueta">Categoría:</span>
+                      <span class="valor">{{ obtenerNombreCategoria(producto.categoriaId) }}</span>
+                      <ion-button 
+                        *ngIf="!producto.categoriaId || !tieneCategoriaValida(producto.categoriaId)"
+                        fill="clear" 
+                        size="small"
+                        (click)="asignarCategoriaRapida(producto); $event.stopPropagation()"
+                        class="boton-asignar-categoria"
+                        type="button">
+                        <ion-icon name="add-circle" slot="icon-only"></ion-icon>
+                      </ion-button>
+                    </div>
+                    <div class="campo-info codigo-barras">
+                      <div class="contenedor-codigo-barras">
+                        <svg *ngIf="producto.codigoBarras" [id]="'barcode-' + (producto.id || 'grid-' + productosFiltrados.indexOf(producto))" class="codigo-barras-svg"></svg>
+                        <span *ngIf="!producto.codigoBarras" class="valor codigo">N/A</span>
+                      </div>
+                    </div>
+                  </div>
+                </ion-card-content>
+              </ion-card>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+
+        <!-- Vista Lista -->
+        <div *ngIf="!vistaGrid && productosFiltrados.length > 0" class="lista-productos">
+          <ion-card 
+            *ngFor="let producto of productosFiltrados"
+            class="tarjeta-producto-lista"
+            (click)="mostrarOpcionesProducto(producto, $event)">
+            <div class="contenido-lista">
+              <div class="contenedor-imagen-lista">
+                <img 
+                  *ngIf="producto.fotoUrl" 
+                  [src]="producto.fotoUrl" 
+                  [alt]="producto.nombre"
+                  class="imagen-producto-lista">
+                <div *ngIf="!producto.fotoUrl" class="sin-foto-lista">
+                  <ion-icon name="image" class="icono-sin-foto"></ion-icon>
+                  <p>Sin foto</p>
+                </div>
+              </div>
+              
+              <div class="info-lista">
+                <div class="header-lista">
+                  <h3 class="titulo-producto-lista">{{ producto.nombre }}</h3>
+                  <div class="badges-lista">
+                    <ion-badge 
+                      *ngIf="obtenerEstadoStock(producto.stock) === 'sin-stock'"
+                      color="danger"
+                      class="badge-stock">
+                      <ion-icon name="warning"></ion-icon>
+                      Sin stock
+                    </ion-badge>
+                    <ion-badge 
+                      *ngIf="obtenerEstadoStock(producto.stock) === 'bajo'"
+                      color="warning"
+                      class="badge-stock">
+                      <ion-icon name="warning"></ion-icon>
+                      Bajo stock
+                    </ion-badge>
+                  </div>
+                </div>
+                
+                <div class="detalles-lista">
+                  <div class="detalle-item">
+                    <span class="etiqueta">Precio:</span>
+                    <span class="valor precio">{{ formatearPrecio(producto.precio) }}</span>
+                  </div>
+                  <div class="detalle-item">
+                    <span class="etiqueta">Stock:</span>
+                    <span class="valor stock" [class.stock-bajo]="obtenerEstadoStock(producto.stock) === 'bajo'" [class.stock-sin]="obtenerEstadoStock(producto.stock) === 'sin-stock'">
+                      {{ producto.stock || 0 }}
+                    </span>
+                  </div>
+                  <div class="detalle-item">
+                    <span class="etiqueta">Categoría:</span>
+                    <span class="valor">{{ obtenerNombreCategoria(producto.categoriaId) }}</span>
+                    <ion-button 
+                      *ngIf="!producto.categoriaId || !tieneCategoriaValida(producto.categoriaId)"
+                      fill="clear" 
+                      size="small"
+                      (click)="asignarCategoriaRapida(producto); $event.stopPropagation()"
+                      class="boton-asignar-categoria"
+                      type="button">
+                      <ion-icon name="add-circle" slot="icon-only"></ion-icon>
+                    </ion-button>
+                  </div>
+                  <div class="detalle-item codigo-barras">
+                    <div class="contenedor-codigo-barras">
+                      <svg *ngIf="producto.codigoBarras" [id]="'barcode-lista-' + (producto.id || 'lista-' + productosFiltrados.indexOf(producto))" class="codigo-barras-svg"></svg>
+                      <span *ngIf="!producto.codigoBarras" class="valor codigo">N/A</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </ion-card>
+        </div>
+
+        <!-- Mensaje cuando no hay resultados -->
+        <div *ngIf="productosFiltrados.length === 0 && !estaCargandoProductos" class="sin-resultados">
+          <ion-icon name="search" class="icono-sin-resultados"></ion-icon>
+          <p>No se encontraron productos</p>
+          <p class="subtitulo-sin-resultados">Intenta ajustar los filtros o la búsqueda</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Edición -->
+    <ion-modal [isOpen]="mostrandoModalEditar" (willDismiss)="cerrarModalEditar()">
+      <ng-template>
+        <ion-header>
+          <ion-toolbar>
+            <ion-title>Editar Producto</ion-title>
+            <ion-buttons slot="end">
+              <ion-button (click)="cerrarModalEditar()">
+                <ion-icon name="close" slot="icon-only"></ion-icon>
+              </ion-button>
+            </ion-buttons>
+          </ion-toolbar>
+        </ion-header>
+        <ion-content class="contenido-modal">
+          <div class="ion-padding contenedor-formulario-modal" *ngIf="formularioEdicion">
+            <form [formGroup]="formularioEdicion" (ngSubmit)="guardarEdicion()">
+              
+              <!-- Nombre -->
+              <ion-item class="campo-formulario">
+                <ion-label position="stacked">Nombre del Producto *</ion-label>
+                <ion-input 
+                  type="text" 
+                  formControlName="nombre"
+                  placeholder="Ingresa el nombre del producto">
+                </ion-input>
+              </ion-item>
+              <div *ngIf="formularioEdicion.get('nombre')?.invalid && formularioEdicion.get('nombre')?.touched" 
+                   class="mensaje-error">
+                El nombre es requerido
+              </div>
+
+              <!-- Descripción -->
+              <ion-item class="campo-formulario">
+                <ion-label position="stacked">Descripción</ion-label>
+                <ion-textarea 
+                  formControlName="descripcion"
+                  placeholder="Ingresa una descripción del producto (opcional)"
+                  rows="3">
+                </ion-textarea>
+              </ion-item>
+
+              <!-- Precio -->
+              <ion-item class="campo-formulario">
+                <ion-label position="stacked">Precio *</ion-label>
+                <ion-input 
+                  type="number" 
+                  formControlName="precio"
+                  placeholder="0.00"
+                  step="0.01"
+                  min="0.01">
+                </ion-input>
+              </ion-item>
+              <div *ngIf="formularioEdicion.get('precio')?.invalid && formularioEdicion.get('precio')?.touched" 
+                   class="mensaje-error">
+                <span *ngIf="formularioEdicion.get('precio')?.errors?.['required']">
+                  El precio es requerido
+                </span>
+                <span *ngIf="formularioEdicion.get('precio')?.errors?.['precioInvalido']">
+                  El precio debe ser mayor a cero
+                </span>
+              </div>
+
+              <!-- Stock -->
+              <ion-item class="campo-formulario">
+                <ion-label position="stacked">Stock *</ion-label>
+                <ion-input 
+                  type="number" 
+                  formControlName="stock"
+                  placeholder="0"
+                  min="0">
+                </ion-input>
+              </ion-item>
+              <div *ngIf="formularioEdicion.get('stock')?.invalid && formularioEdicion.get('stock')?.touched" 
+                   class="mensaje-error">
+                <span *ngIf="formularioEdicion.get('stock')?.errors?.['required']">
+                  El stock es requerido
+                </span>
+                <span *ngIf="formularioEdicion.get('stock')?.errors?.['stockInvalido']">
+                  El stock no puede ser negativo
+                </span>
+              </div>
+
+              <!-- Código de barras -->
+              <ion-item class="campo-formulario">
+                <ion-label position="stacked">Código de Barras</ion-label>
+                <ion-input 
+                  type="text" 
+                  formControlName="codigoBarras"
+                  placeholder="Código de barras">
+                </ion-input>
+              </ion-item>
+
+              <!-- Foto -->
+              <div class="campo-foto">
+                <ion-label class="label-foto">Foto del Producto</ion-label>
+                <div *ngIf="fotoSeleccionada" class="preview-foto">
+                  <img [src]="fotoSeleccionada" alt="Preview" class="imagen-preview">
+                  <ion-button 
+                    fill="clear" 
+                    color="danger" 
+                    size="small" 
+                    (click)="eliminarFoto()"
+                    class="boton-eliminar-foto">
+                    Eliminar foto
+                  </ion-button>
+                </div>
+                <ion-button 
+                  *ngIf="!fotoSeleccionada"
+                  fill="outline" 
+                  expand="block" 
+                  (click)="seleccionarFoto()"
+                  [disabled]="estaSubiendoFoto"
+                  class="boton-seleccionar-foto">
+                  <ion-icon name="camera" slot="start"></ion-icon>
+                  {{ estaSubiendoFoto ? 'Subiendo...' : 'Seleccionar Foto' }}
+                </ion-button>
+              </div>
+
+              <!-- Categoría -->
+              <ion-item class="campo-formulario">
+                <ion-label position="stacked">Categoría</ion-label>
+                <ion-select formControlName="categoriaId" interface="popover" placeholder="Selecciona una categoría">
+                  <ion-select-option value="ninguna">Sin categoría</ion-select-option>
+                  <ion-select-option *ngFor="let categoria of categorias" [value]="categoria.id">
+                    {{ categoria.nombre }}
+                  </ion-select-option>
+                </ion-select>
+              </ion-item>
+
+              <!-- Proveedor -->
+              <ion-item class="campo-formulario">
+                <ion-label position="stacked">Proveedor</ion-label>
+                <ion-select formControlName="proveedorId" interface="popover" placeholder="Selecciona un proveedor">
+                  <ion-select-option value="ninguna">Sin proveedor</ion-select-option>
+                  <ion-select-option *ngFor="let proveedor of proveedores" [value]="proveedor.id">
+                    {{ proveedor.nombre }}
+                  </ion-select-option>
+                </ion-select>
+              </ion-item>
+
+              <!-- Estado -->
+              <ion-item class="campo-formulario">
+                <ion-label position="stacked">Estado *</ion-label>
+                <ion-select formControlName="estado" interface="popover" placeholder="Selecciona el estado">
+                  <ion-select-option value="buen estado">Buen Estado</ion-select-option>
+                  <ion-select-option value="mal estado">Mal Estado</ion-select-option>
+                </ion-select>
+              </ion-item>
+
+              <!-- Botones -->
+              <div class="contenedor-botones-formulario">
+                <ion-button 
+                  type="submit" 
+                  expand="block" 
+                  [disabled]="estaCargando || estaSubiendoFoto || formularioEdicion.invalid"
+                  class="boton-guardar">
+                  <ion-icon name="save" slot="start"></ion-icon>
+                  {{ estaSubiendoFoto ? 'Subiendo foto...' : (estaCargando ? 'Guardando...' : 'Guardar Cambios') }}
+                </ion-button>
+                <ion-button 
+                  fill="outline" 
+                  expand="block" 
+                  (click)="cerrarModalEditar()"
+                  class="boton-cancelar">
+                  Cancelar
+                </ion-button>
+              </div>
+            </form>
+          </div>
+        </ion-content>
+      </ng-template>
+    </ion-modal>
+
+    <!-- Modal de Ajuste de Stock -->
+    <ion-modal [isOpen]="mostrandoModalAjusteStock" (willDismiss)="cerrarModalAjusteStock()">
+      <ng-template>
+        <ion-header>
+          <ion-toolbar>
+            <ion-title>Ajustar Stock</ion-title>
+            <ion-buttons slot="end">
+              <ion-button (click)="cerrarModalAjusteStock()">
+                <ion-icon name="close" slot="icon-only"></ion-icon>
+              </ion-button>
+            </ion-buttons>
+          </ion-toolbar>
+        </ion-header>
+        <ion-content class="contenido-modal">
+          <div class="ion-padding contenedor-formulario-modal" *ngIf="productoAjustandoStock">
+            <h3 class="titulo-ajuste-stock">{{ productoAjustandoStock.nombre }}</h3>
+            <p class="stock-actual">Stock actual: <strong>{{ productoAjustandoStock.stock || 0 }}</strong></p>
+            
+            <ion-item class="campo-formulario">
+              <ion-label position="stacked">Nuevo Stock *</ion-label>
+              <ion-input 
+                type="number" 
+                [(ngModel)]="nuevoStock"
+                placeholder="Ingresa el nuevo valor de stock"
+                min="0">
+              </ion-input>
+            </ion-item>
+
+            <div class="contenedor-botones-formulario">
+              <ion-button 
+                expand="block" 
+                (click)="guardarAjusteStock()"
+                [disabled]="estaCargando || nuevoStock < 0"
+                class="boton-guardar">
+                <ion-icon name="save" slot="start"></ion-icon>
+                {{ estaCargando ? 'Guardando...' : 'Guardar Stock' }}
+              </ion-button>
+              <ion-button 
+                fill="outline" 
+                expand="block" 
+                (click)="cerrarModalAjusteStock()"
+                class="boton-cancelar">
+                Cancelar
+              </ion-button>
+            </div>
+          </div>
+        </ion-content>
+      </ng-template>
+    </ion-modal>
+
+    <!-- Modal de Gestión de Categorías -->
+    <ion-modal [isOpen]="mostrandoModalCategorias" (willDismiss)="cerrarModalCategorias()">
+      <ng-template>
+        <ion-header>
+          <ion-toolbar>
+            <ion-title>Gestionar Categorías</ion-title>
+            <ion-buttons slot="end">
+              <ion-button (click)="cerrarModalCategorias()">
+                <ion-icon name="close" slot="icon-only"></ion-icon>
+              </ion-button>
+            </ion-buttons>
+          </ion-toolbar>
+        </ion-header>
+        <ion-content class="contenido-modal">
+          <div class="ion-padding contenedor-modal-categorias">
+            
+            <!-- Formulario para crear/editar categoría -->
+            <div class="seccion-formulario-categoria">
+              <h3 class="titulo-seccion-categoria">
+                {{ categoriaEditando ? 'Editar Categoría' : 'Crear Nueva Categoría' }}
+              </h3>
+              <form [formGroup]="formularioCategoria" (ngSubmit)="categoriaEditando ? guardarEdicionCategoria() : crearCategoria()">
+                <ion-item class="campo-formulario">
+                  <ion-label position="stacked">Nombre de la Categoría *</ion-label>
+                  <ion-input 
+                    type="text" 
+                    formControlName="nombre"
+                    placeholder="Ingresa el nombre de la categoría">
+                  </ion-input>
+                </ion-item>
+                <div *ngIf="formularioCategoria.get('nombre')?.invalid && formularioCategoria.get('nombre')?.touched" 
+                     class="mensaje-error">
+                  El nombre es requerido
+                </div>
+
+                <div class="contenedor-botones-categoria">
+                  <ion-button 
+                    *ngIf="categoriaEditando"
+                    type="button"
+                    fill="outline"
+                    (click)="cancelarEdicionCategoria()"
+                    class="boton-cancelar-categoria">
+                    Cancelar
+                  </ion-button>
+                  <ion-button 
+                    type="submit" 
+                    expand="block"
+                    [disabled]="estaCargandoCategoria || formularioCategoria.invalid"
+                    class="boton-guardar-categoria">
+                    <ion-icon [name]="categoriaEditando ? 'checkmark' : 'add'" slot="start"></ion-icon>
+                    {{ estaCargandoCategoria ? 'Guardando...' : (categoriaEditando ? 'Guardar Cambios' : 'Crear Categoría') }}
+                  </ion-button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Lista de categorías -->
+            <div class="seccion-lista-categorias">
+              <h3 class="titulo-seccion-categoria">Categorías Existentes</h3>
+              
+              <div *ngIf="estaCargandoCategorias" class="cargando-categorias">
+                <p>Cargando categorías...</p>
+              </div>
+
+              <div *ngIf="!estaCargandoCategorias && categorias.length === 0" class="sin-categorias">
+                <p>No hay categorías creadas aún.</p>
+              </div>
+
+              <div *ngIf="!estaCargandoCategorias && categorias.length > 0" class="lista-categorias">
+                <div *ngFor="let categoria of categorias" class="item-categoria">
+                  <div class="info-categoria">
+                    <span class="nombre-categoria">{{ categoria.nombre }}</span>
+                    <span *ngIf="!categoria.userId" class="badge-predeterminada">Predeterminada</span>
+                  </div>
+                  <div class="acciones-categoria" *ngIf="categoria.userId && categoria.userId === (usuarioId || null)">
+                    <ion-button 
+                      fill="clear" 
+                      size="small"
+                      (click)="editarCategoria(categoria)"
+                      class="boton-editar-categoria"
+                      type="button">
+                      <ion-icon name="create" slot="icon-only"></ion-icon>
+                    </ion-button>
+                    <ion-button 
+                      fill="clear" 
+                      size="small"
+                      color="danger"
+                      (click)="eliminarCategoria(categoria)"
+                      class="boton-eliminar-categoria"
+                      type="button">
+                      <ion-icon name="trash" slot="icon-only"></ion-icon>
+                    </ion-button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </ion-content>
+      </ng-template>
+    </ion-modal>
+
+    <!-- Overlay para cerrar menú contextual -->
+    <div 
+      *ngIf="mostrandoMenuContextual && !esPlataformaMovil"
+      class="overlay-menu-contextual"
+      (click)="cerrarMenuContextual()">
+    </div>
+
+    <!-- Menú contextual para web -->
+    <div 
+      *ngIf="mostrandoMenuContextual && !esPlataformaMovil" 
+      class="menu-contextual-web"
+      [style.left.px]="posicionMenu.x"
+      [style.top.px]="posicionMenu.y"
+      (click)="$event.stopPropagation()">
+      <div class="header-menu-contextual">
+        <h4>{{ productoSeleccionado?.nombre }}</h4>
+        <ion-button 
+          fill="clear" 
+          size="small" 
+          (click)="cerrarMenuContextual(); $event.stopPropagation()"
+          class="boton-cerrar-menu">
+          <ion-icon name="close" slot="icon-only"></ion-icon>
+        </ion-button>
+      </div>
+      <div class="opciones-menu-contextual">
+        <button 
+          type="button"
+          class="opcion-menu"
+          (click)="ejecutarAccion('editar'); $event.stopPropagation()">
+          <ion-icon name="create"></ion-icon>
+          <span>Editar</span>
+        </button>
+        <button 
+          type="button"
+          class="opcion-menu"
+          (click)="ejecutarAccion('ajustar-stock'); $event.stopPropagation()">
+          <ion-icon name="swap-vertical"></ion-icon>
+          <span>Ajustar Stock</span>
+        </button>
+        <button 
+          type="button"
+          class="opcion-menu opcion-eliminar"
+          (click)="ejecutarAccion('eliminar'); $event.stopPropagation()">
+          <ion-icon name="trash"></ion-icon>
+          <span>Eliminar</span>
+        </button>
+      </div>
     </div>
 
   </div>
