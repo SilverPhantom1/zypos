@@ -75,6 +75,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const configData = configDoc.data();
     const accessToken = configData?.accessToken;
+    
+    // Obtener email del usuario desde Firestore (necesario para habilitar el botón de pago)
+    let userEmail: string | undefined;
+    try {
+      const userDoc = await db.collection('usuarios').doc(userId).get();
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        userEmail = userData?.email || userData?.correo;
+      }
+    } catch (error) {
+      console.warn('No se pudo obtener el email del usuario:', error);
+    }
     // Verificar modo test desde Firestore (campo explícito)
     // Si no existe el campo, intentar detectar por el formato del token
     const modoTestExplicito = configData?.modoTest;
@@ -147,7 +159,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       // NO incluir auto_return aquí - MercadoPago redirigirá usando back_urls automáticamente
     };
     
+    // Agregar email del payer si está disponible (necesario para habilitar el botón de pago)
+    if (userEmail) {
+      preferencia.payer = {
+        email: userEmail
+      };
+      console.log('Email del payer agregado:', userEmail);
+    } else {
+      console.warn('⚠️ No se encontró email del usuario - el botón de pago puede estar desactivado');
+    }
+    
+    // Si es modo test, agregar información adicional para debugging
+    if (isTestMode) {
+      console.log('⚠️ MODO TEST ACTIVO - Usando credenciales de prueba');
+      console.log('Las back_urls pueden causar problemas si MercadoPago las valida estrictamente');
+    }
+    
     console.log('Preferencia creada:', JSON.stringify(preferencia, null, 2));
+    console.log('URLs de retorno:', JSON.stringify(backUrls, null, 2));
 
     // Llamar a la API de MercadoPago
     const response = await fetch('https://api.mercadopago.com/checkout/preferences', {
