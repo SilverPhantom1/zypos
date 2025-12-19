@@ -31,6 +31,10 @@ export const routes: Routes = [
     loadComponent: () => import('./vistas/planes/planes.component').then(m => m.PlanesComponent)
   },
   {
+    path: 'gestion-suscripcion',
+    loadComponent: () => import('./vistas/gestion-suscripcion/gestion-suscripcion.component').then(m => m.GestionSuscripcionComponent)
+  },
+  {
     path: 'perfil',
     loadComponent: () => import('./vistas/perfil/perfil.component').then(m => m.PerfilComponent)
   },
@@ -41,5 +45,17 @@ export const routes: Routes = [
   {
     path: 'proveedores',
     loadComponent: () => import('./vistas/proveedores/proveedores.component').then(m => m.ProveedoresComponent)
+  },
+  {
+    path: 'ventas',
+    loadComponent: () => import('./vistas/ventas/ventas.component').then(m => m.VentasComponent)
+  },
+  {
+    path: 'historial-ventas',
+    loadComponent: () => import('./vistas/historial-ventas/historial-ventas.component').then(m => m.HistorialVentasComponent)
+  },
+  {
+    path: 'informes',
+    loadComponent: () => import('./vistas/informes/informes.component').then(m => m.InformesComponent)
   }
 ];

@@ -13,15 +13,17 @@
     <!-- Contenido de planes -->
     <div *ngIf="!verificandoAuth">
       <h1 class="titulo-principal-planes">Planes Disponibles</h1>
+      
       <h2 class="titulo-planes">Elige tu plan</h2>
       <p class="subtitulo-planes">Selecciona el plan que mejor se adapte a tus necesidades</p>
-      
+
       <!-- Contenedor de tarjetas de planes -->
       <div class="contenedor-tarjetas" *ngIf="!estaCargandoPlanes">
       <div 
         *ngFor="let plan of planes" 
         class="tarjeta-plan"
         [class.plan-seleccionado]="planSeleccionado === plan.nombre.toLowerCase()"
+        [class.plan-deshabilitado]="plan.nombre.toLowerCase() === 'free' && planGratuitoUsado"
         (click)="seleccionarPlan(plan.nombre)">
         
         <div class="plan-header">
@@ -39,6 +41,10 @@
         <div class="plan-duracion">
           <span>Duración: {{ plan.duracionDias }} días</span>
         </div>
+
+        <div class="plan-advertencia" *ngIf="plan.nombre.toLowerCase() === 'free' && planGratuitoUsado">
+          <p>⚠️ Ya has utilizado este plan</p>
+        </div>
         
         <div class="plan-seleccion-indicador" [class.visible]="planSeleccionado === plan.nombre.toLowerCase()">
           <ion-icon name="checkmark-circle"></ion-icon>
@@ -54,15 +60,17 @@
 
       <!-- Botones de acción -->
       <div class="contenedor-botones">
-        <!-- Botón de confirmación -->
-        <ion-button 
-          expand="block" 
-          class="boton-confirmar"
-          (click)="confirmarPlan()"
-          [disabled]="estaProcesando || estaCargandoPlanes">
-          <span *ngIf="!estaProcesando">Confirmar Plan</span>
-          <span *ngIf="estaProcesando">Procesando...</span>
-        </ion-button>
+      <!-- Botón de confirmación -->
+      <ion-button 
+        expand="block" 
+        class="boton-confirmar"
+        (click)="confirmarPlan()"
+        [disabled]="estaProcesando || estaCargandoPlanes || (planSeleccionado === 'free' && planGratuitoUsado)">
+        <span *ngIf="!estaProcesando">
+          {{ planSeleccionado === 'plus' ? 'Activar Plan Plus' : 'Confirmar Plan' }}
+        </span>
+        <span *ngIf="estaProcesando">Procesando...</span>
+      </ion-button>
 
         <!-- Botón ver después -->
         <ion-button 
@@ -74,6 +82,7 @@
           Ver Después
         </ion-button>
       </div>
+      
     </div>
   </div>
 </ion-content>

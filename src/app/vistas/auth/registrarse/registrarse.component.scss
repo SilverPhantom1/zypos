@@ -1,5 +1,5 @@
 .contenido-registro {
-    --background: #f4e9e0; // Color de fondo 
+    --background: var(--zypos-color-background); // Color de fondo 
   }
   
   .contenedor-registro {
@@ -34,7 +34,7 @@
   }
   
   .titulo-registro {
-    color: #0a3254ff; // Color letras azul oscuro
+    color: var(--zypos-color-text); // Color letras azul oscuro
     text-align: center;
     margin-bottom: 2rem;
     font-size: 1.75rem;
@@ -54,12 +54,12 @@
     --padding-end: 1rem;
     
     ion-label {
-      color: #0a3254ff; // Color letras
+      color: var(--zypos-color-text); // Color letras
       font-weight: 500;
     }
     
     ion-input {
-      color: #0a3254ff;
+      color: var(--zypos-color-text);
     }
     
     // Ajustes para móvil
@@ -71,7 +71,7 @@
   }
   
   .mensaje-error {
-    color: #f89585ff; // Color para errores
+    color: var(--zypos-color-primary); // Color para errores
     font-size: 0.875rem;
     margin-left: 1rem;
     margin-bottom: 0.5rem;
@@ -84,7 +84,7 @@
   }
   
   .boton-registro {
-    --background: #f89585ff; // Color coral
+    --background: var(--zypos-color-primary); // Color coral
     --color: #ffffff;
     margin-top: 1.5rem;
     --border-radius: 8px;
@@ -105,7 +105,7 @@
   }
 
   .boton-ojo {
-    --color: #6381e4ff; // Color módulos/iconos
+    --color: var(--zypos-color-accent); // Color módulos/iconos
     margin: 0;
     --padding-start: 0.5rem;
     --padding-end: 0.5rem;
@@ -120,8 +120,8 @@
   }
 
   .boton-codigo {
-    --border-color: #6381e4ff; // Color módulos/iconos
-    --color: #6381e4ff;
+    --border-color: var(--zypos-color-accent); // Color módulos/iconos
+    --color: var(--zypos-color-accent);
     margin-top: 0.5rem;
     margin-bottom: 0.5rem;
     --border-radius: 8px;
@@ -142,12 +142,12 @@
 
   .contador {
     text-align: center;
-    color: #0a3254ff;
+    color: var(--zypos-color-text);
     font-size: 0.9rem;
     margin: 0.5rem 0;
     
     strong {
-      color: #f89585ff;
+      color: var(--zypos-color-primary);
       font-size: 1rem;
     }
     
@@ -173,13 +173,13 @@
     margin-top: 1.5rem;
     
     p {
-      color: #0a3254ff; // Color letras
+      color: var(--zypos-color-text); // Color letras
       font-size: 0.9rem;
       margin: 0;
     }
     
     a {
-      color: #6381e4ff; // Color módulos/iconos
+      color: var(--zypos-color-accent); // Color módulos/iconos
       text-decoration: none;
       font-weight: 600;
       

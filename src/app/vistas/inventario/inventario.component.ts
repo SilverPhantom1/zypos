@@ -704,11 +704,13 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
     return 'normal';
   }
 
-  // Formatear precio
+  // Formatear precio en pesos chilenos (CLP)
   formatearPrecio(precio: number): string {
-    return new Intl.NumberFormat('es-MX', {
+    return new Intl.NumberFormat('es-CL', {
       style: 'currency',
-      currency: 'MXN'
+      currency: 'CLP',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
     }).format(precio);
   }
 
@@ -1144,7 +1146,7 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
               fontSize: 10,
               margin: 2,
               background: "transparent",
-              lineColor: "#0a3254ff"
+              lineColor: "#0a3254ff" // Color corporativo: --zypos-color-text
             });
             svgElement.setAttribute('data-barcode-generated', 'true');
           } catch (error) {
@@ -1168,7 +1170,7 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
               fontSize: 10,
               margin: 2,
               background: "transparent",
-              lineColor: "#0a3254ff"
+              lineColor: "#0a3254ff" // Color corporativo: --zypos-color-text
             });
             svgElementLista.setAttribute('data-barcode-generated', 'true');
           } catch (error) {

@@ -8,3 +8,49 @@
 /* @import "@ionic/angular/css/palettes/dark.always.css"; */
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 @import "@ionic/angular/css/palettes/dark.system.css";
+
+/**
+ * Colores Corporativos Zypos
+ * -----------------------------------------------------
+ * Variables CSS de Ionic para mantener consistencia en toda la aplicación
+ */
+
+:root {
+  /* Color Primario - Coral/Suave (#f89585ff) */
+  --ion-color-primary: #f89585;
+  --ion-color-primary-rgb: 248, 149, 133;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #da8374;
+  --ion-color-primary-tint: #f9a093;
+
+  /* Color de Fondo/Modal - Beige/Arena (#f4e9e0) */
+  --ion-color-background: #f4e9e0;
+  --ion-color-background-rgb: 244, 233, 224;
+  --ion-color-background-contrast: #0a3254;
+  --ion-color-background-contrast-rgb: 10, 50, 84;
+  --ion-color-background-shade: #d7cdc5;
+  --ion-color-background-tint: #f5ebe3;
+
+  /* Color Letras - Azul Oscuro (#0a3254ff) */
+  --ion-color-text: #0a3254;
+  --ion-color-text-rgb: 10, 50, 84;
+  --ion-color-text-contrast: #ffffff;
+  --ion-color-text-contrast-rgb: 255, 255, 255;
+  --ion-color-text-shade: #092c4a;
+  --ion-color-text-tint: #234765;
+
+  /* Color Módulos/Iconos - Azul/Lavanda (#6381e4ff) */
+  --ion-color-accent: #6381e4;
+  --ion-color-accent-rgb: 99, 129, 228;
+  --ion-color-accent-contrast: #ffffff;
+  --ion-color-accent-contrast-rgb: 255, 255, 255;
+  --ion-color-accent-shade: #5772c8;
+  --ion-color-accent-tint: #738ee7;
+
+  /* Variables adicionales para uso directo en CSS */
+  --zypos-color-primary: #f89585ff;
+  --zypos-color-background: #f4e9e0;
+  --zypos-color-text: #0a3254ff;
+  --zypos-color-accent: #6381e4ff;
+}

@@ -1,11 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { IonHeader, IonToolbar, IonContent, IonButton, IonIcon, ToastController, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonBadge } from '@ionic/angular/standalone';
-import { personCircle, logOut, cube, storefront, timeOutline, checkmarkCircle, mailOutline, callOutline, informationCircleOutline } from 'ionicons/icons';
+import { personCircle, logOut, cube, storefront, timeOutline, checkmarkCircle, mailOutline, callOutline, informationCircleOutline, cart, receipt, barChart } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 import { RouterLink, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Auth, onAuthStateChanged, signOut } from '@angular/fire/auth';
-import { Firestore, doc, getDoc, Timestamp } from '@angular/fire/firestore';
+import { Firestore, doc, getDoc, Timestamp, setDoc, updateDoc, collection, query, where, getDocs, orderBy, limit } from '@angular/fire/firestore';
 
 @Component({
   selector: 'app-home',
@@ -27,7 +27,7 @@ export class HomeComponent implements OnInit {
     private router: Router,
     private toastController: ToastController
   ) {
-    addIcons({ personCircle, logOut, cube, storefront, timeOutline, checkmarkCircle, mailOutline, callOutline, informationCircleOutline });
+    addIcons({ personCircle, logOut, cube, storefront, timeOutline, checkmarkCircle, mailOutline, callOutline, informationCircleOutline, cart, receipt, barChart });
   }
 
   async ngOnInit() {
@@ -41,7 +41,7 @@ export class HomeComponent implements OnInit {
         // Si hay usuario, cargar datos
         if (user.uid !== this.usuarioId) {
           this.usuarioId = user.uid;
-          this.verificandoAuth = false;
+        this.verificandoAuth = false;
           await this.cargarDatosUsuario();
         }
       }
@@ -66,11 +66,65 @@ export class HomeComponent implements OnInit {
             const ahora = new Date();
             const diferencia = fechaVencimiento.getTime() - ahora.getTime();
             this.diasRestantes = Math.max(0, Math.ceil(diferencia / (1000 * 60 * 60 * 24)));
+            
+            // Verificar si la suscripción ha vencido y degradar automáticamente
+            if (diferencia < 0 && this.planActual === 'plus') {
+              await this.degradarSuscripcionVencida();
+            }
           }
         }
       }
     } catch (error) {
       console.error('Error al cargar datos del usuario:', error);
+    }
+  }
+
+  async degradarSuscripcionVencida() {
+    if (!this.usuarioId) return;
+    
+    try {
+      // Actualizar suscripción del usuario a Free
+      await setDoc(doc(this.firestore, 'usuarios', this.usuarioId), {
+        suscripcion: {
+          nombre: 'free',
+          estado: 'vencida',
+          fechaDegradacion: Timestamp.now()
+        }
+      }, { merge: true });
+
+      // Actualizar la última suscripción activa en la colección suscripciones
+      try {
+        const suscripcionesRef = collection(this.firestore, 'suscripciones');
+        const q = query(
+          suscripcionesRef,
+          where('userId', '==', this.usuarioId),
+          where('estado', '==', 'activa'),
+          orderBy('fechaVencimiento', 'desc'),
+          limit(1)
+        );
+        
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+          const suscripcionDoc = querySnapshot.docs[0];
+          await updateDoc(suscripcionDoc.ref, {
+            estado: 'vencida',
+            fechaDegradacion: Timestamp.now()
+          });
+        }
+      } catch (error) {
+        // Si falla la query (por ejemplo, falta índice), continuar sin actualizar la colección
+        console.warn('No se pudo actualizar la colección suscripciones:', error);
+      }
+
+      // Actualizar estado local
+      this.planActual = 'free';
+      this.diasRestantes = 0;
+      
+      // Mostrar notificación al usuario
+      this.mostrarToast('Tu suscripción Plus ha vencido. Has sido degradado al plan Free. Solo puedes acceder a tu perfil.', 'warning');
+      
+    } catch (error) {
+      console.error('Error al degradar suscripción:', error);
     }
   }
 

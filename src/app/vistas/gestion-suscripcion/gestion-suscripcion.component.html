@@ -1,0 +1,167 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-button fill="clear" slot="start" (click)="volverAtras()">
+      <ion-icon name="arrow-back" slot="start"></ion-icon>
+      <span>Volver</span>
+    </ion-button>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="contenido-gestion-suscripcion" [scrollY]="true">
+  <div class="ion-padding contenedor-gestion-suscripcion">
+    <!-- Estado de verificación de autenticación -->
+    <div *ngIf="verificandoAuth" class="cargando">
+      <p>Verificando autenticación...</p>
+    </div>
+    
+    <!-- Contenido -->
+    <div *ngIf="!verificandoAuth">
+      <h1 class="titulo-principal">Gestión de Suscripción</h1>
+      
+      <!-- Estado de Suscripción Actual -->
+      <div *ngIf="suscripcionActual" class="estado-suscripcion-card">
+        <h2 class="titulo-estado-suscripcion">Estado de Suscripción</h2>
+        <div class="info-suscripcion">
+          <div class="campo-info">
+            <span class="label-info">Plan Actual:</span>
+            <span class="valor-info" [class.plan-free]="suscripcionActual.nombre === 'free'" [class.plan-plus]="suscripcionActual.nombre === 'plus'">
+              {{ suscripcionActual.nombre === 'plus' ? 'Plus' : 'Free' }}
+            </span>
+          </div>
+          <div class="campo-info">
+            <span class="label-info">Estado:</span>
+            <span class="valor-info" [class.estado-activa]="suscripcionActual.estado === 'activa'" [class.estado-vencida]="suscripcionActual.estado === 'vencida'">
+              {{ obtenerEstadoSuscripcion() }}
+            </span>
+          </div>
+          <div class="campo-info" *ngIf="suscripcionActual.fechaInicio">
+            <span class="label-info">Fecha de Inicio:</span>
+            <span class="valor-info">{{ formatearFecha(suscripcionActual.fechaInicio) }}</span>
+          </div>
+          <div class="campo-info" *ngIf="suscripcionActual.vence">
+            <span class="label-info">Fecha de Vencimiento:</span>
+            <span class="valor-info">{{ formatearFecha(suscripcionActual.vence) }}</span>
+          </div>
+          <div class="campo-info" *ngIf="diasRestantes > 0">
+            <span class="label-info">Días Restantes:</span>
+            <span class="valor-info">{{ diasRestantes }} {{ diasRestantes === 1 ? 'día' : 'días' }}</span>
+          </div>
+          <div class="campo-info" *ngIf="diasRestantes === 0 && suscripcionActual.estado === 'vencida'">
+            <span class="label-info">Estado:</span>
+            <span class="valor-info estado-vencida">Suscripción Vencida</span>
+          </div>
+        </div>
+        <ion-button 
+          *ngIf="suscripcionActual.nombre === 'plus' && diasRestantes <= 7 && diasRestantes > 0" 
+          expand="block" 
+          fill="outline"
+          (click)="renovarSuscripcion()"
+          class="boton-renovar">
+          Renovar Suscripción
+        </ion-button>
+        <ion-button 
+          *ngIf="suscripcionActual.estado === 'vencida' || diasRestantes === 0" 
+          expand="block" 
+          (click)="renovarSuscripcion()"
+          class="boton-activar">
+          Activar Plan Plus
+        </ion-button>
+      </div>
+
+      <!-- Tabla Comparativa de Planes -->
+      <div class="tabla-comparativa" *ngIf="!estaCargandoPlanes && planes.length >= 2">
+        <h3 class="titulo-tabla">Comparación de Planes</h3>
+        <table class="tabla-planes">
+          <thead>
+            <tr>
+              <th>Característica</th>
+              <th *ngFor="let plan of planes">{{ plan.nombre }}</th>
+              <th>Sin Plan</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Precio</td>
+              <td *ngFor="let plan of planes">
+                <strong>{{ formatearPrecio(plan.precio) }}</strong>
+                <span *ngIf="plan.precio > 0">/mes</span>
+              </td>
+              <td>-</td>
+            </tr>
+            <tr>
+              <td>Duración</td>
+              <td *ngFor="let plan of planes">{{ plan.duracionDias }} días</td>
+              <td>-</td>
+            </tr>
+            <tr>
+              <td>Acceso Completo</td>
+              <td *ngFor="let plan of planes">
+                <ion-icon name="checkmark-circle" class="check"></ion-icon>
+              </td>
+              <td>
+                <ion-icon name="close-circle" class="cross"></ion-icon>
+              </td>
+            </tr>
+            <tr>
+              <td>Inventario</td>
+              <td *ngFor="let plan of planes">
+                <ion-icon name="checkmark-circle" class="check"></ion-icon>
+              </td>
+              <td>
+                <ion-icon name="close-circle" class="cross"></ion-icon>
+              </td>
+            </tr>
+            <tr>
+              <td>Ventas</td>
+              <td *ngFor="let plan of planes">
+                <ion-icon name="checkmark-circle" class="check"></ion-icon>
+              </td>
+              <td>
+                <ion-icon name="close-circle" class="cross"></ion-icon>
+              </td>
+            </tr>
+            <tr>
+              <td>Informes</td>
+              <td *ngFor="let plan of planes">
+                <ion-icon name="checkmark-circle" class="check"></ion-icon>
+              </td>
+              <td>
+                <ion-icon name="close-circle" class="cross"></ion-icon>
+              </td>
+            </tr>
+            <tr>
+              <td>Renovación</td>
+              <td>
+                <span class="texto-limitacion">Solo una vez</span>
+              </td>
+              <td>
+                <ion-icon name="checkmark-circle" class="check"></ion-icon>
+              </td>
+              <td>-</td>
+            </tr>
+            <tr>
+              <td>Uso</td>
+              <td>
+                <span class="texto-limitacion">Limitado a 30 días</span>
+              </td>
+              <td>
+                <span class="texto-renovable">Renovable mensualmente</span>
+              </td>
+              <td>-</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Botón para cambiar de plan -->
+      <div class="contenedor-botones">
+        <ion-button 
+          expand="block" 
+          (click)="renovarSuscripcion()"
+          class="boton-cambiar-plan">
+          Ver Planes Disponibles
+        </ion-button>
+      </div>
+    </div>
+  </div>
+</ion-content>

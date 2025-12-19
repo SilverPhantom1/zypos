@@ -1,5 +1,5 @@
 .contenido-planes {
-  --background: #f4e9e0; // Color de fondo
+  --background: var(--zypos-color-background); // Color de fondo
 }
 
 .contenedor-planes {
@@ -30,7 +30,7 @@
 }
 
 .titulo-principal-planes {
-  color: #0a3254ff; // Color letras azul oscuro
+  color: var(--zypos-color-text); // Color letras azul oscuro
   text-align: center;
   margin-bottom: 1rem;
   font-size: 2.5rem;
@@ -48,7 +48,7 @@
 }
 
 .titulo-planes {
-  color: #0a3254ff; // Color letras azul oscuro
+  color: var(--zypos-color-text); // Color letras azul oscuro
   text-align: center;
   margin-bottom: 0.5rem;
   font-size: 1.75rem;
@@ -65,7 +65,7 @@
 }
 
 .subtitulo-planes {
-  color: #0a3254ff;
+  color: var(--zypos-color-text);
   text-align: center;
   margin-bottom: 2rem;
   font-size: 1rem;
@@ -124,9 +124,9 @@
   }
   
   &.plan-seleccionado {
-    border-color: #6381e4ff; // Color módulos/iconos
+    border-color: var(--zypos-color-accent); // Color módulos/iconos
     background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
-    box-shadow: 0 4px 16px rgba(99, 129, 228, 0.2);
+    box-shadow: 0 4px 16px rgba(var(--ion-color-accent-rgb), 0.2);
   }
   
   @media (max-width: 576px) {
@@ -141,7 +141,7 @@
 }
 
 .plan-nombre {
-  color: #0a3254ff;
+  color: var(--zypos-color-text);
   font-size: 1.5rem;
   font-weight: 700;
   margin: 0 0 0.5rem 0;
@@ -159,7 +159,7 @@
 }
 
 .precio-valor {
-  color: #f89585ff; // Color coral
+  color: var(--zypos-color-primary); // Color coral
   font-size: 2rem;
   font-weight: 700;
   
@@ -173,7 +173,7 @@
 }
 
 .precio-periodo {
-  color: #0a3254ff;
+  color: var(--zypos-color-text);
   font-size: 1rem;
   opacity: 0.7;
   
@@ -186,7 +186,7 @@
   margin-bottom: 1rem;
   
   p {
-    color: #0a3254ff;
+    color: var(--zypos-color-text);
     font-size: 0.95rem;
     line-height: 1.5;
     margin: 0;
@@ -199,7 +199,7 @@
 }
 
 .plan-duracion {
-  color: #0a3254ff;
+  color: var(--zypos-color-text);
   font-size: 0.9rem;
   margin-bottom: 1rem;
   opacity: 0.8;
@@ -213,7 +213,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: #6381e4ff;
+  color: var(--zypos-color-accent);
   font-weight: 600;
   font-size: 0.9rem;
   margin-top: auto;
@@ -241,7 +241,7 @@
 
 .cargando-planes {
   text-align: center;
-  color: #0a3254ff;
+  color: var(--zypos-color-text);
   padding: 2rem;
   font-size: 1rem;
 }
@@ -259,7 +259,7 @@
 }
 
 .boton-confirmar {
-  --background: #f89585ff; // Color coral
+  --background: var(--zypos-color-primary); // Color coral
   --color: #ffffff;
   --border-radius: 8px;
   height: 48px;
@@ -277,8 +277,8 @@
 }
 
 .boton-saltar {
-  --border-color: #6381e4ff; // Color módulos/iconos
-  --color: #6381e4ff;
+  --border-color: var(--zypos-color-accent); // Color módulos/iconos
+  --color: var(--zypos-color-accent);
   --border-radius: 8px;
   --border-width: 2px;
   height: 44px;
@@ -293,6 +293,222 @@
   @media (max-width: 576px) {
     height: 40px;
     font-size: 0.9rem;
+  }
+}
+
+// Estado de Suscripción
+.estado-suscripcion-card {
+  background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  border: 2px solid var(--zypos-color-accent);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  
+  @media (max-width: 576px) {
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+}
+
+.titulo-estado-suscripcion {
+  color: var(--zypos-color-text);
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 1rem 0;
+  text-align: center;
+  
+  @media (max-width: 576px) {
+    font-size: 1.25rem;
+  }
+}
+
+.info-suscripcion {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.campo-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #e0e0e0;
+  
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.label-info {
+  color: var(--zypos-color-text);
+  font-weight: 500;
+  font-size: 0.95rem;
+  opacity: 0.8;
+  
+  @media (max-width: 576px) {
+    font-size: 0.85rem;
+  }
+}
+
+.valor-info {
+  color: var(--zypos-color-text);
+  font-weight: 600;
+  font-size: 0.95rem;
+  
+  &.plan-free {
+    color: #6c757d;
+  }
+  
+  &.plan-plus {
+    color: var(--zypos-color-primary);
+  }
+  
+  &.estado-activa {
+    color: #28a745;
+  }
+  
+  &.estado-vencida {
+    color: #dc3545;
+    font-weight: 700;
+  }
+  
+  @media (max-width: 576px) {
+    font-size: 0.85rem;
+  }
+}
+
+.boton-renovar {
+  --border-color: var(--zypos-color-primary);
+  --color: var(--zypos-color-primary);
+  --border-radius: 8px;
+  --border-width: 2px;
+  margin-top: 1rem;
+  font-weight: 600;
+}
+
+// Tabla Comparativa
+.tabla-comparativa {
+  margin-bottom: 2rem;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  
+  @media (max-width: 576px) {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    overflow-x: auto;
+  }
+}
+
+.titulo-tabla {
+  color: var(--zypos-color-text);
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 1rem 0;
+  text-align: center;
+  
+  @media (max-width: 576px) {
+    font-size: 1.25rem;
+  }
+}
+
+.tabla-planes {
+  width: 100%;
+  border-collapse: collapse;
+  
+  th, td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+    
+    @media (max-width: 576px) {
+      padding: 0.5rem;
+      font-size: 0.85rem;
+    }
+  }
+  
+  th {
+    background: var(--zypos-color-accent);
+    color: #ffffff;
+    font-weight: 600;
+    text-align: center;
+  }
+  
+  td {
+    text-align: center;
+    
+    &:first-child {
+      text-align: left;
+      font-weight: 500;
+      color: var(--zypos-color-text);
+    }
+  }
+  
+  tr:last-child td {
+    border-bottom: none;
+  }
+  
+  ion-icon {
+    font-size: 1.5rem;
+    
+    &.check {
+      color: #28a745;
+    }
+    
+    &.cross {
+      color: #dc3545;
+    }
+  }
+  
+  .texto-limitacion {
+    color: #ffc107;
+    font-weight: 600;
+    font-size: 0.85rem;
+    
+    @media (max-width: 576px) {
+      font-size: 0.75rem;
+    }
+  }
+  
+  .texto-renovable {
+    color: #28a745;
+    font-weight: 600;
+    font-size: 0.85rem;
+    
+    @media (max-width: 576px) {
+      font-size: 0.75rem;
+    }
+  }
+}
+
+// Plan deshabilitado
+.plan-deshabilitado {
+  opacity: 0.6;
+  cursor: not-allowed;
+  position: relative;
+  
+  &:hover {
+    transform: none;
+  }
+}
+
+.plan-advertencia {
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 8px;
+  padding: 0.75rem;
+  margin: 0.75rem 0;
+  
+  p {
+    color: #856404;
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin: 0;
+    text-align: center;
   }
 }
 

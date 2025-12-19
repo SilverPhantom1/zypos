@@ -1,0 +1,637 @@
+.contenido-historial {
+  --background: var(--zypos-color-background);
+}
+
+.contenedor-historial {
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+  
+  @media (max-width: 576px) {
+    padding: 1rem 0.75rem;
+  }
+}
+
+// ========== FILTROS Y BÚSQUEDA ==========
+.seccion-filtros {
+  margin-bottom: 2rem;
+}
+
+.barra-busqueda {
+  --background: #ffffff;
+  --border-radius: 12px;
+  --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1rem;
+}
+
+.filtro-periodo {
+  --background: #ffffff;
+  --border-radius: 12px;
+  margin: 0;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 2px solid rgba(var(--ion-color-accent-rgb), 0.2);
+  transition: all 0.3s ease;
+  
+  &:focus-within {
+    border-color: var(--zypos-color-accent);
+    box-shadow: 0 2px 8px rgba(var(--ion-color-accent-rgb), 0.3);
+  }
+  
+  ion-label {
+    color: var(--zypos-color-text);
+    font-weight: 600;
+  }
+  
+  ion-select {
+    --color: var(--zypos-color-text);
+    --placeholder-color: var(--zypos-color-text);
+    --placeholder-opacity: 0.5;
+    font-weight: 600;
+    
+    &::part(text) {
+      color: var(--zypos-color-text);
+      font-weight: 600;
+    }
+    
+    &::part(icon) {
+      color: var(--zypos-color-accent);
+      opacity: 1;
+    }
+  }
+}
+
+// ========== LISTA DE VENTAS ==========
+.lista-ventas {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.tarjeta-venta {
+  margin: 0;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(var(--ion-color-accent-rgb), 0.2);
+    border-color: rgba(var(--ion-color-accent-rgb), 0.3);
+  }
+  
+  &.venta-anulada {
+    opacity: 1; // Quitar opacidad para mejor visibilidad
+    border-left: 4px solid var(--zypos-color-primary); // Color primario coral
+    background: #5a2d2d; // Fondo rojo tenue/oscuro para mejor contraste con texto blanco
+    --background: #5a2d2d;
+    
+    .id-venta {
+      text-decoration: line-through;
+    }
+  }
+  
+  &.venta-modificada {
+    border-left: 4px solid var(--zypos-color-accent); // Color módulos/iconos
+    background: #3a4a5f; // Fondo azul oscuro para mejor contraste con texto blanco
+    --background: #3a4a5f;
+  }
+}
+
+.header-venta {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  
+  @media (max-width: 576px) {
+    flex-direction: column;
+  }
+}
+
+.info-venta {
+  flex: 1;
+}
+
+.id-venta {
+  color: #ffffff; // Color blanco para mejor contraste
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+}
+
+.fecha-hora {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #ffffff; // Color blanco para mejor contraste
+  font-size: 0.9rem;
+  opacity: 0.9; // Aumentar opacidad para mejor visibilidad
+  
+  ion-icon {
+    color: #ffffff; // Color blanco para mejor contraste
+    font-size: 1rem;
+    opacity: 0.9;
+  }
+  
+  @media (max-width: 576px) {
+    flex-wrap: wrap;
+  }
+}
+
+.badges-venta {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.badge-estado {
+  font-size: 0.85rem;
+  padding: 0.4rem 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.detalles-venta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.detalle-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #ffffff; // Color blanco para mejor contraste
+  
+  ion-icon {
+    color: #ffffff; // Color blanco para mejor contraste
+    font-size: 1.2rem;
+    opacity: 0.9;
+  }
+  
+  .etiqueta {
+    font-weight: 600;
+    opacity: 0.9; // Aumentar opacidad para mejor visibilidad
+    color: #ffffff;
+  }
+  
+  .valor {
+    font-weight: 600;
+    color: #ffffff; // Color blanco para mejor contraste
+    
+    &.total {
+      color: var(--zypos-color-primary); // Color primario coral (mantener)
+      font-size: 1.1rem;
+    }
+  }
+}
+
+.acciones-venta {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(var(--ion-color-primary-rgb), 0.2);
+}
+
+.boton-accion {
+  --color: #ffffff; // Color blanco para mejor contraste
+  font-size: 0.9rem;
+  flex: 1;
+  min-width: 100px;
+  
+  &[color="danger"] {
+    --color: var(--zypos-color-primary); // Color primario coral
+  }
+  
+  &[color="warning"] {
+    --color: #ffffff; // Color blanco para mejor contraste
+  }
+}
+
+.sin-resultados {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--zypos-color-text);
+  
+  .icono-sin-resultados {
+    font-size: 4rem;
+    color: var(--zypos-color-accent); // Color módulos/iconos
+    opacity: 0.5;
+    margin-bottom: 1rem;
+  }
+  
+  p {
+    font-size: 1.1rem;
+    margin: 0.5rem 0;
+  }
+  
+  .subtitulo-sin-resultados {
+    font-size: 0.9rem;
+    opacity: 0.7;
+  }
+}
+
+// ========== MODAL DE DETALLE ==========
+.contenido-modal {
+  --background: var(--zypos-color-background);
+}
+
+.contenedor-modal-detalle {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.info-venta-detalle {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.campo-detalle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(var(--ion-color-primary-rgb), 0.1);
+  
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.etiqueta-detalle {
+  color: var(--zypos-color-text);
+  font-weight: 600;
+  opacity: 0.8;
+}
+
+.valor-detalle {
+  color: var(--zypos-color-text);
+  font-weight: 600;
+}
+
+.productos-venta-detalle {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  
+  h3 {
+    color: var(--zypos-color-text);
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin: 0 0 1rem 0;
+  }
+}
+
+.lista-productos-detalle {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.item-producto-detalle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: rgba(var(--ion-color-primary-rgb), 0.05);
+  border-radius: 8px;
+}
+
+.info-producto-detalle {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.nombre-producto-detalle {
+  color: var(--zypos-color-text);
+  font-weight: 600;
+}
+
+.cantidad-producto-detalle {
+  color: var(--zypos-color-text);
+  font-size: 0.9rem;
+  opacity: 0.7;
+}
+
+.precio-producto-detalle {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+}
+
+.precio-unitario {
+  color: var(--zypos-color-text);
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+.subtotal-producto {
+  color: var(--zypos-color-primary); // Color primario coral
+  font-weight: 600;
+}
+
+.total-venta-detalle {
+  padding-top: 1rem;
+  border-top: 2px solid rgba(var(--ion-color-primary-rgb), 0.3);
+  text-align: right;
+  color: var(--zypos-color-text);
+  font-size: 1.3rem;
+}
+
+// ========== MODAL DE ANULACIÓN ==========
+.contenedor-modal-anular {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.info-anulacion {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  
+  p {
+    color: var(--zypos-color-text);
+    margin: 0.5rem 0;
+  }
+}
+
+.productos-anulacion {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  
+  h3 {
+    color: var(--zypos-color-text);
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin: 0 0 1rem 0;
+  }
+}
+
+.texto-ayuda {
+  color: var(--zypos-color-text);
+  font-size: 0.9rem;
+  opacity: 0.7;
+  margin: 0 0 1rem 0;
+  padding: 0.75rem;
+  background: rgba(var(--ion-color-primary-rgb), 0.1);
+  border-left: 3px solid var(--zypos-color-primary);
+  border-radius: 4px;
+}
+
+.lista-productos-anulacion {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.item-producto-anulacion {
+  --background: rgba(var(--ion-color-primary-rgb), 0.05);
+  --border-radius: 8px;
+  margin: 0;
+  border-radius: 8px;
+  
+  .estado-actual {
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--zypos-color-text);
+    
+    ion-badge {
+      font-weight: 600;
+    }
+  }
+}
+
+.motivo-anulacion {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.botones-accion-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.boton-confirmar-anular {
+  --background: var(--zypos-color-primary); // Color primario coral
+  --color: #ffffff;
+  --border-radius: 12px;
+  font-weight: 600;
+  height: 50px;
+}
+
+.boton-cancelar {
+  --border-color: var(--zypos-color-accent); // Color módulos/iconos
+  --color: var(--zypos-color-accent);
+  --border-radius: 12px;
+  height: 45px;
+}
+
+// ========== MODAL DE MODIFICACIÓN ==========
+.contenedor-modal-modificar {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.info-modificacion {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  
+  p {
+    color: var(--zypos-color-text);
+    margin: 0.5rem 0;
+  }
+}
+
+.productos-modificacion {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  
+  h3 {
+    color: var(--zypos-color-text);
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin: 0 0 1rem 0;
+  }
+  
+  .texto-ayuda {
+    color: var(--zypos-color-text);
+    font-size: 0.9rem;
+    opacity: 0.7;
+    margin: 0 0 1rem 0;
+    padding: 0.75rem;
+    background: rgba(var(--ion-color-accent-rgb), 0.1);
+    border-left: 3px solid var(--zypos-color-accent);
+    border-radius: 4px;
+  }
+}
+
+.lista-productos-modificacion {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.item-producto-modificacion {
+  --background: rgba(var(--ion-color-accent-rgb), 0.05);
+  --border-radius: 8px;
+  margin: 0;
+  border-radius: 8px;
+}
+
+.estados-modificacion {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  
+  h3 {
+    color: var(--zypos-color-text);
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin: 0 0 1rem 0;
+  }
+}
+
+.lista-estados {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.item-estado {
+  --background: rgba(var(--ion-color-primary-rgb), 0.05);
+  --border-radius: 8px;
+  margin: 0;
+  border-radius: 8px;
+  
+  .estado-actual {
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--zypos-color-text);
+    
+    ion-badge {
+      font-weight: 600;
+    }
+  }
+}
+
+.tipo-modificacion {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  
+  h3 {
+    color: var(--zypos-color-text);
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin: 0 0 1rem 0;
+  }
+}
+
+.opciones-tipo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.boton-tipo {
+  --border-radius: 12px;
+  font-weight: 600;
+  height: 50px;
+  
+  &[fill="solid"] {
+    --background: var(--zypos-color-primary); // Color primario coral
+    --color: #ffffff;
+  }
+  
+  &[fill="outline"] {
+    --border-color: var(--zypos-color-accent); // Color módulos/iconos
+    --color: var(--zypos-color-accent);
+  }
+}
+
+.producto-cambio {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  
+  h3 {
+    color: var(--zypos-color-text);
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin: 0 0 1rem 0;
+  }
+}
+
+.boton-confirmar-modificar {
+  --background: var(--zypos-color-accent); // Color módulos/iconos
+  --color: #ffffff;
+  --border-radius: 12px;
+  font-weight: 600;
+  height: 50px;
+}
+
+// ========== BOTÓN VOLVER ==========
+.boton-volver-header {
+  --background: var(--zypos-color-primary) !important; // Color primario coral
+  --color: #ffffff !important;
+  margin: 0;
+  font-weight: 500;
+  background: var(--zypos-color-primary) !important;
+  color: #ffffff !important;
+}
+
+.texto-boton-volver {
+  margin-left: 0.25rem;
+  color: #ffffff !important;
+}
+
+// ========== ESTADO DE CARGA ==========
+.cargando,
+.cargando-auth {
+  text-align: center;
+  padding: 2rem;
+  color: var(--zypos-color-text);
+  font-size: 1rem;
+}
+

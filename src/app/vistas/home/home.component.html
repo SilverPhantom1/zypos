@@ -24,7 +24,7 @@
         </div>
 
         <!-- Tarjeta de Plan -->
-        <ion-card class="tarjeta-plan-dashboard" routerLink="/planes">
+        <ion-card class="tarjeta-plan-dashboard" routerLink="/gestion-suscripcion">
           <ion-card-header>
             <div class="plan-header-dashboard">
               <div class="plan-info-header">
@@ -48,7 +48,7 @@
           </ion-card-content>
         </ion-card>
       </div>
-
+      
       <!-- Grid de Módulos -->
       <div class="grid-modulos-dashboard">
         <!-- Módulo Perfil -->
@@ -80,7 +80,7 @@
             </div>
           </ion-card-content>
         </ion-card>
-
+      
         <!-- Módulo Inventario -->
         <ion-card class="modulo-card" routerLink="/inventario">
           <ion-card-content>
@@ -91,6 +91,51 @@
               <div class="modulo-texto">
                 <h3 class="modulo-titulo-card">Inventario</h3>
                 <p class="modulo-descripcion-card">Controla el stock y productos de tu negocio</p>
+              </div>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+        <!-- Módulo Ventas -->
+        <ion-card class="modulo-card" routerLink="/ventas">
+          <ion-card-content>
+            <div class="modulo-card-content">
+              <div class="modulo-icono-container ventas">
+                <ion-icon name="cart"></ion-icon>
+              </div>
+              <div class="modulo-texto">
+                <h3 class="modulo-titulo-card">Ventas</h3>
+                <p class="modulo-descripcion-card">Realiza ventas y gestiona tu carrito</p>
+              </div>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+        <!-- Módulo Historial de Ventas -->
+        <ion-card class="modulo-card" routerLink="/historial-ventas">
+          <ion-card-content>
+            <div class="modulo-card-content">
+              <div class="modulo-icono-container historial">
+                <ion-icon name="receipt"></ion-icon>
+              </div>
+              <div class="modulo-texto">
+                <h3 class="modulo-titulo-card">Historial de Ventas</h3>
+                <p class="modulo-descripcion-card">Consulta y gestiona todas tus ventas realizadas</p>
+              </div>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+        <!-- Módulo Informes -->
+        <ion-card class="modulo-card" routerLink="/informes">
+          <ion-card-content>
+            <div class="modulo-card-content">
+              <div class="modulo-icono-container informes">
+                <ion-icon name="bar-chart"></ion-icon>
+              </div>
+              <div class="modulo-texto">
+                <h3 class="modulo-titulo-card">Informes</h3>
+                <p class="modulo-descripcion-card">Visualiza reportes y exporta datos de tus ventas</p>
               </div>
             </div>
           </ion-card-content>
@@ -121,8 +166,8 @@
         <div class="footer-info">
           <p class="info-item">© 2024 Zypos</p>
         </div>
-      </div>
     </div>
+  </div>
     <div class="footer-bottom">
       <p class="footer-copyright">Todos los derechos reservados</p>
     </div>

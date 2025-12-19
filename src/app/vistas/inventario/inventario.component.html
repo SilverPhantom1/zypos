@@ -66,13 +66,13 @@
 
         <!-- Precio (requerido) -->
         <ion-item class="campo-formulario">
-          <ion-label position="stacked">Precio *</ion-label>
+          <ion-label position="stacked">Precio (CLP) *</ion-label>
           <ion-input 
             type="number" 
             formControlName="precio"
-            placeholder="0.00"
-            step="0.01"
-            min="0.01">
+            placeholder="0"
+            step="1"
+            min="1">
           </ion-input>
         </ion-item>
         <div *ngIf="formularioProducto.get('precio')?.invalid && formularioProducto.get('precio')?.touched" 
@@ -489,13 +489,13 @@
 
               <!-- Precio -->
               <ion-item class="campo-formulario">
-                <ion-label position="stacked">Precio *</ion-label>
+                <ion-label position="stacked">Precio (CLP) *</ion-label>
                 <ion-input 
                   type="number" 
                   formControlName="precio"
-                  placeholder="0.00"
-                  step="0.01"
-                  min="0.01">
+                  placeholder="0"
+                  step="1"
+                  min="1">
                 </ion-input>
               </ion-item>
               <div *ngIf="formularioEdicion.get('precio')?.invalid && formularioEdicion.get('precio')?.touched" 

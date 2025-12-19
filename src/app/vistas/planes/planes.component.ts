@@ -1,10 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { IonHeader, IonToolbar, IonContent, IonButton, IonIcon, ToastController } from '@ionic/angular/standalone';
-import { checkmarkCircle, arrowBack } from 'ionicons/icons';
+import { checkmarkCircle, arrowBack, closeCircle } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 import { CommonModule } from '@angular/common';
-import { Firestore, collection, getDocs, query, where, doc, getDoc, Timestamp, serverTimestamp, setDoc } from '@angular/fire/firestore';
+import { Firestore, collection, getDocs, query, where, doc, getDoc, Timestamp, serverTimestamp, setDoc, addDoc } from '@angular/fire/firestore';
 import { Auth, onAuthStateChanged } from '@angular/fire/auth';
 
 @Component({
@@ -21,6 +21,8 @@ export class PlanesComponent implements OnInit {
   usuarioId: string | null = null;
   estaProcesando: boolean = false;
   verificandoAuth: boolean = true;
+  
+  planGratuitoUsado: boolean = false;
 
   constructor(
     private firestore: Firestore,
@@ -28,7 +30,7 @@ export class PlanesComponent implements OnInit {
     private router: Router,
     private toastController: ToastController
   ) {
-    addIcons({ checkmarkCircle, arrowBack });
+    addIcons({ checkmarkCircle, arrowBack, closeCircle });
   }
 
   async ngOnInit() {
@@ -44,6 +46,7 @@ export class PlanesComponent implements OnInit {
           this.usuarioId = user.uid;
           this.verificandoAuth = false;
           await this.cargarPlanes();
+          await this.verificarPlanGratuitoUsado();
         }
       }
     });
@@ -73,8 +76,32 @@ export class PlanesComponent implements OnInit {
     }
   }
 
+  async verificarPlanGratuitoUsado() {
+    if (!this.usuarioId) return;
+    
+    try {
+      const usuarioDoc = await getDoc(doc(this.firestore, 'usuarios', this.usuarioId));
+      
+      if (usuarioDoc.exists()) {
+        const datosUsuario = usuarioDoc.data();
+        // Verificar si ya usó el plan gratuito
+        this.planGratuitoUsado = datosUsuario['planGratuitoUsado'] || false;
+      }
+    } catch (error) {
+      console.error('Error al verificar plan gratuito:', error);
+    }
+  }
+
   seleccionarPlan(nombrePlan: string) {
-    this.planSeleccionado = nombrePlan.toLowerCase();
+    const nombrePlanLower = nombrePlan.toLowerCase();
+    
+    // Validar si intenta seleccionar plan gratuito y ya lo usó
+    if (nombrePlanLower === 'free' && this.planGratuitoUsado) {
+      this.mostrarToast('El plan gratuito solo puede utilizarse una vez. Por favor, selecciona el plan Plus.', 'warning');
+      return;
+    }
+    
+    this.planSeleccionado = nombrePlanLower;
   }
 
   formatearPrecio(precio: number): string {
@@ -92,6 +119,12 @@ export class PlanesComponent implements OnInit {
       return;
     }
 
+    // Validar plan gratuito
+    if (this.planSeleccionado === 'free' && this.planGratuitoUsado) {
+      this.mostrarToast('El plan gratuito solo puede utilizarse una vez. Por favor, selecciona el plan Plus.', 'warning');
+      return;
+    }
+
     this.estaProcesando = true;
 
     try {
@@ -102,10 +135,19 @@ export class PlanesComponent implements OnInit {
         return;
       }
 
+      // Si es plan Plus, aquí iría la integración con MercadoPago
+      // Por ahora, procedemos directamente con la activación
+      if (planElegido.precio > 0) {
+        // TODO: Integrar con MercadoPago aquí
+        // Por ahora, activamos directamente para testing
+        this.mostrarToast('Nota: La integración con MercadoPago se implementará próximamente', 'warning');
+      }
+
       const duracionDias = planElegido.duracionDias || 30;
       
-      // Calcular fecha de vencimiento
+      // Calcular fechas
       const fechaActual = new Date();
+      const fechaInicio = Timestamp.fromDate(fechaActual);
       const fechaVencimiento = new Date(fechaActual);
       fechaVencimiento.setDate(fechaVencimiento.getDate() + duracionDias);
       const fechaVencimientoTimestamp = Timestamp.fromDate(fechaVencimiento);
@@ -118,18 +160,56 @@ export class PlanesComponent implements OnInit {
         return;
       }
 
-      // Actualizar suscripción del usuario
+      const datosUsuario = usuarioDoc.data();
+      
+      // Preparar datos de suscripción para el usuario
+      const suscripcionUsuario = {
+        nombre: this.planSeleccionado,
+        vence: fechaVencimientoTimestamp,
+        fechaInicio: fechaInicio,
+        estado: 'activa'
+      };
+
+      // Actualizar suscripción del usuario (mantener compatibilidad)
+      const actualizacionUsuario: any = {
+        suscripcion: suscripcionUsuario
+      };
+
+      // Si es plan gratuito, marcar como usado
+      if (this.planSeleccionado === 'free') {
+        actualizacionUsuario.planGratuitoUsado = true;
+      }
+
       await setDoc(doc(this.firestore, 'usuarios', this.usuarioId), {
-        ...usuarioDoc.data(),
-        suscripcion: {
-          nombre: this.planSeleccionado,
-          vence: fechaVencimientoTimestamp
-        }
+        ...datosUsuario,
+        ...actualizacionUsuario
       }, { merge: true });
+
+      // Crear documento en colección suscripciones (nuevo)
+      const suscripcionData = {
+        userId: this.usuarioId,
+        plan: this.planSeleccionado,
+        fechaInicio: fechaInicio,
+        fechaVencimiento: fechaVencimientoTimestamp,
+        estado: 'activa',
+        detallesPago: planElegido.precio > 0 ? {
+          metodo: 'mercadoPago', // TODO: Actualizar cuando se integre
+          monto: planElegido.precio,
+          procesado: planElegido.precio === 0 // Si es gratis, ya está procesado
+        } : null,
+        creado: serverTimestamp()
+      };
+
+      await addDoc(collection(this.firestore, 'suscripciones'), suscripcionData);
 
       this.mostrarToast('Plan activado correctamente', 'success');
 
-      // Redirigir al home
+      // Actualizar estado local
+      if (this.planSeleccionado === 'free') {
+        this.planGratuitoUsado = true;
+      }
+
+      // Redirigir al home después de un breve delay
       setTimeout(() => {
         this.router.navigate(['/home'], { replaceUrl: true });
       }, 2000);
@@ -141,6 +221,7 @@ export class PlanesComponent implements OnInit {
       this.estaProcesando = false;
     }
   }
+
 
   verDespues() {
     // El usuario ya tiene el plan gratuito asignado por defecto al registrarse

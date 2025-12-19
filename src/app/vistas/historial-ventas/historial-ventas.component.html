@@ -1,0 +1,436 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-button fill="solid" slot="start" (click)="volverAtras()" class="boton-volver-header">
+      <ion-icon name="arrow-back" slot="start"></ion-icon>
+      <span class="texto-boton-volver">Volver</span>
+    </ion-button>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="contenido-historial" [scrollY]="true">
+  <div class="ion-padding contenedor-historial" *ngIf="!verificandoAuth">
+    
+    <!-- Búsqueda y Filtros -->
+    <div class="seccion-filtros">
+      <ion-searchbar
+        [(ngModel)]="terminoBusqueda"
+        (ionInput)="onBuscar($event)"
+        placeholder="Buscar por ID de venta..."
+        class="barra-busqueda">
+      </ion-searchbar>
+      
+      <ion-item class="filtro-periodo">
+        <ion-label>Filtrar por período:</ion-label>
+        <ion-select 
+          [(ngModel)]="filtroPeriodo"
+          (ionChange)="cambiarFiltroPeriodo()"
+          interface="action-sheet"
+          [placeholder]="obtenerTextoPeriodo(filtroPeriodo)"
+          [selectedText]="obtenerTextoPeriodo(filtroPeriodo)">
+          <ion-select-option value="todos">Todas</ion-select-option>
+          <ion-select-option value="dia">Hoy</ion-select-option>
+          <ion-select-option value="semana">Esta semana</ion-select-option>
+          <ion-select-option value="mes">Este mes</ion-select-option>
+        </ion-select>
+      </ion-item>
+    </div>
+
+    <!-- Estado de carga -->
+    <div *ngIf="estaCargandoVentas" class="cargando">
+      <p>Cargando ventas...</p>
+    </div>
+
+    <!-- Lista de ventas -->
+    <div *ngIf="!estaCargandoVentas">
+      <div *ngIf="ventasFiltradas.length > 0" class="lista-ventas">
+        <ion-card 
+          *ngFor="let venta of ventasFiltradas"
+          class="tarjeta-venta"
+          [class.venta-anulada]="venta.anulada"
+          [class.venta-modificada]="venta.modificada">
+          
+          <ion-card-header>
+            <div class="header-venta">
+              <div class="info-venta">
+                <ion-card-title class="id-venta">ID: {{ venta.id }}</ion-card-title>
+                <div class="fecha-hora">
+                  <ion-icon name="calendar"></ion-icon>
+                  <span>{{ formatearFecha(venta.fecha) }}</span>
+                  <ion-icon name="time"></ion-icon>
+                  <span>{{ formatearHora(venta.fecha) }}</span>
+                </div>
+              </div>
+              <div class="badges-venta">
+                <ion-badge 
+                  *ngIf="venta.anulada"
+                  color="danger"
+                  class="badge-estado">
+                  <ion-icon name="ban"></ion-icon>
+                  Anulada
+                </ion-badge>
+                <ion-badge 
+                  *ngIf="venta.modificada && !venta.anulada"
+                  color="warning"
+                  class="badge-estado">
+                  <ion-icon name="create"></ion-icon>
+                  Modificada
+                </ion-badge>
+                <ion-badge 
+                  *ngIf="!venta.anulada && !venta.modificada"
+                  color="success"
+                  class="badge-estado">
+                  <ion-icon name="checkmark-circle"></ion-icon>
+                  Completada
+                </ion-badge>
+              </div>
+            </div>
+          </ion-card-header>
+          
+          <ion-card-content>
+            <div class="detalles-venta">
+              <div class="detalle-item">
+                <ion-icon [name]="obtenerIconoMetodoPago(venta.metodoPago)"></ion-icon>
+                <span class="etiqueta">Método:</span>
+                <span class="valor">{{ obtenerNombreMetodoPago(venta.metodoPago) }}</span>
+              </div>
+              <div class="detalle-item">
+                <ion-icon name="receipt"></ion-icon>
+                <span class="etiqueta">Total:</span>
+                <span class="valor total">{{ formatearPrecio(venta.total) }}</span>
+              </div>
+              <div class="detalle-item">
+                <ion-icon name="cube"></ion-icon>
+                <span class="etiqueta">Productos:</span>
+                <span class="valor">{{ contarProductos(venta) }}</span>
+              </div>
+            </div>
+            
+            <div class="acciones-venta">
+              <ion-button 
+                fill="clear"
+                size="small"
+                (click)="abrirModalDetalle(venta)"
+                class="boton-accion">
+                <ion-icon name="eye" slot="start"></ion-icon>
+                Ver Detalle
+              </ion-button>
+              <ion-button 
+                *ngIf="!venta.anulada"
+                fill="clear"
+                size="small"
+                color="danger"
+                (click)="abrirModalAnular(venta)"
+                class="boton-accion">
+                <ion-icon name="ban" slot="start"></ion-icon>
+                Anular
+              </ion-button>
+              <ion-button 
+                *ngIf="!venta.anulada"
+                fill="clear"
+                size="small"
+                color="warning"
+                (click)="abrirModalModificar(venta)"
+                class="boton-accion">
+                <ion-icon name="create" slot="start"></ion-icon>
+                Modificar
+              </ion-button>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </div>
+
+      <!-- Sin resultados -->
+      <div *ngIf="ventasFiltradas.length === 0" class="sin-resultados">
+        <ion-icon name="receipt" class="icono-sin-resultados"></ion-icon>
+        <p>No se encontraron ventas</p>
+        <p class="subtitulo-sin-resultados">Intenta ajustar los filtros o la búsqueda</p>
+      </div>
+    </div>
+
+  </div>
+  
+  <div *ngIf="verificandoAuth" class="cargando-auth">
+    <p>Verificando autenticación...</p>
+  </div>
+</ion-content>
+
+<!-- Modal de Detalle de Venta -->
+<ion-modal [isOpen]="mostrandoModalDetalle" (willDismiss)="cerrarModalDetalle()">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>Detalle de Venta</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="cerrarModalDetalle()">
+            <ion-icon name="close" slot="icon-only"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="contenido-modal" *ngIf="ventaSeleccionada">
+      <div class="ion-padding contenedor-modal-detalle">
+        
+        <div class="info-venta-detalle">
+          <div class="campo-detalle">
+            <span class="etiqueta-detalle">ID de Venta:</span>
+            <span class="valor-detalle">{{ ventaSeleccionada.id }}</span>
+          </div>
+          <div class="campo-detalle">
+            <span class="etiqueta-detalle">Fecha:</span>
+            <span class="valor-detalle">{{ formatearFecha(ventaSeleccionada.fecha) }}</span>
+          </div>
+          <div class="campo-detalle">
+            <span class="etiqueta-detalle">Hora:</span>
+            <span class="valor-detalle">{{ formatearHora(ventaSeleccionada.fecha) }}</span>
+          </div>
+          <div class="campo-detalle">
+            <span class="etiqueta-detalle">Método de Pago:</span>
+            <span class="valor-detalle">{{ obtenerNombreMetodoPago(ventaSeleccionada.metodoPago) }}</span>
+          </div>
+          <div class="campo-detalle">
+            <span class="etiqueta-detalle">Estado:</span>
+            <ion-badge 
+              [color]="ventaSeleccionada.anulada ? 'danger' : (ventaSeleccionada.modificada ? 'warning' : 'success')">
+              {{ ventaSeleccionada.anulada ? 'Anulada' : (ventaSeleccionada.modificada ? 'Modificada' : 'Completada') }}
+            </ion-badge>
+          </div>
+          <div *ngIf="ventaSeleccionada.motivoAnulacion" class="campo-detalle">
+            <span class="etiqueta-detalle">Motivo de Anulación:</span>
+            <span class="valor-detalle">{{ ventaSeleccionada.motivoAnulacion }}</span>
+          </div>
+        </div>
+
+        <div class="productos-venta-detalle">
+          <h3>Productos Vendidos</h3>
+          <div class="lista-productos-detalle">
+            <div *ngFor="let producto of ventaSeleccionada.productos" class="item-producto-detalle">
+              <div class="info-producto-detalle">
+                <span class="nombre-producto-detalle">{{ producto.nombre }}</span>
+                <span class="cantidad-producto-detalle">x{{ producto.cantidad }}</span>
+              </div>
+              <div class="precio-producto-detalle">
+                <span class="precio-unitario">{{ formatearPrecio(producto.precio) }} c/u</span>
+                <span class="subtotal-producto">{{ formatearPrecio(producto.subtotal) }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="total-venta-detalle">
+            <strong>Total: {{ formatearPrecio(ventaSeleccionada.total) }}</strong>
+          </div>
+        </div>
+
+      </div>
+    </ion-content>
+  </ng-template>
+</ion-modal>
+
+<!-- Modal de Anulación -->
+<ion-modal [isOpen]="mostrandoModalAnular" (willDismiss)="cerrarModalAnular()">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>Anular Venta</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="cerrarModalAnular()">
+            <ion-icon name="close" slot="icon-only"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="contenido-modal" *ngIf="ventaSeleccionada">
+      <div class="ion-padding contenedor-modal-anular">
+        
+        <div class="info-anulacion">
+          <p><strong>Venta ID:</strong> {{ ventaSeleccionada.id }}</p>
+          <p><strong>Total:</strong> {{ formatearPrecio(ventaSeleccionada.total) }}</p>
+        </div>
+
+        <div class="productos-anulacion">
+          <h3>Productos de la Venta</h3>
+          <p class="texto-ayuda">Modifica el estado de cada unidad. Solo las unidades con estado "Buen estado" se reintegrarán al stock.</p>
+          
+          <div class="lista-productos-anulacion">
+            <ion-item *ngFor="let unidad of productosAnulacion; let i = index" class="item-producto-anulacion">
+              <ion-label slot="start">
+                <h3>{{ unidad.nombre }} #{{ i + 1 }}</h3>
+                <p>Precio: {{ formatearPrecio(unidad.precio) }}</p>
+                <p class="estado-actual">
+                  Estado: 
+                  <ion-badge [color]="unidad.estado === 'buen estado' ? 'success' : 'danger'">
+                    {{ unidad.estado === 'buen estado' ? 'Buen Estado' : 'Mal Estado' }}
+                  </ion-badge>
+                </p>
+              </ion-label>
+              <ion-select 
+                [(ngModel)]="unidad.estado"
+                interface="popover"
+                placeholder="Cambiar Estado"
+                slot="end">
+                <ion-select-option value="buen estado">Buen Estado</ion-select-option>
+                <ion-select-option value="mal estado">Mal Estado</ion-select-option>
+              </ion-select>
+            </ion-item>
+          </div>
+        </div>
+
+        <div class="motivo-anulacion">
+          <ion-item>
+            <ion-label position="stacked">Motivo de Anulación (Opcional)</ion-label>
+            <ion-textarea 
+              [(ngModel)]="motivoAnulacion"
+              placeholder="Ingresa el motivo de la anulación..."
+              rows="3">
+            </ion-textarea>
+          </ion-item>
+        </div>
+
+        <div class="botones-accion-modal">
+          <ion-button 
+            expand="block"
+            color="danger"
+            (click)="confirmarAnulacion()"
+            class="boton-confirmar-anular">
+            <ion-icon name="ban" slot="start"></ion-icon>
+            Confirmar Anulación
+          </ion-button>
+          <ion-button 
+            expand="block"
+            fill="outline"
+            (click)="cerrarModalAnular()"
+            class="boton-cancelar">
+            Cancelar
+          </ion-button>
+        </div>
+
+      </div>
+    </ion-content>
+  </ng-template>
+</ion-modal>
+
+<!-- Modal de Modificación -->
+<ion-modal [isOpen]="mostrandoModalModificar" (willDismiss)="cerrarModalModificar()">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>Modificar Venta</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="cerrarModalModificar()">
+            <ion-icon name="close" slot="icon-only"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="contenido-modal" *ngIf="ventaSeleccionada">
+      <div class="ion-padding contenedor-modal-modificar">
+        
+        <div class="info-modificacion">
+          <p><strong>Venta ID:</strong> {{ ventaSeleccionada.id }}</p>
+          <p><strong>Total:</strong> {{ formatearPrecio(ventaSeleccionada.total) }}</p>
+        </div>
+
+        <div class="productos-modificacion">
+          <h3>Selecciona las Unidades a Modificar</h3>
+          <p class="texto-ayuda">Marca las unidades que deseas modificar. Puedes seleccionar unidades específicas de cada producto.</p>
+          
+          <div class="lista-productos-modificacion">
+            <ion-item *ngFor="let unidad of productosModificacion; let i = index" class="item-producto-modificacion">
+              <ion-checkbox 
+                slot="start"
+                [checked]="productosSeleccionados.includes(unidad.unidadId)"
+                (ionChange)="toggleProductoSeleccionado(unidad.unidadId)">
+              </ion-checkbox>
+              <ion-label>
+                <h3>{{ unidad.nombre }} #{{ i + 1 }}</h3>
+                <p>Precio: {{ formatearPrecio(unidad.precio) }}</p>
+              </ion-label>
+            </ion-item>
+          </div>
+        </div>
+
+        <div *ngIf="productosSeleccionadosDisponibles()" class="estados-modificacion">
+          <h3>Modificar Estado de Unidades Seleccionadas</h3>
+          <div class="lista-estados">
+            <ion-item *ngFor="let unidad of productosModificacion; let i = index" class="item-estado">
+              <ion-label *ngIf="productosSeleccionados.includes(unidad.unidadId)" slot="start">
+                <h3>{{ unidad.nombre }} #{{ i + 1 }}</h3>
+                <p class="estado-actual">
+                  Estado: 
+                  <ion-badge [color]="unidad.estado === 'buen estado' ? 'success' : 'danger'">
+                    {{ unidad.estado === 'buen estado' ? 'Buen Estado' : 'Mal Estado' }}
+                  </ion-badge>
+                </p>
+              </ion-label>
+              <ion-select 
+                *ngIf="productosSeleccionados.includes(unidad.unidadId)"
+                [(ngModel)]="unidad.estado"
+                interface="popover"
+                placeholder="Cambiar Estado"
+                slot="end">
+                <ion-select-option value="buen estado">Buen Estado</ion-select-option>
+                <ion-select-option value="mal estado">Mal Estado</ion-select-option>
+              </ion-select>
+            </ion-item>
+          </div>
+        </div>
+
+        <div *ngIf="productosSeleccionadosDisponibles()" class="tipo-modificacion">
+          <h3>Tipo de Modificación</h3>
+          <div class="opciones-tipo">
+            <ion-button 
+              expand="block"
+              [fill]="tipoModificacion === 'devolucion' ? 'solid' : 'outline'"
+              (click)="tipoModificacion = 'devolucion'"
+              class="boton-tipo">
+              <ion-icon name="cash" slot="start"></ion-icon>
+              Devolución
+            </ion-button>
+            <ion-button 
+              expand="block"
+              [fill]="tipoModificacion === 'cambio' ? 'solid' : 'outline'"
+              (click)="tipoModificacion = 'cambio'"
+              class="boton-tipo">
+              <ion-icon name="swap-horizontal" slot="start"></ion-icon>
+              Cambio
+            </ion-button>
+          </div>
+        </div>
+
+        <div *ngIf="tipoModificacion === 'cambio'" class="producto-cambio">
+          <h3>Producto por el que se Cambió</h3>
+          <ion-item>
+            <ion-label position="stacked">Selecciona el producto</ion-label>
+            <ion-select 
+              [(ngModel)]="productoCambio"
+              interface="popover"
+              placeholder="Selecciona producto">
+              <ion-select-option *ngFor="let producto of productosDisponibles" [value]="producto">
+                {{ producto.nombre }} - Stock: {{ producto.stock }}
+              </ion-select-option>
+            </ion-select>
+          </ion-item>
+        </div>
+
+        <div class="botones-accion-modal">
+          <ion-button 
+            expand="block"
+            color="warning"
+            (click)="confirmarModificacion()"
+            [disabled]="!tipoModificacion || productosSeleccionados.length === 0 || (tipoModificacion === 'cambio' && !productoCambio)"
+            class="boton-confirmar-modificar">
+            <ion-icon name="create" slot="start"></ion-icon>
+            Confirmar Modificación
+          </ion-button>
+          <ion-button 
+            expand="block"
+            fill="outline"
+            (click)="cerrarModalModificar()"
+            class="boton-cancelar">
+            Cancelar
+          </ion-button>
+        </div>
+
+      </div>
+    </ion-content>
+  </ng-template>
+</ion-modal>
+

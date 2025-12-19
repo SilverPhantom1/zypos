@@ -1,5 +1,5 @@
 .contenido-login {
-  --background: #f4e9e0; // Color de fondo
+  --background: var(--zypos-color-background); // Color de fondo
 }
 
 .contenedor-login {
@@ -34,7 +34,7 @@
 }
 
 .titulo-login {
-  color: #0a3254ff; 
+  color: var(--zypos-color-text); 
   text-align: center;
   margin-bottom: 2rem;
   font-size: 1.75rem;
@@ -54,12 +54,12 @@
   --padding-end: 1rem;
   
   ion-label {
-    color: #0a3254ff;
+    color: var(--zypos-color-text);
     font-weight: 500;
   }
   
   ion-input {
-    color: #0a3254ff;
+    color: var(--zypos-color-text);
   }
   
   // Ajustes para móvil
@@ -71,7 +71,7 @@
 }
 
 .mensaje-error {
-  color: #f89585ff; 
+  color: var(--zypos-color-primary); 
   font-size: 0.875rem;
   margin-left: 1rem;
   margin-bottom: 0.5rem;
@@ -84,7 +84,7 @@
 }
 
 .boton-login {
-  --background: #f89585ff;
+  --background: var(--zypos-color-primary);
   --color: #ffffff;
   margin-top: 1.5rem;
   --border-radius: 8px;
@@ -105,7 +105,7 @@
 }
 
 .boton-ojo {
-  --color: #6381e4ff;
+  --color: var(--zypos-color-accent);
   margin: 0;
   --padding-start: 0.5rem;
   --padding-end: 0.5rem;
@@ -124,13 +124,13 @@
   margin-top: 1.5rem;
   
   p {
-    color: #0a3254ff;
+    color: var(--zypos-color-text);
     font-size: 0.9rem;
     margin: 0;
   }
   
   a {
-    color: #6381e4ff;
+    color: var(--zypos-color-accent);
     text-decoration: none;
     font-weight: 600;
     
@@ -152,7 +152,7 @@
   margin-bottom: 1rem;
   
   a {
-    color: #6381e4ff; // Color iconos
+    color: var(--zypos-color-accent); // Color iconos
     text-decoration: none;
     font-weight: 500;
     font-size: 0.9rem;

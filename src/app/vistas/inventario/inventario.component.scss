@@ -1,5 +1,5 @@
 .contenido-inventario {
-  --background: #f4e9e0; // Color de fondo
+  --background: var(--zypos-color-background); // Color de fondo
   overflow-x: hidden !important;
   width: 100% !important;
   max-width: 100% !important;
@@ -39,7 +39,7 @@
 }
 
 .titulo-inventario {
-  color: #0a3254ff; // Color letras azul oscuro
+  color: var(--zypos-color-text); // Color letras azul oscuro
   text-align: center;
   margin-bottom: clamp(1rem, 2vw, 2rem);
   font-size: clamp(1.5rem, 4vw, 2rem);
@@ -66,7 +66,7 @@
 }
 
 .boton-crear-producto {
-  --background: #f89585ff; // Color primario coral
+  --background: var(--zypos-color-primary); // Color primario coral
   --color: #ffffff;
   --border-radius: 12px;
   font-weight: 600;
@@ -121,7 +121,7 @@
   border: 1px solid #e0e0e0;
   
   ion-label {
-    color: #0a3254ff;
+    color: var(--zypos-color-text);
     font-weight: 500;
     margin-bottom: 0.5rem;
   }
@@ -129,7 +129,7 @@
   ion-input,
   ion-textarea,
   ion-select {
-    --color: #0a3254ff;
+    --color: var(--zypos-color-text);
   }
   
   ion-select {
@@ -138,7 +138,7 @@
     
     // Asegurar que el valor seleccionado se muestre
     &::part(text) {
-      color: #0a3254ff;
+      color: var(--zypos-color-text);
     }
     
     // Si tiene un valor, mostrar el texto en lugar del placeholder
@@ -149,7 +149,7 @@
 }
 
 .mensaje-error {
-  color: #f89585ff; // Color primario coral
+  color: var(--zypos-color-primary); // Color primario coral
   font-size: 0.875rem;
   margin-top: -0.75rem;
   margin-bottom: 0.75rem;
@@ -176,7 +176,7 @@
 }
 
 .texto-valor-seleccionado {
-  color: #0a3254ff;
+  color: var(--zypos-color-text);
   font-size: 0.875rem;
   margin-top: -0.5rem;
   margin-bottom: 0.5rem;
@@ -184,7 +184,7 @@
   font-weight: 500;
   
   strong {
-    color: #6381e4ff;
+    color: var(--zypos-color-accent);
   }
   
   @media (max-width: 576px) {
@@ -198,7 +198,7 @@
   
   .label-foto {
     display: block;
-    color: #0a3254ff;
+    color: var(--zypos-color-text);
     font-weight: 500;
     margin-bottom: 0.75rem;
     font-size: 0.9rem;
@@ -225,15 +225,15 @@
   }
   
   .boton-eliminar-foto {
-    --color: #f89585ff; // Color primario coral
+    --color: var(--zypos-color-primary); // Color primario coral
     font-size: 0.875rem;
   }
 }
 
 .boton-seleccionar-foto {
   --border-radius: 12px;
-  --border-color: #6381e4ff;
-  --color: #6381e4ff;
+  --border-color: var(--zypos-color-accent);
+  --color: var(--zypos-color-accent);
   font-weight: 500;
   margin-top: 0.5rem;
   
@@ -251,7 +251,7 @@
 }
 
 .boton-guardar {
-  --background: #f89585ff; // Color primario coral
+  --background: var(--zypos-color-primary); // Color primario coral
   --color: #ffffff;
   --border-radius: 12px;
   font-weight: 600;
@@ -276,67 +276,22 @@
 }
 
 .boton-volver-header {
-  --background: #6381e4ff; // Color módulos/iconos
-  --color: white;
-  --border-radius: 12px;
-  --padding-start: 0.75rem;
-  --padding-end: 1rem;
-  --padding-top: 0.5rem;
-  --padding-bottom: 0.5rem;
-  height: auto;
+  --background: var(--zypos-color-primary) !important; // Color primario coral
+  --color: #ffffff !important;
+  margin: 0;
   font-weight: 500;
-  margin-left: 0.5rem;
-  margin-top: 0.5rem;
-  margin-bottom: 0.5rem;
-  
-  ion-icon {
-    font-size: 1.2rem;
-    margin-right: 0.25rem;
-  }
-  
-  .texto-boton-volver {
-    font-size: 0.9rem;
-  }
+  background: var(--zypos-color-primary) !important;
+  color: #ffffff !important;
+}
 
-  @media (max-width: 576px) {
-    --padding-start: 0.625rem;
-    --padding-end: 0.875rem;
-    --padding-top: 0.4rem;
-    --padding-bottom: 0.4rem;
-    margin-left: 0.25rem;
-    margin-top: 0.25rem;
-    margin-bottom: 0.25rem;
-    
-    ion-icon {
-      font-size: 1.1rem;
-      margin-right: 0.2rem;
-    }
-    
-    .texto-boton-volver {
-      font-size: 0.85rem;
-    }
-  }
-  
-  @media (min-width: 769px) {
-    --padding-start: 1rem;
-    --padding-end: 1.25rem;
-    --padding-top: 0.625rem;
-    --padding-bottom: 0.625rem;
-    
-    ion-icon {
-      font-size: 1.3rem;
-      margin-right: 0.375rem;
-    }
-    
-    .texto-boton-volver {
-      font-size: 0.95rem;
-    }
-  }
+.texto-boton-volver {
+  margin-left: 0.25rem;
+  color: #ffffff !important;
 }
 
 .cargando-auth {
   text-align: center;
-  color: #0a3254ff;
+  color: var(--zypos-color-text);
   padding: 2rem;
   font-size: 1rem;
   min-height: calc(100vh - 120px);
@@ -378,7 +333,7 @@
   --border-radius: 12px;
   --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   --placeholder-color: #666;
-  --color: #0a3254ff;
+  --color: var(--zypos-color-text);
   padding: 0;
   width: 100%;
   max-width: 100%;
@@ -390,8 +345,8 @@
 }
 
 .boton-escanear {
-  --border-color: #6381e4ff;
-  --color: #6381e4ff;
+  --border-color: var(--zypos-color-accent);
+  --color: var(--zypos-color-accent);
   --border-radius: 12px;
   height: clamp(40px, 5vw, 48px);
   width: clamp(40px, 5vw, 48px);
@@ -429,12 +384,12 @@
   box-sizing: border-box;
   
   ion-label {
-    color: #0a3254ff;
+    color: var(--zypos-color-text);
     font-weight: 500;
   }
   
   ion-select {
-    --color: #0a3254ff;
+    --color: var(--zypos-color-text);
   }
   
   @media (max-width: 576px) {
@@ -447,8 +402,8 @@
 
 .boton-ordenar,
 .boton-vista {
-  --border-color: #6381e4ff;
-  --color: #6381e4ff;
+  --border-color: var(--zypos-color-accent);
+  --color: var(--zypos-color-accent);
   --border-radius: 12px;
   height: clamp(40px, 5vw, 48px);
   font-weight: 500;
@@ -486,7 +441,7 @@
 
 .cargando-productos {
   text-align: center;
-  color: #0a3254ff;
+  color: var(--zypos-color-text);
   padding: 2rem;
   font-size: 1rem;
 }
@@ -590,7 +545,7 @@
 }
 
 .badge-sin-stock {
-  background: #f89585ff;
+  background: var(--zypos-color-primary);
   color: #ffffff;
 }
 
@@ -614,17 +569,17 @@
 // Estilos para el contenido de la tarjeta (mejorar contraste)
 .tarjeta-producto {
   ion-card-header {
-    --background: #f89585ff; // Color primario (Coral/suave)
-    background: #f89585ff;
+    --background: var(--zypos-color-primary); // Color primario (Coral/suave)
+    background: var(--zypos-color-primary);
     padding: 1rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.2);
   }
   
   ion-card-content {
-    --background: #f4e9e0; // Color de fondo o modal (beige/arena)
-    background: #f4e9e0;
+    --background: var(--zypos-color-background); // Color de fondo o modal (beige/arena)
+    background: var(--zypos-color-background);
     padding: 1rem;
-    color: #0a3254ff; // Color letras (azul oscuro)
+    color: var(--zypos-color-text); // Color letras (azul oscuro)
   }
 }
 
@@ -641,23 +596,23 @@
   font-size: 0.875rem;
   
   .etiqueta {
-    color: #0a3254ff;
+    color: var(--zypos-color-text);
     font-weight: 600;
     opacity: 0.8;
   }
   
   .valor {
-    color: #0a3254ff;
+    color: var(--zypos-color-text);
     font-weight: 700;
     
     &.precio {
-      color: #f89585ff;
+      color: var(--zypos-color-primary);
       font-size: 1rem;
       font-weight: 700;
     }
     
     &.stock {
-      color: #0a3254ff;
+      color: var(--zypos-color-text);
       font-weight: 700;
       
       &.stock-bajo {
@@ -666,7 +621,7 @@
       }
       
       &.stock-sin {
-        color: #f89585ff;
+        color: var(--zypos-color-primary);
         font-weight: 700;
       }
     }
@@ -674,7 +629,7 @@
     &.codigo {
       font-family: 'Courier New', monospace;
       font-size: 0.75rem;
-      color: #6381e4ff;
+      color: var(--zypos-color-accent);
       font-weight: 600;
     }
   }
@@ -809,7 +764,7 @@
   display: flex;
   flex-direction: column;
   gap: 0;
-  background: #f4e9e0; // Color de fondo o modal (beige/arena)
+  background: var(--zypos-color-background); // Color de fondo o modal (beige/arena)
   padding: 1rem;
   
   @media (max-width: 576px) {
@@ -822,7 +777,7 @@
   justify-content: space-between;
   align-items: center;
   gap: 0.5rem;
-  background: #f89585ff; // Color primario (Coral/suave)
+  background: var(--zypos-color-primary); // Color primario (Coral/suave)
   padding: 0.875rem 1rem;
   margin: -1rem -1rem 1rem -1rem;
   
@@ -868,23 +823,23 @@
   font-size: 0.875rem;
   
   .etiqueta {
-    color: #0a3254ff;
+    color: var(--zypos-color-text);
     font-weight: 600;
     opacity: 0.8;
   }
   
   .valor {
-    color: #0a3254ff;
+    color: var(--zypos-color-text);
     font-weight: 700;
     
     &.precio {
-      color: #f89585ff;
+      color: var(--zypos-color-primary);
       font-size: 0.95rem;
       font-weight: 700;
     }
     
     &.stock {
-      color: #0a3254ff;
+      color: var(--zypos-color-text);
       font-weight: 700;
       
       &.stock-bajo {
@@ -893,7 +848,7 @@
       }
       
       &.stock-sin {
-        color: #f89585ff;
+        color: var(--zypos-color-primary);
         font-weight: 700;
       }
     }
@@ -901,7 +856,7 @@
     &.codigo {
       font-family: 'Courier New', monospace;
       font-size: 0.75rem;
-      color: #6381e4ff;
+      color: var(--zypos-color-accent);
       font-weight: 600;
     }
   }
@@ -922,7 +877,7 @@
 .sin-resultados {
   text-align: center;
   padding: 3rem 1rem;
-  color: #0a3254ff;
+  color: var(--zypos-color-text);
   
   .icono-sin-resultados {
     font-size: 4rem;
@@ -958,7 +913,7 @@
 // ========== ESTILOS PARA MODALES ==========
 
 .contenido-modal {
-  --background: #f4e9e0;
+  --background: var(--zypos-color-background);
 }
 
 .contenedor-formulario-modal {
@@ -969,7 +924,7 @@
 }
 
 .titulo-ajuste-stock {
-  color: #0a3254ff;
+  color: var(--zypos-color-text);
   font-size: 1.5rem;
   font-weight: 700;
   margin-bottom: 1rem;
@@ -981,20 +936,20 @@
 }
 
 .stock-actual {
-  color: #0a3254ff;
+  color: var(--zypos-color-text);
   font-size: 1rem;
   text-align: center;
   margin-bottom: 1.5rem;
   
   strong {
-    color: #6381e4ff;
+    color: var(--zypos-color-accent);
     font-size: 1.25rem;
   }
 }
 
 .boton-cancelar {
-  --border-color: #6381e4ff;
-  --color: #6381e4ff;
+  --border-color: var(--zypos-color-accent);
+  --color: var(--zypos-color-accent);
   --border-radius: 12px;
   margin-top: 0.75rem;
   height: 44px;
@@ -1059,7 +1014,7 @@
   
   h4 {
     margin: 0;
-    color: #0a3254ff;
+    color: var(--zypos-color-text);
     font-size: 1rem;
     font-weight: 700;
     flex: 1;
@@ -1077,7 +1032,7 @@
   flex-shrink: 0;
   
   &:hover {
-    --color: #0a3254ff;
+    --color: var(--zypos-color-text);
   }
 }
 
@@ -1094,7 +1049,7 @@
   padding: 0.875rem 1rem;
   border: none;
   background: transparent;
-  color: #0a3254ff;
+  color: var(--zypos-color-text);
   font-size: 0.95rem;
   font-weight: 500;
   cursor: pointer;
@@ -1105,7 +1060,7 @@
   
   ion-icon {
     font-size: 1.25rem;
-    color: #6381e4ff;
+    color: var(--zypos-color-accent);
   }
   
   span {
@@ -1123,13 +1078,13 @@
   }
   
   &.opcion-eliminar {
-    color: #f89585ff;
+    color: var(--zypos-color-primary);
     margin-top: 0.25rem;
     border-top: 1px solid #e0e0e0;
     padding-top: 1rem;
     
     ion-icon {
-      color: #f89585ff;
+      color: var(--zypos-color-primary);
     }
     
     &:hover {
@@ -1168,7 +1123,7 @@
 }
 
 .titulo-seccion-categoria {
-  color: #0a3254ff; // Color letras azul oscuro
+  color: var(--zypos-color-text); // Color letras azul oscuro
   font-size: clamp(1.125rem, 2.5vw, 1.375rem);
   font-weight: 700;
   margin-bottom: 1rem;
@@ -1191,7 +1146,7 @@
 }
 
 .boton-guardar-categoria {
-  --background: #f89585ff; // Color primario coral
+  --background: var(--zypos-color-primary); // Color primario coral
   --color: #ffffff;
   --border-radius: 8px;
   font-weight: 600;
@@ -1227,7 +1182,7 @@
 .sin-categorias {
   text-align: center;
   padding: 2rem 1rem;
-  color: #0a3254ff;
+  color: var(--zypos-color-text);
   font-size: clamp(0.9rem, 2vw, 1rem);
   
   @media (max-width: 576px) {
@@ -1246,7 +1201,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 1rem;
-  background: #f4e9e0; // Color de fondo beige claro
+  background: var(--zypos-color-background); // Color de fondo beige claro
   border-radius: 12px;
   border: 1px solid #e0d5c8;
   transition: all 0.2s ease;
@@ -1270,13 +1225,13 @@
 }
 
 .nombre-categoria {
-  color: #0a3254ff; // Color letras azul oscuro
+  color: var(--zypos-color-text); // Color letras azul oscuro
   font-size: clamp(1rem, 2vw, 1.125rem);
   font-weight: 600;
 }
 
 .badge-predeterminada {
-  background: #6381e4ff; // Color módulos/iconos
+  background: var(--zypos-color-accent); // Color módulos/iconos
   color: #ffffff;
   padding: 0.25rem 0.75rem;
   border-radius: 12px;
@@ -1307,7 +1262,7 @@
 }
 
 .boton-editar-categoria {
-  color: #6381e4ff; // Color módulos/iconos
+  color: var(--zypos-color-accent); // Color módulos/iconos
   
   &:hover {
     --background: #f0f2ff;
@@ -1315,7 +1270,7 @@
 }
 
 .boton-eliminar-categoria {
-  color: #f89585ff; // Color primario coral
+  color: var(--zypos-color-primary); // Color primario coral
   
   &:hover {
     --background: #fff5f5;
@@ -1331,7 +1286,7 @@
   
   ion-icon {
     font-size: 1.125rem;
-    color: #6381e4ff; // Color módulos/iconos
+    color: var(--zypos-color-accent); // Color módulos/iconos
   }
   
   &:hover {

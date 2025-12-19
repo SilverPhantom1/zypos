@@ -120,6 +120,7 @@ export class RegistrarseComponent implements OnInit {
         
         // Calcular fecha de vencimiento del plan Free
         const fechaActual = new Date();
+        const fechaInicio = Timestamp.fromDate(fechaActual);
         const fechaVencimiento = new Date(fechaActual);
         fechaVencimiento.setDate(fechaVencimiento.getDate() + 30); // Sumar 30 días
         const fechaVencimientoTimestamp = Timestamp.fromDate(fechaVencimiento);
@@ -130,8 +131,11 @@ export class RegistrarseComponent implements OnInit {
         await setDoc(doc(this.firestore, 'usuarios', usuarioId), {nombre: nombre,email: email,creacion: fechaCreacion,
           suscripcion: {
             nombre: 'free', // Plan Free asignado automáticamente
-            vence: fechaVencimientoTimestamp // Vence en 30 días
-          }
+            vence: fechaVencimientoTimestamp, // Vence en 30 días
+            fechaInicio: fechaInicio,
+            estado: 'activa'
+          },
+          planGratuitoUsado: true // Marcar que ya usó el plan gratuito al registrarse
         });
         
 

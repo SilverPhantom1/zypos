@@ -1,5 +1,5 @@
 .contenido-perfil {
-  --background: #f4e9e0; // Color de fondo
+  --background: var(--zypos-color-background); // Color de fondo
 }
 
 .contenedor-perfil {
@@ -27,7 +27,7 @@
 }
 
 .titulo-perfil {
-  color: #0a3254ff; // Color letras azul oscuro
+  color: var(--zypos-color-text); // Color letras azul oscuro
   text-align: center;
   margin-bottom: 2rem;
   font-size: 2rem;
@@ -41,7 +41,7 @@
 
 .cargando {
   text-align: center;
-  color: #0a3254ff;
+  color: var(--zypos-color-text);
   padding: 2rem;
   font-size: 1rem;
 }
@@ -60,12 +60,12 @@
 }
 
 .titulo-seccion {
-  color: #0a3254ff;
+  color: var(--zypos-color-text);
   font-size: 1.25rem;
   font-weight: 600;
   margin: 0 0 1rem 0;
   padding-bottom: 0.75rem;
-  border-bottom: 2px solid #6381e4ff;
+  border-bottom: 2px solid var(--zypos-color-accent);
   
   @media (max-width: 576px) {
     font-size: 1.1rem;
@@ -93,7 +93,7 @@
 }
 
 .label-dato {
-  color: #0a3254ff;
+  color: var(--zypos-color-text);
   font-weight: 600;
   font-size: 0.95rem;
   min-width: 120px;
@@ -105,7 +105,7 @@
 }
 
 .valor-dato {
-  color: #0a3254ff;
+  color: var(--zypos-color-text);
   font-size: 0.95rem;
   opacity: 0.9;
   
@@ -131,18 +131,18 @@
   
   &.plan-free {
     background: #e0e0e0;
-    color: #0a3254ff;
+    color: var(--zypos-color-text);
   }
   
   &.plan-plus {
-    background: #6381e4ff;
+    background: var(--zypos-color-accent);
     color: #ffffff;
   }
 }
 
 .boton-editar {
-  --border-color: #6381e4ff;
-  --color: #6381e4ff;
+  --border-color: var(--zypos-color-accent);
+  --color: var(--zypos-color-accent);
   --border-radius: 8px;
   margin-top: 0.5rem;
   align-self: flex-start;
@@ -169,12 +169,12 @@
   border: 1px solid #e0e0e0;
   
   ion-label {
-    color: #0a3254ff;
+    color: var(--zypos-color-text);
     font-weight: 500;
   }
   
   ion-input {
-    color: #0a3254ff;
+    color: var(--zypos-color-text);
   }
   
   @media (max-width: 576px) {
@@ -185,7 +185,7 @@
 }
 
 .mensaje-error {
-  color: #f89585ff;
+  color: var(--zypos-color-primary);
   font-size: 0.875rem;
   margin-left: 1rem;
   margin-bottom: 0.5rem;
@@ -197,7 +197,7 @@
 }
 
 .boton-guardar {
-  --background: #f89585ff; // Color coral
+  --background: var(--zypos-color-primary); // Color coral
   --color: #ffffff;
   --border-radius: 8px;
   height: 44px;
@@ -216,8 +216,8 @@
 }
 
 .boton-cancelar {
-  --border-color: #6381e4ff;
-  --color: #6381e4ff;
+  --border-color: var(--zypos-color-accent);
+  --color: var(--zypos-color-accent);
   --border-radius: 8px;
   height: 44px;
   font-weight: 500;
@@ -229,8 +229,8 @@
 }
 
 .boton-renovar {
-  --border-color: #6381e4ff;
-  --color: #6381e4ff;
+  --border-color: var(--zypos-color-accent);
+  --color: var(--zypos-color-accent);
   --border-radius: 8px;
   margin-top: 1rem;
   height: 44px;
@@ -243,7 +243,7 @@
 }
 
 .boton-volver-inferior {
-  --background: #f89585ff; // Color coral
+  --background: var(--zypos-color-primary); // Color coral
   --color: #ffffff;
   margin-top: 2rem;
   margin-bottom: 1rem;
@@ -269,7 +269,7 @@
 }
 
 .boton-cerrar-sesion-header {
-  --color: #f89585ff; // Color coral
+  --color: var(--zypos-color-primary); // Color coral
   margin: 0;
   font-weight: 500;
   
@@ -294,7 +294,7 @@
 }
 
 .boton-ojo {
-  --color: #6381e4ff; // Color módulos/iconos
+  --color: var(--zypos-color-accent); // Color módulos/iconos
   margin: 0;
   --padding-start: 0.5rem;
   --padding-end: 0.5rem;

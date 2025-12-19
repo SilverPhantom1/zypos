@@ -1,0 +1,275 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-button fill="solid" slot="start" (click)="volverAtras()" class="boton-volver-header">
+      <ion-icon name="arrow-back" slot="start"></ion-icon>
+      <span class="texto-boton-volver">Volver</span>
+    </ion-button>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="contenido-ventas" [scrollY]="true">
+  <div class="ion-padding contenedor-ventas" *ngIf="!verificandoAuth">
+    
+    <!-- Búsqueda de productos -->
+    <div class="seccion-busqueda">
+      <div class="contenedor-busqueda">
+        <ion-searchbar
+          [(ngModel)]="terminoBusqueda"
+          (ionInput)="onBuscar($event)"
+          placeholder="Buscar producto por nombre o código de barras..."
+          class="barra-busqueda">
+        </ion-searchbar>
+        <ion-button 
+          *ngIf="esPlataformaMovil"
+          fill="outline" 
+          (click)="escanearCodigoBarras()"
+          class="boton-escanear">
+          <ion-icon name="barcode" slot="icon-only"></ion-icon>
+        </ion-button>
+      </div>
+      
+      <!-- Resultados de búsqueda -->
+      <div *ngIf="mostrandoBusqueda && productosFiltrados.length > 0" class="resultados-busqueda">
+        <ion-card 
+          *ngFor="let producto of productosFiltrados"
+          class="producto-resultado"
+          (click)="seleccionarProducto(producto)">
+          <ion-card-content>
+            <div class="info-producto-busqueda">
+              <h3 class="nombre-producto">{{ producto.nombre }}</h3>
+              <p class="precio-producto">{{ formatearPrecio(producto.precio) }}</p>
+              <p class="stock-producto">Stock: {{ producto.stock || 0 }}</p>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </div>
+      
+      <div *ngIf="mostrandoBusqueda && productosFiltrados.length === 0 && !estaCargandoProductos" class="sin-resultados">
+        <p>No se encontraron productos</p>
+      </div>
+    </div>
+
+    <!-- Carrito de compras -->
+    <div class="seccion-carrito">
+      <div class="header-carrito">
+        <h2 class="titulo-carrito">
+          <ion-icon name="cart"></ion-icon>
+          Carrito de Ventas
+        </h2>
+        <div class="botones-header-carrito">
+          <ion-button 
+            fill="clear" 
+            size="small"
+            routerLink="/historial-ventas"
+            class="boton-historial">
+            <ion-icon name="receipt" slot="start"></ion-icon>
+            Historial
+          </ion-button>
+          <ion-button 
+            *ngIf="carrito.length > 0"
+            fill="clear" 
+            color="danger"
+            size="small"
+            (click)="vaciarCarrito()"
+            class="boton-vaciar">
+            <ion-icon name="trash" slot="start"></ion-icon>
+            Vaciar
+          </ion-button>
+        </div>
+      </div>
+
+      <!-- Lista de productos en el carrito -->
+      <div *ngIf="carrito.length > 0" class="lista-carrito">
+        <ion-card 
+          *ngFor="let item of carrito"
+          class="item-carrito">
+          <ion-card-content>
+            <div class="contenido-item-carrito">
+              <div class="info-item">
+                <h3 class="nombre-item">{{ item.nombre }}</h3>
+                <p class="precio-item">{{ formatearPrecio(item.precio) }} c/u</p>
+                <p class="subtotal-item">Subtotal: {{ formatearPrecio(item.subtotal) }}</p>
+              </div>
+              
+              <div class="controles-cantidad">
+                <ion-button 
+                  fill="clear" 
+                  size="small"
+                  (click)="disminuirCantidad(item)"
+                  [disabled]="item.cantidad <= 1">
+                  <ion-icon name="remove"></ion-icon>
+                </ion-button>
+                <span class="cantidad-display">{{ item.cantidad }}</span>
+                <ion-button 
+                  fill="clear" 
+                  size="small"
+                  (click)="aumentarCantidad(item)">
+                  <ion-icon name="add"></ion-icon>
+                </ion-button>
+                <ion-button 
+                  fill="clear" 
+                  color="danger"
+                  size="small"
+                  (click)="eliminarProductoDelCarrito(item)">
+                  <ion-icon name="trash"></ion-icon>
+                </ion-button>
+              </div>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </div>
+
+      <!-- Carrito vacío -->
+      <div *ngIf="carrito.length === 0" class="carrito-vacio">
+        <ion-icon name="cart" class="icono-carrito-vacio"></ion-icon>
+        <p>El carrito está vacío</p>
+        <p class="subtitulo-vacio">Busca productos y agrégalos al carrito para comenzar una venta</p>
+      </div>
+
+      <!-- Total y botón de pago -->
+      <div *ngIf="carrito.length > 0" class="resumen-venta">
+        <div class="total-container">
+          <h3 class="label-total">Total:</h3>
+          <h2 class="valor-total">{{ formatearPrecio(total) }}</h2>
+        </div>
+        <ion-button 
+          expand="block"
+          (click)="abrirModalPago()"
+          class="boton-procesar-venta">
+          <ion-icon name="checkmark-circle" slot="start"></ion-icon>
+          Procesar Venta
+        </ion-button>
+      </div>
+    </div>
+
+  </div>
+  
+  <div *ngIf="verificandoAuth" class="cargando-auth">
+    <p>Verificando autenticación...</p>
+  </div>
+</ion-content>
+
+<!-- Modal de Pago -->
+<ion-modal [isOpen]="mostrandoModalPago" (willDismiss)="cerrarModalPago()">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>Procesar Pago</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="cerrarModalPago()">
+            <ion-icon name="close" slot="icon-only"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="contenido-modal-pago">
+      <div class="ion-padding contenedor-modal-pago">
+        
+        <!-- Resumen de la venta -->
+        <div class="resumen-venta-modal">
+          <h3>Resumen de Venta</h3>
+          <div class="lista-productos-modal">
+            <div *ngFor="let item of carrito" class="item-resumen">
+              <span class="nombre-resumen">{{ item.nombre }}</span>
+              <span class="cantidad-resumen">x{{ item.cantidad }}</span>
+              <span class="precio-resumen">{{ formatearPrecio(item.subtotal) }}</span>
+            </div>
+          </div>
+          <div class="total-modal">
+            <strong>Total: {{ formatearPrecio(total) }}</strong>
+          </div>
+        </div>
+
+        <!-- Selección de método de pago -->
+        <div class="seccion-metodo-pago">
+          <h3>Método de Pago</h3>
+          
+          <div class="opciones-pago">
+            <ion-button 
+              expand="block"
+              [fill]="metodoPago === 'efectivo' ? 'solid' : 'outline'"
+              (click)="seleccionarMetodoPago('efectivo')"
+              class="boton-metodo-pago">
+              <ion-icon name="cash" slot="start"></ion-icon>
+              Efectivo
+            </ion-button>
+            
+            <ion-button 
+              expand="block"
+              [fill]="metodoPago === 'transferencia' ? 'solid' : 'outline'"
+              (click)="seleccionarMetodoPago('transferencia')"
+              class="boton-metodo-pago">
+              <ion-icon name="swap-horizontal" slot="start"></ion-icon>
+              Transferencia Directa
+            </ion-button>
+            
+            <ion-button 
+              expand="block"
+              [fill]="metodoPago === 'mercadopago' ? 'solid' : 'outline'"
+              (click)="seleccionarMetodoPago('mercadopago')"
+              class="boton-metodo-pago"
+              disabled>
+              <ion-icon name="card" slot="start"></ion-icon>
+              MercadoPago
+            </ion-button>
+          </div>
+        </div>
+
+        <!-- Campos específicos según método de pago -->
+        <div *ngIf="metodoPago === 'efectivo'" class="campos-efectivo">
+          <ion-item>
+            <ion-label position="stacked">Monto Recibido (CLP)</ion-label>
+            <ion-input 
+              type="number"
+              [(ngModel)]="montoRecibido"
+              (ionInput)="calcularCambio()"
+              placeholder="0"
+              min="0">
+            </ion-input>
+          </ion-item>
+          <div *ngIf="cambio > 0" class="cambio-container">
+            <p class="label-cambio">Cambio:</p>
+            <p class="valor-cambio">{{ formatearPrecio(cambio) }}</p>
+          </div>
+          <div *ngIf="montoRecibido > 0 && montoRecibido < total" class="mensaje-error-pago">
+            <p>El monto recibido es menor al total</p>
+          </div>
+        </div>
+
+        <div *ngIf="metodoPago === 'transferencia'" class="campos-transferencia">
+          <ion-item>
+            <ion-label position="stacked">Monto de la Transferencia (CLP)</ion-label>
+            <ion-input 
+              type="number"
+              [(ngModel)]="montoRecibido"
+              placeholder="0"
+              min="0">
+            </ion-input>
+          </ion-item>
+          <p class="texto-ayuda">Ingresa el monto recibido por transferencia</p>
+        </div>
+
+        <!-- Botón de confirmar -->
+        <div class="botones-accion-modal">
+          <ion-button 
+            expand="block"
+            (click)="procesarVenta()"
+            [disabled]="!metodoPago || estaProcesandoVenta || (metodoPago === 'efectivo' && montoRecibido < total)"
+            class="boton-confirmar-venta">
+            <ion-icon name="checkmark-circle" slot="start"></ion-icon>
+            {{ estaProcesandoVenta ? 'Procesando...' : 'Confirmar Venta' }}
+          </ion-button>
+          <ion-button 
+            expand="block"
+            fill="outline"
+            (click)="cerrarModalPago()"
+            class="boton-cancelar-venta">
+            Cancelar
+          </ion-button>
+        </div>
+
+      </div>
+    </ion-content>
+  </ng-template>
+</ion-modal>
+

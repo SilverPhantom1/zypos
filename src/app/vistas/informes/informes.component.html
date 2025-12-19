@@ -1,0 +1,275 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-button fill="solid" slot="start" (click)="volverAtras()" class="boton-volver-header">
+      <ion-icon name="arrow-back" slot="start"></ion-icon>
+      <span class="texto-boton-volver">Volver</span>
+    </ion-button>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="contenido-informes" [scrollY]="true">
+  <div class="ion-padding contenedor-informes" *ngIf="!verificandoAuth">
+    
+    <!-- Selector de Período y Botón de Exportar -->
+    <div class="seccion-controls">
+      <div class="selector-container">
+        <ion-segment [(ngModel)]="periodoSeleccionado" (ionChange)="cambiarPeriodo()" class="selector-periodo">
+          <ion-segment-button value="dia">
+            <ion-label>Día</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="semana">
+            <ion-label>Semana</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="mes">
+            <ion-label>Mes</ion-label>
+          </ion-segment-button>
+        </ion-segment>
+      </div>
+      
+      <ion-button 
+        fill="solid" 
+        (click)="abrirModalExportar()" 
+        class="boton-exportar-principal"
+        [disabled]="ventasFiltradas.length === 0">
+        <ion-icon name="download" slot="start"></ion-icon>
+        <span>Exportar Reporte</span>
+      </ion-button>
+    </div>
+
+    <!-- Estado de carga -->
+    <div *ngIf="estaCargandoVentas" class="cargando">
+      <p>Cargando reportes...</p>
+    </div>
+
+    <!-- Contenido de Reportes -->
+    <div *ngIf="!estaCargandoVentas">
+      
+      <!-- ========== REPORTES POR PERÍODO ========== -->
+      <div class="seccion-reporte">
+        <h2 class="titulo-seccion">
+          <ion-icon name="bar-chart"></ion-icon>
+          Reportes por Período
+        </h2>
+        
+        <!-- Métricas -->
+        <div class="tarjetas-metricas">
+          <ion-card class="tarjeta-metrica">
+            <ion-card-content>
+              <div class="icono-metrica">
+                <ion-icon name="receipt"></ion-icon>
+              </div>
+              <div class="info-metrica">
+                <p class="etiqueta-metrica">Total Ventas</p>
+                <p class="valor-metrica">{{ cantidadVentas }}</p>
+              </div>
+            </ion-card-content>
+          </ion-card>
+          
+          <ion-card class="tarjeta-metrica">
+            <ion-card-content>
+              <div class="icono-metrica">
+                <ion-icon name="cash"></ion-icon>
+              </div>
+              <div class="info-metrica">
+                <p class="etiqueta-metrica">Total Ingresos</p>
+                <p class="valor-metrica">{{ formatearPrecio(totalVentas) }}</p>
+              </div>
+            </ion-card-content>
+          </ion-card>
+          
+          <ion-card class="tarjeta-metrica">
+            <ion-card-content>
+              <div class="icono-metrica">
+                <ion-icon name="trending-up"></ion-icon>
+              </div>
+              <div class="info-metrica">
+                <p class="etiqueta-metrica">Promedio</p>
+                <p class="valor-metrica">{{ formatearPrecio(promedioVenta) }}</p>
+              </div>
+            </ion-card-content>
+          </ion-card>
+        </div>
+        
+        <!-- Gráfico de Tendencias -->
+        <ion-card class="tarjeta-grafico" *ngIf="mostrarGraficoTendencias && ventasFiltradas.length > 0">
+          <ion-card-header>
+            <ion-card-title>Tendencias de Ventas</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="contenedor-grafico">
+              <canvas #canvasTendencias></canvas>
+            </div>
+          </ion-card-content>
+        </ion-card>
+        
+        <div *ngIf="ventasFiltradas.length === 0" class="sin-datos">
+          <ion-icon name="bar-chart" class="icono-sin-datos"></ion-icon>
+          <p>No hay datos para el período seleccionado</p>
+        </div>
+      </div>
+
+      <!-- ========== PRODUCTOS MÁS VENDIDOS ========== -->
+      <div class="seccion-reporte" *ngIf="productosMasVendidos.length > 0">
+        <h2 class="titulo-seccion">
+          <ion-icon name="trending-up"></ion-icon>
+          Productos Más Vendidos
+        </h2>
+        
+        <!-- Gráfico Horizontal -->
+        <ion-card class="tarjeta-grafico">
+          <ion-card-header>
+            <ion-card-title>Top 5 por Ingresos</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="contenedor-grafico">
+              <canvas #canvasMasVendidos></canvas>
+            </div>
+          </ion-card-content>
+        </ion-card>
+        
+        <!-- Lista de Productos -->
+        <ion-card class="tarjeta-lista">
+          <ion-card-header>
+            <ion-card-title>Listado Completo</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="lista-productos">
+              <div *ngFor="let producto of productosMasVendidos; let i = index" class="item-producto">
+                <div class="posicion-producto">
+                  <ion-badge [color]="i < 3 ? 'primary' : 'medium'">{{ i + 1 }}</ion-badge>
+                </div>
+                <div class="info-producto">
+                  <h3 class="nombre-producto">{{ producto.nombre }}</h3>
+                  <div class="detalles-producto">
+                    <span class="detalle-item">
+                      <ion-icon name="cube"></ion-icon>
+                      {{ producto.cantidadVendida }} unidades
+                    </span>
+                    <span class="detalle-item">
+                      <ion-icon name="cash"></ion-icon>
+                      {{ formatearPrecio(producto.ingresosGenerados) }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </div>
+
+      <!-- ========== PRODUCTOS MENOS VENDIDOS ========== -->
+      <div class="seccion-reporte" *ngIf="productosMenosVendidos.length > 0">
+        <h2 class="titulo-seccion">
+          <ion-icon name="trending-down"></ion-icon>
+          Productos Menos Vendidos
+        </h2>
+        
+        <ion-card class="tarjeta-lista">
+          <ion-card-header>
+            <ion-card-title>Productos con Bajo Movimiento</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="lista-productos">
+              <div *ngFor="let producto of productosMenosVendidos; let i = index" class="item-producto menos-vendido">
+                <div class="posicion-producto">
+                  <ion-badge color="warning">{{ i + 1 }}</ion-badge>
+                </div>
+                <div class="info-producto">
+                  <h3 class="nombre-producto">{{ producto.nombre }}</h3>
+                  <div class="detalles-producto">
+                    <span class="detalle-item">
+                      <ion-icon name="cube"></ion-icon>
+                      {{ producto.cantidadVendida }} unidades
+                    </span>
+                    <span class="detalle-item">
+                      <ion-icon name="cash"></ion-icon>
+                      {{ formatearPrecio(producto.ingresosGenerados) }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </div>
+
+    </div>
+
+  </div>
+  
+  <div *ngIf="verificandoAuth" class="cargando-auth">
+    <p>Verificando autenticación...</p>
+  </div>
+</ion-content>
+
+<!-- Modal de Exportación -->
+<ion-modal [isOpen]="mostrandoModalExportar" (willDismiss)="cerrarModalExportar()">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>Exportar Reporte</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="cerrarModalExportar()">
+            <ion-icon name="close" slot="icon-only"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="contenido-modal-exportar">
+      <div class="ion-padding contenedor-modal-exportar">
+        
+        <div class="info-exportacion">
+          <p><strong>Período seleccionado:</strong> {{ obtenerNombrePeriodo() }}</p>
+          <p><strong>Total de ventas:</strong> {{ cantidadVentas }}</p>
+        </div>
+
+        <div class="opciones-exportacion">
+          <ion-item class="item-selector">
+            <ion-label position="stacked">Tipo de Reporte</ion-label>
+            <ion-select 
+              [(ngModel)]="tipoReporteExportar" 
+              interface="action-sheet"
+              [placeholder]="obtenerTextoReporte(tipoReporteExportar)"
+              [selectedText]="obtenerTextoReporte(tipoReporteExportar)">
+              <ion-select-option value="todos">Todos los Reportes</ion-select-option>
+              <ion-select-option value="general">Resumen General</ion-select-option>
+              <ion-select-option value="masVendidos">Productos Más Vendidos</ion-select-option>
+              <ion-select-option value="menosVendidos">Productos Menos Vendidos</ion-select-option>
+            </ion-select>
+          </ion-item>
+
+          <ion-item class="item-selector">
+            <ion-label position="stacked">Formato de Exportación</ion-label>
+            <ion-select 
+              [(ngModel)]="formatoExportar" 
+              interface="action-sheet"
+              [placeholder]="obtenerTextoFormato(formatoExportar)"
+              [selectedText]="obtenerTextoFormato(formatoExportar)">
+              <ion-select-option value="excel">Excel (.xlsx)</ion-select-option>
+              <ion-select-option value="pdf">PDF (.pdf)</ion-select-option>
+            </ion-select>
+          </ion-item>
+        </div>
+
+        <div class="botones-exportacion">
+          <ion-button 
+            expand="block"
+            (click)="exportarReporte()"
+            [disabled]="estaExportando"
+            class="boton-exportar">
+            <ion-icon name="download" slot="start"></ion-icon>
+            {{ estaExportando ? 'Exportando...' : 'Exportar Reporte' }}
+          </ion-button>
+          <ion-button 
+            expand="block"
+            fill="outline"
+            (click)="cerrarModalExportar()"
+            class="boton-cancelar">
+            Cancelar
+          </ion-button>
+        </div>
+
+      </div>
+    </ion-content>
+  </ng-template>
+</ion-modal>

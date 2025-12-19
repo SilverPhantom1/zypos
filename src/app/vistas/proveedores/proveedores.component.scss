@@ -1,5 +1,5 @@
 .contenido-proveedores {
-  --background: #f4e9e0; // Color de fondo
+  --background: var(--zypos-color-background); // Color de fondo
   overflow-x: hidden !important;
   width: 100% !important;
   max-width: 100% !important;
@@ -33,7 +33,7 @@
 }
 
 .titulo-proveedores {
-  color: #0a3254ff; // Color letras azul oscuro
+  color: var(--zypos-color-text); // Color letras azul oscuro
   text-align: center;
   margin-bottom: clamp(1rem, 2vw, 2rem);
   font-size: clamp(1.5rem, 4vw, 2rem);
@@ -56,7 +56,7 @@
 }
 
 .boton-crear-proveedor {
-  --background: #f89585ff; // Color primario coral
+  --background: var(--zypos-color-primary); // Color primario coral
   --color: #ffffff;
   --border-radius: 12px;
   font-weight: 600;
@@ -105,7 +105,7 @@
 .sin-proveedores {
   text-align: center;
   padding: 3rem 1rem;
-  color: #0a3254ff;
+  color: var(--zypos-color-text);
   font-size: clamp(1rem, 2vw, 1.125rem);
   
   @media (max-width: 576px) {
@@ -148,7 +148,7 @@
   }
   
   ion-card-header {
-    background: #f89585ff; // Color primario coral
+    background: var(--zypos-color-primary); // Color primario coral
     padding: 0.875rem 1rem;
     margin-bottom: 0;
     
@@ -172,7 +172,7 @@
   }
 
   ion-card-content {
-    background: #f4e9e0; // Color de fondo beige claro
+    background: var(--zypos-color-background); // Color de fondo beige claro
     padding: 1rem;
     flex-grow: 1;
     display: flex;
@@ -199,31 +199,31 @@
   font-size: clamp(0.875rem, 2vw, 1rem);
   
   .icono-campo {
-    color: #6381e4ff; // Color módulos/iconos
+    color: var(--zypos-color-accent); // Color módulos/iconos
     font-size: 1.125rem;
     margin-top: 0.125rem;
     flex-shrink: 0;
   }
   
   .etiqueta {
-    color: #0a3254ff; // Color letras azul oscuro
+    color: var(--zypos-color-text); // Color letras azul oscuro
     font-weight: 600;
     min-width: 80px;
     flex-shrink: 0;
   }
   
   .valor {
-    color: #0a3254ff; // Color letras azul oscuro
+    color: var(--zypos-color-text); // Color letras azul oscuro
     flex: 1;
     word-wrap: break-word;
     
     &.enlace {
-      color: #6381e4ff;
+      color: var(--zypos-color-accent);
       text-decoration: underline;
       cursor: pointer;
       
       &:hover {
-        color: #0a3254ff;
+        color: var(--zypos-color-text);
       }
     }
     
@@ -255,7 +255,7 @@
 }
 
 .boton-editar {
-  color: #6381e4ff; // Color módulos/iconos
+  color: var(--zypos-color-accent); // Color módulos/iconos
   
   &:hover {
     --background: #f0f2ff;
@@ -263,7 +263,7 @@
 }
 
 .boton-eliminar {
-  color: #f89585ff; // Color primario coral
+  color: var(--zypos-color-primary); // Color primario coral
   
   &:hover {
     --background: #fff5f5;
@@ -272,7 +272,7 @@
 
 // Estilos del modal
 .contenido-modal {
-  --background: #f4e9e0;
+  --background: var(--zypos-color-background);
 }
 
 .contenedor-formulario-modal {
@@ -281,7 +281,7 @@
   margin: 0 auto;
   box-sizing: border-box;
   padding: clamp(1rem, 2vw, 1.5rem);
-  background: #f4e9e0; // Color de fondo beige claro
+  background: var(--zypos-color-background); // Color de fondo beige claro
   
   @media (max-width: 576px) {
     max-width: 100%;
@@ -293,13 +293,13 @@
   --background: #ffffff;
   --border-radius: 12px;
   margin-bottom: 1.25rem;
-  border: 2px solid #6381e4ff; // Color módulos/iconos
+  border: 2px solid var(--zypos-color-accent); // Color módulos/iconos
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   padding: 0.5rem;
   background: #ffffff;
   
   ion-label {
-    color: #0a3254ff !important; // Color letras azul oscuro
+    color: var(--zypos-color-text) !important; // Color letras azul oscuro
     font-weight: 700 !important;
     font-size: clamp(0.95rem, 2vw, 1.05rem) !important;
     margin-bottom: 0.75rem !important;
@@ -309,7 +309,7 @@
   
   ion-input,
   ion-textarea {
-    --color: #0a3254ff !important; // Color letras azul oscuro
+    --color: var(--zypos-color-text) !important; // Color letras azul oscuro
     --placeholder-color: #999999 !important;
     --placeholder-opacity: 0.8 !important;
     --padding-start: 0.75rem !important;
@@ -328,8 +328,8 @@
   }
   
   &:focus-within {
-    border-color: #6381e4ff;
-    box-shadow: 0 2px 6px rgba(99, 129, 228, 0.2);
+    border-color: var(--zypos-color-accent);
+    box-shadow: 0 2px 6px rgba(var(--ion-color-accent-rgb), 0.2);
   }
   
   @media (max-width: 576px) {
@@ -339,7 +339,7 @@
 }
 
 .mensaje-error {
-  color: #f89585ff; // Color primario coral
+  color: var(--zypos-color-primary); // Color primario coral
   font-size: 0.875rem;
   margin-top: -0.75rem;
   margin-bottom: 0.5rem;
@@ -358,7 +358,7 @@
 }
 
 .boton-guardar {
-  --background: #f89585ff; // Color primario coral
+  --background: var(--zypos-color-primary); // Color primario coral
   --color: #ffffff;
   --border-radius: 8px;
   font-weight: 600;
@@ -373,29 +373,16 @@
 
 // Estilos del header
 .boton-volver-header {
-  --background: #6381e4ff; // Color módulos/iconos
-  --color: white;
-  --border-radius: 12px;
-  --padding-start: 0.75rem;
-  --padding-end: 1rem;
-  --padding-top: 0.5rem;
-  --padding-bottom: 0.5rem;
-  height: auto;
+  --background: var(--zypos-color-primary) !important; // Color primario coral
+  --color: #ffffff !important;
+  margin: 0;
   font-weight: 500;
-  margin-left: 0.5rem;
-  
-  .texto-boton-volver {
-    margin-left: 0.25rem;
-  }
-  
-  @media (max-width: 576px) {
-    --padding-start: 0.5rem;
-    --padding-end: 0.75rem;
-    font-size: 0.9rem;
-    
-    .texto-boton-volver {
-      font-size: 0.85rem;
-    }
-  }
+  background: var(--zypos-color-primary) !important;
+  color: #ffffff !important;
+}
+
+.texto-boton-volver {
+  margin-left: 0.25rem;
+  color: #ffffff !important;
 }
 
