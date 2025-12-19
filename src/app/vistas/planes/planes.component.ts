@@ -254,8 +254,12 @@ export class PlanesComponent implements OnInit {
       }
     } else if (paymentStatus === 'pending') {
       this.mostrarToast('Tu pago está pendiente. Te notificaremos cuando sea aprobado.', 'warning');
-    } else if (paymentStatus === 'failure') {
-      this.mostrarToast('El pago no pudo ser procesado. Por favor, intenta nuevamente.', 'danger');
+    } else if (paymentStatus === 'failure' || paymentStatus === 'rejected') {
+      // Pago rechazado o fallido - no activar el plan
+      this.mostrarToast('El pago fue rechazado. Por favor, verifica tu tarjeta o intenta con otro método de pago.', 'danger');
+    } else {
+      // Cualquier otro estado
+      this.mostrarToast('Estado de pago desconocido. Por favor, verifica tu suscripción.', 'warning');
     }
   }
 
