@@ -53,7 +53,7 @@ export class NuevaContrasenaComponent implements OnInit {
     });
 
     this.formularioNuevaContrasena = this.formBuilder.group({
-      nuevaContrasena: ['', [Validators.required, Validators.minLength(6)]],
+      nuevaContrasena: ['', [Validators.required, Validators.minLength(6), this.validarContraseñaSegura]],
       confirmarContrasena: ['', [Validators.required]]
     }, {
       validators: this.validarContraseñasCoinciden
@@ -92,6 +92,38 @@ export class NuevaContrasenaComponent implements OnInit {
     } finally {
       this.estaCargando = false;
     }
+  }
+
+  // Validador personalizado para contraseña segura
+  validarContraseñaSegura(control: any) {
+    const valor = control.value;
+    if (!valor) {
+      return null; // Si está vacío, el validador required se encargará
+    }
+    
+    const errores: any = {};
+    
+    // Verificar si tiene al menos una mayúscula
+    if (!/[A-Z]/.test(valor)) {
+      errores.sinMayuscula = true;
+    }
+    
+    // Verificar si tiene al menos un número
+    if (!/[0-9]/.test(valor)) {
+      errores.sinNumero = true;
+    }
+    
+    // Verificar si tiene al menos un carácter especial
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(valor)) {
+      errores.sinCaracterEspecial = true;
+    }
+    
+    // Si hay errores, retornarlos
+    if (Object.keys(errores).length > 0) {
+      return errores;
+    }
+    
+    return null; // Válido
   }
 
   validarContraseñasCoinciden(formGroup: FormGroup) {

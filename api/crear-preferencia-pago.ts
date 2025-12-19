@@ -81,7 +81,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     let userName: string | undefined;
     try {
       const userDoc = await db.collection('usuarios').doc(userId).get();
-      if (userDoc.exists()) {
+      if (userDoc.exists) {
         const userData = userDoc.data();
         userEmail = userData?.email || userData?.correo;
         userName = userData?.nombre || userData?.name;
