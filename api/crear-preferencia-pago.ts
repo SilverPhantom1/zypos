@@ -2,6 +2,18 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 
+interface MercadoPagoPreferenceResponse {
+  id: string;
+  init_point: string;
+  [key: string]: any;
+}
+
+interface MercadoPagoErrorResponse {
+  message?: string;
+  cause?: Array<{ description?: string }>;
+  [key: string]: any;
+}
+
 // Inicializar Firebase Admin solo si no está inicializado
 if (!getApps().length) {
   const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT;
@@ -18,6 +30,20 @@ if (!getApps().length) {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // Configurar headers CORS
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+  );
+
+  // Manejar preflight (OPTIONS)
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   // Solo permitir métodos POST
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Método no permitido' });
@@ -93,7 +119,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
+      const errorData = await response.json() as MercadoPagoErrorResponse;
       console.error('Error de MercadoPago:', errorData);
       return res.status(response.status).json({ 
         error: errorData.message || 'Error al crear preferencia de pago en MercadoPago',
@@ -101,7 +127,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    const data = await response.json();
+    const data = await response.json() as MercadoPagoPreferenceResponse;
 
     if (!data.init_point) {
       return res.status(500).json({ 
@@ -122,3 +148,4 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
   }
 }
+

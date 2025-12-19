@@ -1,5 +1,5 @@
 export const environment = {
-    production: false,
+    production: true,
     firebase: {
       apiKey: "AIzaSyDPio5e98UJauOKAV4hx0dlTSm-lNMkE1I",
       authDomain: "zypos-3674b.firebaseapp.com",
@@ -11,3 +11,4 @@ export const environment = {
     },
     vercelUrl: 'https://zypos.vercel.app'
   };
+

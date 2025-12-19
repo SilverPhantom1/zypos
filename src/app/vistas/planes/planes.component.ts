@@ -1,11 +1,12 @@
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
-import { IonHeader, IonToolbar, IonContent, IonButton, IonIcon, ToastController } from '@ionic/angular/standalone';
+import { Router, ActivatedRoute } from '@angular/router';
+import { IonHeader, IonToolbar, IonContent, IonButton, IonIcon, ToastController, AlertController } from '@ionic/angular/standalone';
 import { checkmarkCircle, arrowBack, closeCircle } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 import { CommonModule } from '@angular/common';
 import { Firestore, collection, getDocs, query, where, doc, getDoc, Timestamp, serverTimestamp, setDoc, addDoc } from '@angular/fire/firestore';
 import { Auth, onAuthStateChanged } from '@angular/fire/auth';
+import { MercadoPagoService } from '../../servicios/mercado-pago.service';
 
 @Component({
   selector: 'app-planes',
@@ -28,12 +29,22 @@ export class PlanesComponent implements OnInit {
     private firestore: Firestore,
     private auth: Auth,
     private router: Router,
-    private toastController: ToastController
+    private route: ActivatedRoute,
+    private toastController: ToastController,
+    private alertController: AlertController,
+    private mercadoPagoService: MercadoPagoService
   ) {
     addIcons({ checkmarkCircle, arrowBack, closeCircle });
   }
 
   async ngOnInit() {
+    // Verificar si hay parámetros de retorno de MercadoPago
+    this.route.queryParams.subscribe(async params => {
+      if (params['payment_status'] && params['user_id'] && params['plan_id']) {
+        await this.manejarRetornoPago(params['payment_status'], params['user_id'], params['plan_id']);
+      }
+    });
+
     // Esperar a que Firebase Auth se inicialice completamente (importante después de refresh)
     // onAuthStateChanged se ejecuta cuando Firebase Auth termina de inicializarse
     onAuthStateChanged(this.auth, async (user) => {
@@ -135,14 +146,125 @@ export class PlanesComponent implements OnInit {
         return;
       }
 
-      // Si es plan Plus, aquí iría la integración con MercadoPago
-      // Por ahora, procedemos directamente con la activación
+      // Si es plan Plus, procesar pago con MercadoPago
       if (planElegido.precio > 0) {
-        // TODO: Integrar con MercadoPago aquí
-        // Por ahora, activamos directamente para testing
-        this.mostrarToast('Nota: La integración con MercadoPago se implementará próximamente', 'warning');
+        this.estaProcesando = false; // Liberar el estado mientras se procesa el pago
+        
+        // Mostrar confirmación antes de proceder con el pago
+        const confirmado = await this.mostrarConfirmacionPago(planElegido);
+        if (!confirmado) {
+          return; // El usuario canceló
+        }
+
+        // Procesar pago con MercadoPago
+        try {
+          this.estaProcesando = true; // Volver a activar el estado de procesamiento
+          await this.procesarPagoMercadoPago(planElegido);
+          return; // La redirección se hace en procesarPagoMercadoPago
+        } catch (error: any) {
+          console.error('Error al procesar pago:', error);
+          this.estaProcesando = false;
+          
+          // Mostrar mensaje de error más detallado
+          let mensajeError = 'Error al procesar el pago. Por favor, intenta nuevamente.';
+          if (error.message?.includes('Error al crear preferencia')) {
+            mensajeError = 'Error al conectar con el sistema de pagos. Por favor, intenta nuevamente.';
+          }
+          
+          this.mostrarToast(mensajeError, 'danger');
+          return;
+        }
       }
 
+      // Si es plan gratuito, activar directamente
+      await this.activarPlan(planElegido, false);
+
+    } catch (error: any) {
+      console.error('Error al confirmar plan:', error);
+      this.mostrarToast('Error al procesar el plan seleccionado', 'danger');
+    } finally {
+      this.estaProcesando = false;
+    }
+  }
+
+  async mostrarConfirmacionPago(plan: any): Promise<boolean> {
+    return new Promise(async (resolve) => {
+      const alert = await this.alertController.create({
+        header: 'Confirmar Pago',
+        message: `¿Deseas proceder con el pago de ${this.formatearPrecio(plan.precio)} por el plan ${plan.nombre}?`,
+        buttons: [
+          {
+            text: 'Cancelar',
+            role: 'cancel',
+            handler: () => resolve(false)
+          },
+          {
+            text: 'Continuar con el Pago',
+            handler: () => resolve(true)
+          }
+        ]
+      });
+      await alert.present();
+    });
+  }
+
+  async procesarPagoMercadoPago(plan: any) {
+    if (!this.usuarioId) {
+      throw new Error('Usuario no autenticado');
+    }
+
+    try {
+      const planId = plan.id || plan.nombre;
+      const descripcion = `Plan ${plan.nombre} - ${plan.descripcion}`;
+      
+      // Procesar pago con Checkout Pro usando Vercel
+      await this.mercadoPagoService.procesarPagoPlan(
+        plan.precio,
+        descripcion,
+        this.usuarioId,
+        planId
+      );
+    } catch (error: any) {
+      console.error('Error al procesar pago:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Maneja el retorno de un pago (Checkout Pro)
+   */
+  async manejarRetornoPago(paymentStatus: string, userId: string, planId: string) {
+    if (!this.usuarioId || this.usuarioId !== userId) {
+      return;
+    }
+
+    // Limpiar parámetros de la URL
+    this.router.navigate(['/planes'], { replaceUrl: true, queryParams: {} });
+
+    if (paymentStatus === 'approved') {
+      // Pago aprobado, activar el plan
+      const planElegido = this.planes.find(p => (p.id === planId || p.nombre.toLowerCase() === planId.toLowerCase()));
+      
+      if (planElegido) {
+        this.planSeleccionado = planElegido.nombre.toLowerCase();
+        await this.activarPlan(planElegido, true); // true indica que el pago ya fue procesado
+        this.mostrarToast('¡Pago aprobado! Plan activado correctamente.', 'success');
+      } else {
+        this.mostrarToast('Plan no encontrado', 'danger');
+      }
+    } else if (paymentStatus === 'pending') {
+      this.mostrarToast('Tu pago está pendiente. Te notificaremos cuando sea aprobado.', 'warning');
+    } else if (paymentStatus === 'failure') {
+      this.mostrarToast('El pago no pudo ser procesado. Por favor, intenta nuevamente.', 'danger');
+    }
+  }
+
+  async activarPlan(planElegido: any, pagoProcesado: boolean = false) {
+    if (!this.usuarioId) return;
+
+    this.estaProcesando = true;
+
+    try {
       const duracionDias = planElegido.duracionDias || 30;
       
       // Calcular fechas
@@ -193,9 +315,9 @@ export class PlanesComponent implements OnInit {
         fechaVencimiento: fechaVencimientoTimestamp,
         estado: 'activa',
         detallesPago: planElegido.precio > 0 ? {
-          metodo: 'mercadoPago', // TODO: Actualizar cuando se integre
+          metodo: 'mercadoPago',
           monto: planElegido.precio,
-          procesado: planElegido.precio === 0 // Si es gratis, ya está procesado
+          procesado: pagoProcesado
         } : null,
         creado: serverTimestamp()
       };
@@ -215,13 +337,12 @@ export class PlanesComponent implements OnInit {
       }, 2000);
 
     } catch (error: any) {
-      console.error('Error al confirmar plan:', error);
-      this.mostrarToast('Error al procesar el plan seleccionado', 'danger');
+      console.error('Error al activar plan:', error);
+      this.mostrarToast('Error al activar el plan', 'danger');
     } finally {
       this.estaProcesando = false;
     }
   }
-
 
   verDespues() {
     // El usuario ya tiene el plan gratuito asignado por defecto al registrarse
