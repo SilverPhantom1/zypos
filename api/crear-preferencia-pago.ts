@@ -93,6 +93,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // Verificar si es modo test (si el accessToken empieza con "TEST-")
     const isTestMode = accessToken.startsWith('TEST-');
+    
+    console.log('Modo test detectado:', isTestMode);
+    console.log('Access Token (primeros 10 caracteres):', accessToken.substring(0, 10));
 
     // Construir la preferencia de pago
     const preferencia: any = {
@@ -112,11 +115,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       external_reference: `plan_${planId}_user_${userId}_${Date.now()}`,
       statement_descriptor: 'ZYPOS PLAN',
       binary_mode: false,
-      // Configuración para modo test
-      ...(isTestMode && {
-        test_mode: true
-      })
+      // Configuración específica para evitar el error de "partes de prueba"
+      auto_return: 'approved' // Redirigir automáticamente cuando se apruebe
+      // NOTA: No especificamos 'payer' para permitir pagos como invitado
+      // El usuario ingresará su email en el checkout de MercadoPago
     };
+    
+    console.log('Preferencia creada:', JSON.stringify(preferencia, null, 2));
 
     // Llamar a la API de MercadoPago
     const response = await fetch('https://api.mercadopago.com/checkout/preferences', {
