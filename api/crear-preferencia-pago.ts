@@ -30,18 +30,22 @@ if (!getApps().length) {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // Configurar headers CORS
+  // Configurar headers CORS - DEBE IR AL INICIO
+  const origin = req.headers.origin || '*';
+  
+  res.setHeader('Access-Control-Allow-Origin', origin);
   res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
   res.setHeader(
     'Access-Control-Allow-Headers',
-    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization'
   );
+  res.setHeader('Access-Control-Max-Age', '86400');
 
-  // Manejar preflight (OPTIONS)
+  // Manejar preflight (OPTIONS) - DEBE SER LO PRIMERO
   if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+    res.status(200).end();
+    return;
   }
 
   // Solo permitir métodos POST
