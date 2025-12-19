@@ -75,8 +75,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const configData = configDoc.data();
     const accessToken = configData?.accessToken;
-    // Permitir forzar modo test desde Firestore
-    const modoTestForzado = configData?.modoTest === true;
+    // Verificar modo test desde Firestore (campo explícito)
+    // Si no existe el campo, intentar detectar por el formato del token
+    const modoTestExplicito = configData?.modoTest;
+    const tieneModoTestDefinido = modoTestExplicito !== undefined;
 
     if (!accessToken) {
       return res.status(500).json({ 
@@ -93,13 +95,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const montoEntero = Math.round(montoNumerico);
     const urlBase = baseUrl || 'https://tu-dominio.com';
 
-    // Verificar si es modo test
-    // Los tokens de prueba pueden empezar con "TEST-" o "APP_USR-" dependiendo de la versión
-    // Si está en la pestaña "Prueba" de MercadoPago, es modo test aunque empiece con APP_USR-
-    const isTestMode = modoTestForzado || accessToken.startsWith('TEST-');
+    // Detectar modo test:
+    // 1. Si hay campo modoTest explícito en Firestore, usar ese valor
+    // 2. Si no, detectar por formato: TEST- = test, APP_USR- = producción (por defecto)
+    // NOTA: Si tus credenciales de prueba empiezan con APP_USR-, DEBES agregar modoTest: true en Firestore
+    let isTestMode: boolean;
+    
+    if (tieneModoTestDefinido) {
+      // Usar el valor explícito de Firestore
+      isTestMode = modoTestExplicito === true;
+    } else {
+      // Detección automática por formato del token
+      isTestMode = accessToken.startsWith('TEST-');
+    }
     
     console.log('Modo test detectado:', isTestMode);
-    console.log('Modo test forzado desde Firestore:', modoTestForzado);
+    console.log('Modo test explícito en Firestore:', tieneModoTestDefinido ? modoTestExplicito : 'no definido');
     console.log('Access Token (primeros 15 caracteres):', accessToken.substring(0, 15));
 
     // Construir la preferencia de pago
