@@ -93,8 +93,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const montoEntero = Math.round(montoNumerico);
-    const urlBase = baseUrl || 'https://tu-dominio.com';
-
+    
+    // Validar y limpiar baseUrl
+    // MercadoPago requiere URLs válidas (no acepta localhost en producción)
+    let urlBase = baseUrl || 'https://tu-dominio.com';
+    
+    // Si es localhost, usar una URL temporal válida o quitar auto_return
+    const esLocalhost = urlBase.includes('localhost') || urlBase.includes('127.0.0.1');
+    
     // Detectar modo test:
     // 1. Si hay campo modoTest explícito en Firestore, usar ese valor
     // 2. Si no, detectar por formato: TEST- = test, APP_USR- = producción (por defecto)
@@ -112,6 +118,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     console.log('Modo test detectado:', isTestMode);
     console.log('Modo test explícito en Firestore:', tieneModoTestDefinido ? modoTestExplicito : 'no definido');
     console.log('Access Token (primeros 15 caracteres):', accessToken.substring(0, 15));
+    console.log('Base URL recibida:', urlBase);
+    console.log('Es localhost:', esLocalhost);
+
+    // Construir back_urls - siempre requeridas
+    const backUrls = {
+      success: `${urlBase}/planes?payment_status=approved&user_id=${userId}&plan_id=${planId}`,
+      failure: `${urlBase}/planes?payment_status=failure&user_id=${userId}&plan_id=${planId}`,
+      pending: `${urlBase}/planes?payment_status=pending&user_id=${userId}&plan_id=${planId}`
+    };
 
     // Construir la preferencia de pago
     const preferencia: any = {
@@ -123,18 +138,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           currency_id: 'CLP'
         }
       ],
-      back_urls: {
-        success: `${urlBase}/planes?payment_status=approved&user_id=${userId}&plan_id=${planId}`,
-        failure: `${urlBase}/planes?payment_status=failure&user_id=${userId}&plan_id=${planId}`,
-        pending: `${urlBase}/planes?payment_status=pending&user_id=${userId}&plan_id=${planId}`
-      },
+      back_urls: backUrls,
       external_reference: `plan_${planId}_user_${userId}_${Date.now()}`,
       statement_descriptor: 'ZYPOS PLAN',
-      binary_mode: false,
-      // Configuración específica para evitar el error de "partes de prueba"
-      auto_return: 'approved' // Redirigir automáticamente cuando se apruebe
+      binary_mode: false
+      // NOTA: No usamos auto_return porque requiere URLs válidas y puede causar problemas con localhost
+      // El usuario será redirigido manualmente después del pago usando back_urls
       // NOTA: No especificamos 'payer' para permitir pagos como invitado
-      // El usuario ingresará su email en el checkout de MercadoPago
     };
     
     console.log('Preferencia creada:', JSON.stringify(preferencia, null, 2));
