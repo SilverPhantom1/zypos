@@ -91,8 +91,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const montoEntero = Math.round(montoNumerico);
     const urlBase = baseUrl || 'https://tu-dominio.com';
 
+    // Verificar si es modo test (si el accessToken empieza con "TEST-")
+    const isTestMode = accessToken.startsWith('TEST-');
+
     // Construir la preferencia de pago
-    const preferencia = {
+    const preferencia: any = {
       items: [
         {
           title: descripcion,
@@ -108,7 +111,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       },
       external_reference: `plan_${planId}_user_${userId}_${Date.now()}`,
       statement_descriptor: 'ZYPOS PLAN',
-      binary_mode: false
+      binary_mode: false,
+      // Configuración para modo test
+      ...(isTestMode && {
+        test_mode: true
+      })
     };
 
     // Llamar a la API de MercadoPago
