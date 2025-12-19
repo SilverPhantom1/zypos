@@ -121,7 +121,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     console.log('Base URL recibida:', urlBase);
     console.log('Es localhost:', esLocalhost);
 
-    // Construir back_urls - siempre requeridas
+    // Construir back_urls - siempre requeridas y válidas
+    // Asegurarse de que las URLs estén bien formadas
     const backUrls = {
       success: `${urlBase}/planes?payment_status=approved&user_id=${userId}&plan_id=${planId}`,
       failure: `${urlBase}/planes?payment_status=failure&user_id=${userId}&plan_id=${planId}`,
@@ -129,6 +130,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     };
 
     // Construir la preferencia de pago
+    // IMPORTANTE: NO incluir auto_return - causa problemas con localhost
     const preferencia: any = {
       items: [
         {
@@ -142,9 +144,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       external_reference: `plan_${planId}_user_${userId}_${Date.now()}`,
       statement_descriptor: 'ZYPOS PLAN',
       binary_mode: false
-      // NOTA: No usamos auto_return porque requiere URLs válidas y puede causar problemas con localhost
-      // El usuario será redirigido manualmente después del pago usando back_urls
-      // NOTA: No especificamos 'payer' para permitir pagos como invitado
+      // NO incluir auto_return aquí - MercadoPago redirigirá usando back_urls automáticamente
     };
     
     console.log('Preferencia creada:', JSON.stringify(preferencia, null, 2));
