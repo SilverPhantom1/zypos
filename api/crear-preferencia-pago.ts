@@ -75,6 +75,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const configData = configDoc.data();
     const accessToken = configData?.accessToken;
+    // Permitir forzar modo test desde Firestore
+    const modoTestForzado = configData?.modoTest === true;
 
     if (!accessToken) {
       return res.status(500).json({ 
@@ -91,11 +93,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const montoEntero = Math.round(montoNumerico);
     const urlBase = baseUrl || 'https://tu-dominio.com';
 
-    // Verificar si es modo test (si el accessToken empieza con "TEST-")
-    const isTestMode = accessToken.startsWith('TEST-');
+    // Verificar si es modo test
+    // Los tokens de prueba pueden empezar con "TEST-" o "APP_USR-" dependiendo de la versión
+    // Si está en la pestaña "Prueba" de MercadoPago, es modo test aunque empiece con APP_USR-
+    const isTestMode = modoTestForzado || accessToken.startsWith('TEST-');
     
     console.log('Modo test detectado:', isTestMode);
-    console.log('Access Token (primeros 10 caracteres):', accessToken.substring(0, 10));
+    console.log('Modo test forzado desde Firestore:', modoTestForzado);
+    console.log('Access Token (primeros 15 caracteres):', accessToken.substring(0, 15));
 
     // Construir la preferencia de pago
     const preferencia: any = {
