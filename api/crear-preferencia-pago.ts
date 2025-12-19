@@ -76,16 +76,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const configData = configDoc.data();
     const accessToken = configData?.accessToken;
     
-    // Obtener email del usuario desde Firestore (necesario para habilitar el botón de pago)
+    // Obtener datos del usuario desde Firestore (necesario para habilitar el botón de pago)
     let userEmail: string | undefined;
+    let userName: string | undefined;
     try {
       const userDoc = await db.collection('usuarios').doc(userId).get();
       if (userDoc.exists()) {
         const userData = userDoc.data();
         userEmail = userData?.email || userData?.correo;
+        userName = userData?.nombre || userData?.name;
       }
     } catch (error) {
-      console.warn('No se pudo obtener el email del usuario:', error);
+      console.warn('No se pudo obtener los datos del usuario:', error);
     }
     // Verificar modo test desde Firestore (campo explícito)
     // Si no existe el campo, intentar detectar por el formato del token
@@ -159,15 +161,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       // NO incluir auto_return aquí - MercadoPago redirigirá usando back_urls automáticamente
     };
     
-    // Agregar email del payer si está disponible (necesario para habilitar el botón de pago)
+    // Agregar información del payer (necesario para habilitar el botón de pago)
+    // Las tarjetas prepaid pueden requerir información adicional
     if (userEmail) {
       preferencia.payer = {
-        email: userEmail
+        email: userEmail,
+        ...(userName && { name: userName })
       };
-      console.log('Email del payer agregado:', userEmail);
+      console.log('Información del payer agregada:', { email: userEmail, name: userName });
     } else {
       console.warn('⚠️ No se encontró email del usuario - el botón de pago puede estar desactivado');
     }
+    
+    // Configuraciones adicionales para mejorar compatibilidad con tarjetas prepaid
+    preferencia.payment_methods = {
+      excluded_payment_methods: [],
+      excluded_payment_types: [],
+      installments: 1 // Solo 1 cuota para evitar problemas con prepaid
+    };
     
     // Si es modo test, agregar información adicional para debugging
     if (isTestMode) {
