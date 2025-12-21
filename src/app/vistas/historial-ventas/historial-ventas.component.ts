@@ -44,26 +44,21 @@ export class HistorialVentasComponent implements OnInit {
   verificandoAuth: boolean = true;
   usuarioId: string | null = null;
   
-  // Lista de ventas
   ventas: Venta[] = [];
   ventasFiltradas: Venta[] = [];
   estaCargandoVentas: boolean = false;
   
-  // Búsqueda y filtros
   terminoBusqueda: string = '';
   filtroPeriodo: 'todos' | 'dia' | 'semana' | 'mes' = 'todos';
   
-  // Modales
   mostrandoModalDetalle: boolean = false;
   mostrandoModalAnular: boolean = false;
   mostrandoModalModificar: boolean = false;
   ventaSeleccionada: Venta | null = null;
   
-  // Anulación
   productosAnulacion: any[] = [];
   motivoAnulacion: string = '';
   
-  // Modificación
   productosModificacion: any[] = [];
   productosSeleccionados: string[] = [];
   tipoModificacion: 'devolucion' | 'cambio' | null = null;
@@ -94,8 +89,6 @@ export class HistorialVentasComponent implements OnInit {
     });
   }
 
-  // ========== CARGAR VENTAS ==========
-  
   async cargarVentas() {
     if (!this.usuarioId) return;
     
@@ -103,7 +96,6 @@ export class HistorialVentasComponent implements OnInit {
     try {
       const ventasRef = collection(this.firestore, 'ventas');
       
-      // Intentar primero con orderBy, si falla, cargar sin orderBy y ordenar en memoria
       let querySnapshot;
       try {
         const q = query(
@@ -113,7 +105,6 @@ export class HistorialVentasComponent implements OnInit {
         );
         querySnapshot = await getDocs(q);
       } catch (orderByError: any) {
-        // Si falla por falta de índice, cargar sin orderBy
         if (orderByError.code === 'failed-precondition') {
           const q = query(
             ventasRef,
@@ -154,8 +145,6 @@ export class HistorialVentasComponent implements OnInit {
       this.estaCargandoVentas = false;
     }
   }
-  
-  // ========== FILTROS Y BÚSQUEDA ==========
   
   aplicarFiltros(): void {
     let ventasFiltradas = [...this.ventas];
@@ -205,8 +194,6 @@ export class HistorialVentasComponent implements OnInit {
     this.aplicarFiltros();
   }
   
-  // ========== DETALLE DE VENTA ==========
-  
   abrirModalDetalle(venta: Venta): void {
     this.ventaSeleccionada = venta;
     this.mostrandoModalDetalle = true;
@@ -216,8 +203,6 @@ export class HistorialVentasComponent implements OnInit {
     this.mostrandoModalDetalle = false;
     this.ventaSeleccionada = null;
   }
-  
-  // ========== ANULACIÓN DE VENTAS ==========
   
   async abrirModalAnular(venta: Venta): Promise<void> {
     const alert = await this.alertController.create({
@@ -254,7 +239,7 @@ export class HistorialVentasComponent implements OnInit {
           precio: producto.precio,
           cantidad: 1, // Cada unidad es 1
           subtotal: producto.precio, // Subtotal unitario
-          estado: 'buen estado', // Estado por defecto
+          estado: 'buen estado',
           productoIndex: productoIndex, // Índice del producto original
           unidadIndex: i // Índice de la unidad dentro del producto
         });
@@ -286,7 +271,6 @@ export class HistorialVentasComponent implements OnInit {
         }
       }
       
-      // Reintegrar stock de productos con estado "buen estado"
       for (const productoId in stockARestaurar) {
         const cantidadARestaurar = stockARestaurar[productoId];
         const productoRef = doc(this.firestore, 'productos', productoId);
@@ -301,7 +285,6 @@ export class HistorialVentasComponent implements OnInit {
         }
       }
       
-      // Actualizar venta en Firestore
       const ventaRef = doc(this.firestore, 'ventas', this.ventaSeleccionada.id);
       await updateDoc(ventaRef, {
         estado: 'anulada',
@@ -318,8 +301,6 @@ export class HistorialVentasComponent implements OnInit {
       this.mostrarToast('Error al anular la venta', 'danger');
     }
   }
-  
-  // ========== MODIFICACIÓN DE VENTAS ==========
   
   async abrirModalModificar(venta: Venta): Promise<void> {
     const alert = await this.alertController.create({
@@ -355,7 +336,7 @@ export class HistorialVentasComponent implements OnInit {
           precio: producto.precio,
           cantidad: 1, // Cada unidad es 1
           subtotal: producto.precio, // Subtotal unitario
-          estado: 'buen estado', // Estado por defecto
+          estado: 'buen estado',
           seleccionado: false,
           productoIndex: productoIndex, // Índice del producto original
           unidadIndex: i, // Índice de la unidad dentro del producto
@@ -367,7 +348,6 @@ export class HistorialVentasComponent implements OnInit {
     this.tipoModificacion = null;
     this.productoCambio = null;
     
-    // Cargar productos disponibles para cambio
     await this.cargarProductosDisponibles();
   }
   
@@ -467,9 +447,7 @@ export class HistorialVentasComponent implements OnInit {
         });
       }
       
-      // Procesar según tipo de modificación
       if (this.tipoModificacion === 'devolucion') {
-        // Reintegrar stock de unidades con estado "buen estado"
         for (const productoId in stockARestaurar) {
           const cantidadARestaurar = stockARestaurar[productoId];
           const productoRef = doc(this.firestore, 'productos', productoId);
@@ -483,9 +461,7 @@ export class HistorialVentasComponent implements OnInit {
             });
           }
         }
-        // Nota: El dinero se devuelve manualmente (no hay integración con caja registradora)
       } else if (this.tipoModificacion === 'cambio') {
-        // Reintegrar stock de unidades devueltas con estado "buen estado"
         for (const productoId in stockARestaurar) {
           const cantidadARestaurar = stockARestaurar[productoId];
           const productoRef = doc(this.firestore, 'productos', productoId);
@@ -500,7 +476,6 @@ export class HistorialVentasComponent implements OnInit {
           }
         }
         
-        // Descontar stock del producto nuevo (solo las unidades seleccionadas)
         if (this.productoCambio) {
           const productoRef = doc(this.firestore, 'productos', this.productoCambio.id);
           const productoDoc = await getDoc(productoRef);
@@ -516,11 +491,9 @@ export class HistorialVentasComponent implements OnInit {
         }
       }
       
-      // Calcular productos restantes después de la modificación
       const productosRestantes: any[] = [];
       const unidadesAEliminar: { [key: string]: number } = {};
       
-      // Contar cuántas unidades de cada producto se están eliminando
       unidadesSeleccionadas.forEach(unidad => {
         if (!unidadesAEliminar[unidad.productoId]) {
           unidadesAEliminar[unidad.productoId] = 0;
@@ -528,13 +501,11 @@ export class HistorialVentasComponent implements OnInit {
         unidadesAEliminar[unidad.productoId] += 1;
       });
       
-      // Procesar productos originales y restar las unidades eliminadas
       this.ventaSeleccionada.productos.forEach(producto => {
         const cantidadAEliminar = unidadesAEliminar[producto.productoId] || 0;
         const cantidadRestante = producto.cantidad - cantidadAEliminar;
         
         if (cantidadRestante > 0) {
-          // Calcular nuevo subtotal
           const nuevoSubtotal = producto.precio * cantidadRestante;
           productosRestantes.push({
             productoId: producto.productoId,
@@ -546,14 +517,11 @@ export class HistorialVentasComponent implements OnInit {
         }
       });
       
-      // Si es cambio, agregar el nuevo producto
       if (this.tipoModificacion === 'cambio' && this.productoCambio) {
         const cantidadCambio = unidadesSeleccionadas.length;
         
-        // Obtener precio del producto de cambio
         let precioProductoCambio = this.productoCambio.precio;
         if (!precioProductoCambio) {
-          // Si no está en el objeto, obtenerlo de Firestore
           const productoRef = doc(this.firestore, 'productos', this.productoCambio.id);
           const productoDoc = await getDoc(productoRef);
           if (productoDoc.exists()) {
@@ -567,11 +535,9 @@ export class HistorialVentasComponent implements OnInit {
         const productoCambioExistente = productosRestantes.find(p => p.productoId === this.productoCambio.id);
         
         if (productoCambioExistente) {
-          // Si el producto ya existe, aumentar su cantidad
           productoCambioExistente.cantidad += cantidadCambio;
           productoCambioExistente.subtotal = productoCambioExistente.precio * productoCambioExistente.cantidad;
         } else {
-          // Si no existe, agregarlo
           productosRestantes.push({
             productoId: this.productoCambio.id,
             nombre: this.productoCambio.nombre,
@@ -582,10 +548,8 @@ export class HistorialVentasComponent implements OnInit {
         }
       }
       
-      // Recalcular total
       const nuevoTotal = productosRestantes.reduce((sum, p) => sum + p.subtotal, 0);
       
-      // Actualizar venta en Firestore
       const ventaRef = doc(this.firestore, 'ventas', this.ventaSeleccionada.id);
       await updateDoc(ventaRef, {
         estado: 'modificada',
@@ -596,8 +560,8 @@ export class HistorialVentasComponent implements OnInit {
           productoId: this.productoCambio.id,
           nombre: this.productoCambio.nombre
         } : null,
-        productos: productosRestantes, // Actualizar lista de productos
-        total: nuevoTotal // Actualizar total
+        productos: productosRestantes,
+        total: nuevoTotal
       });
       
       this.mostrarToast('Venta modificada exitosamente', 'success');
@@ -609,8 +573,6 @@ export class HistorialVentasComponent implements OnInit {
       this.mostrarToast('Error al modificar la venta', 'danger');
     }
   }
-  
-  // ========== UTILIDADES ==========
   
   formatearPrecio(precio: number): string {
     return new Intl.NumberFormat('es-CL', {

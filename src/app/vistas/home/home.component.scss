@@ -157,7 +157,6 @@
     padding: 0.35rem 0.75rem;
   }
   
-  // Si el plan no es free, usar color coral
   &[color="primary"] {
     --background: var(--zypos-color-primary); // Color coral corporativo
     --color: #ffffff;
@@ -520,7 +519,6 @@
   }
 }
 
-// Estados de carga
 .cargando {
   text-align: center;
   padding: 2rem;

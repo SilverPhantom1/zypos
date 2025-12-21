@@ -19,16 +19,13 @@ export class ProveedoresComponent implements OnInit {
   verificandoAuth: boolean = true;
   usuarioId: string | null = null;
   
-  // Lista de proveedores
   proveedores: any[] = [];
   proveedoresFiltrados: any[] = [];
   estaCargandoProveedores: boolean = false;
   
-  // Búsqueda y ordenamiento
   terminoBusqueda: string = '';
   ordenamiento: 'nombre-asc' | 'nombre-desc' = 'nombre-asc';
   
-  // Modal y formulario
   mostrandoModalProveedor: boolean = false;
   proveedorEditando: any = null;
   formularioProveedor!: FormGroup;
@@ -72,7 +69,6 @@ export class ProveedoresComponent implements OnInit {
     });
   }
 
-  // Cargar proveedores del usuario
   async cargarProveedores() {
     if (!this.usuarioId) {
       console.warn('No hay usuarioId, no se pueden cargar proveedores');
@@ -81,14 +77,11 @@ export class ProveedoresComponent implements OnInit {
       return;
     }
     
-    console.log('=== INICIANDO CARGA DE PROVEEDORES ===');
-    console.log('usuarioId:', this.usuarioId);
     this.estaCargandoProveedores = true;
     
     try {
       const proveedoresRef = collection(this.firestore, 'proveedores');
       
-      // Intentar cargar con orderBy primero
       try {
         const q = query(proveedoresRef, where('userId', '==', this.usuarioId), orderBy('nombre', 'asc'));
         const querySnapshot = await getDocs(q);
@@ -97,12 +90,8 @@ export class ProveedoresComponent implements OnInit {
           id: doc.id,
           ...doc.data()
         }));
-        
-        console.log('✓ Proveedores cargados con orderBy:', this.proveedores.length);
       } catch (errorOrderBy: any) {
-        // Si falla por falta de índice, intentar sin orderBy
         if (errorOrderBy.code === 'failed-precondition') {
-          console.log('Intentando cargar sin orderBy (falta índice)...');
           const q = query(proveedoresRef, where('userId', '==', this.usuarioId));
           const querySnapshot = await getDocs(q);
           
@@ -110,26 +99,16 @@ export class ProveedoresComponent implements OnInit {
             id: doc.id,
             ...doc.data()
           }));
-          
-          console.log('✓ Proveedores cargados sin orderBy:', this.proveedores.length);
         } else {
           throw errorOrderBy;
         }
       }
       
-      console.log('Proveedores encontrados:', this.proveedores);
       this.aplicarFiltrosYOrdenamiento();
       
-      console.log('=== PROVEEDORES CARGADOS EXITOSAMENTE ===');
-      console.log('Total proveedores:', this.proveedores.length);
-      
     } catch (error: any) {
-      console.error('=== ERROR AL CARGAR PROVEEDORES ===');
-      console.error('Error completo:', error);
-      console.error('Código de error:', error.code);
-      console.error('Mensaje de error:', error.message);
+      console.error('Error al cargar proveedores:', error);
       
-      // Inicializar como lista vacía si hay error
       this.proveedores = [];
       this.proveedoresFiltrados = [];
       
@@ -139,7 +118,6 @@ export class ProveedoresComponent implements OnInit {
       }
     } finally {
       this.estaCargandoProveedores = false;
-      console.log('=== FIN CARGA DE PROVEEDORES ===');
     }
   }
 
@@ -175,26 +153,22 @@ export class ProveedoresComponent implements OnInit {
     this.proveedoresFiltrados = resultado;
   }
 
-  // Búsqueda
   onBuscar(event: any) {
     this.terminoBusqueda = event.detail.value || '';
     this.aplicarFiltrosYOrdenamiento();
   }
 
-  // Cambiar ordenamiento
   cambiarOrdenamiento() {
     this.ordenamiento = this.ordenamiento === 'nombre-asc' ? 'nombre-desc' : 'nombre-asc';
     this.aplicarFiltrosYOrdenamiento();
   }
 
-  // Abrir modal para crear proveedor
   abrirModalCrear() {
     this.proveedorEditando = null;
     this.inicializarFormulario();
     this.mostrandoModalProveedor = true;
   }
 
-  // Abrir modal para editar proveedor
   abrirModalEditar(proveedor: any) {
     this.proveedorEditando = proveedor;
     this.formularioProveedor.patchValue({
@@ -208,14 +182,12 @@ export class ProveedoresComponent implements OnInit {
     this.mostrandoModalProveedor = true;
   }
 
-  // Cerrar modal
   cerrarModal() {
     this.mostrandoModalProveedor = false;
     this.proveedorEditando = null;
     this.inicializarFormulario();
   }
 
-  // Guardar proveedor (crear o editar)
   async guardarProveedor() {
     if (this.formularioProveedor.invalid || !this.usuarioId) {
       this.formularioProveedor.markAllAsTouched();
@@ -237,14 +209,12 @@ export class ProveedoresComponent implements OnInit {
       };
 
       if (this.proveedorEditando) {
-        // Actualizar
         const proveedorRef = doc(this.firestore, 'proveedores', this.proveedorEditando.id);
         await updateDoc(proveedorRef, datosProveedor);
         
         console.log('Proveedor actualizado:', this.proveedorEditando.id);
         this.mostrarToast('Proveedor actualizado exitosamente', 'success');
       } else {
-        // Crear
         const docRef = await addDoc(collection(this.firestore, 'proveedores'), datosProveedor);
         
         console.log('Proveedor creado con ID:', docRef.id, 'userId:', this.usuarioId);
@@ -252,10 +222,8 @@ export class ProveedoresComponent implements OnInit {
         this.mostrarToast('Proveedor creado exitosamente', 'success');
       }
 
-      // Esperar un momento para que Firestore procese la escritura
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      // Recargar proveedores
       await this.cargarProveedores();
       
       console.log('Proveedores después de recargar:', this.proveedores.length);
@@ -272,7 +240,6 @@ export class ProveedoresComponent implements OnInit {
     }
   }
 
-  // Contar productos de un proveedor
   async contarProductosProveedor(proveedorId: string): Promise<number> {
     if (!this.usuarioId) return 0;
 
@@ -291,7 +258,6 @@ export class ProveedoresComponent implements OnInit {
     }
   }
 
-  // Eliminar proveedor
   async eliminarProveedor(proveedor: any) {
     if (!this.usuarioId) return;
 
@@ -314,12 +280,10 @@ export class ProveedoresComponent implements OnInit {
           role: 'destructive',
           handler: async () => {
             try {
-              // Actualizar productos asociados
               if (cantidadProductos > 0) {
                 await this.actualizarProductosSinProveedor(proveedor.id);
               }
 
-              // Eliminar proveedor
               const proveedorRef = doc(this.firestore, 'proveedores', proveedor.id);
               await deleteDoc(proveedorRef);
 
@@ -341,7 +305,6 @@ export class ProveedoresComponent implements OnInit {
     await alert.present();
   }
 
-  // Actualizar productos para dejarlos sin proveedor
   async actualizarProductosSinProveedor(proveedorId: string) {
     if (!this.usuarioId) return;
 
@@ -367,7 +330,6 @@ export class ProveedoresComponent implements OnInit {
     }
   }
 
-  // Mostrar toast
   async mostrarToast(mensaje: string, color: string = 'success') {
     const toast = await this.toastController.create({
       message: mensaje,

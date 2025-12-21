@@ -16,16 +16,9 @@ import { Auth, signInWithEmailAndPassword } from '@angular/fire/auth';
   imports: [ IonHeader,IonToolbar, IonContent,IonItem,IonLabel,IonInput,IonButton,IonIcon,ReactiveFormsModule,CommonModule,RouterLink]
 })
 export class IniciarSesionComponent implements OnInit {
-  // Formulario
   formularioLogin!: FormGroup;
-  
-  // Estado de carga
   estaCargando: boolean = false;
-  
-  // Mensaje de error
   mensajeError: string = '';
-  
-  // Variable para mostrar/ocultar contraseña
   mostrarContrasena: boolean = false;
 
   constructor(
@@ -34,37 +27,29 @@ export class IniciarSesionComponent implements OnInit {
     private router: Router,
     private toastController: ToastController
   ) {
-    // iconos
     addIcons({ eye, eyeOff });
   }
 
   ngOnInit() {
-    // formulario con validaciones
     this.formularioLogin = this.formBuilder.group({
       email: ['', [Validators.required, Validators.email]],
       contraseña: ['', [Validators.required]]
     });
   }
 
-  // Función del formulario
   async enviarFormulario() {
-    // Verificar que el formulario sea válido
     if (this.formularioLogin.valid) {
-      this.estaCargando = true; // Activar estado de carga
+      this.estaCargando = true;
       
       try {
         const { email, contraseña } = this.formularioLogin.value;
         
-        // Iniciar sesión en Firebase
         await signInWithEmailAndPassword(this.auth, email, contraseña);
-        
-        // Redirigir al home después del login
         this.router.navigate(['/home']);
         
       } catch (error: any) {
         console.error('Error al iniciar sesión:', error);
         
-        // Mensaje de error según el fallo que pueda haber
         let mensajeError = 'Error al iniciar sesión. Por favor, intenta nuevamente.';
         
         if (error.code === 'auth/user-not-found') {
@@ -82,18 +67,16 @@ export class IniciarSesionComponent implements OnInit {
         this.mensajeError = mensajeError;
         this.mostrarToast(mensajeError, 'danger');
       } finally {
-        this.estaCargando = false; // Desactivar estado de carga
+        this.estaCargando = false;
       }
       
     } else {
-
       Object.keys(this.formularioLogin.controls).forEach(key => {
         this.formularioLogin.get(key)?.markAsTouched();
       });
     }
   }
 
-  // Función para mostrar mensajes
   async mostrarToast(mensaje: string, color: string = 'danger') {
     const toast = await this.toastController.create({
       message: mensaje,
@@ -110,7 +93,6 @@ export class IniciarSesionComponent implements OnInit {
     await toast.present();
   }
 
-  // Función para alternar visibilidad de la contraseña
   alternarVisibilidadContrasena() {
     this.mostrarContrasena = !this.mostrarContrasena;
   }

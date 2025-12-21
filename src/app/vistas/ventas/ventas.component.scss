@@ -13,7 +13,6 @@
   }
 }
 
-// ========== SECCIÓN DE BÚSQUEDA ==========
 .seccion-busqueda {
   margin-bottom: 2rem;
 }
@@ -106,7 +105,6 @@
   opacity: 0.6;
 }
 
-// ========== SECCIÓN DEL CARRITO ==========
 .seccion-carrito {
   background: #ffffff;
   border-radius: 16px;
@@ -318,7 +316,6 @@
   height: auto;
 }
 
-// ========== MODAL DE PAGO ==========
 .contenido-modal-pago {
   --background: var(--zypos-color-background); // Color de fondo corporativo
 }
@@ -495,7 +492,6 @@
   height: 45px;
 }
 
-// ========== BOTÓN VOLVER ==========
 .boton-volver-header {
   --background: var(--zypos-color-primary) !important; // Color primario coral
   --color: #ffffff !important;
@@ -510,7 +506,6 @@
   color: #ffffff !important;
 }
 
-// ========== ESTADO DE CARGA ==========
 .cargando-auth {
   text-align: center;
   padding: 2rem;

@@ -14,14 +14,6 @@ export class MercadoPagoService {
     this.vercelUrl = environment.vercelUrl || 'https://zypos.vercel.app';
   }
 
-  /**
-   * Crea una preferencia de pago en MercadoPago usando Vercel Functions
-   * @param monto Monto a pagar
-   * @param descripcion Descripción del pago
-   * @param userId ID del usuario
-   * @param planId ID del plan
-   * @returns URL del checkout de MercadoPago
-   */
   async crearPreferenciaPago(
     monto: number,
     descripcion: string,
@@ -65,10 +57,6 @@ export class MercadoPagoService {
     }
   }
 
-  /**
-   * Procesa el pago del plan (Checkout Pro)
-   * Redirige al usuario al checkout de MercadoPago
-   */
   async procesarPagoPlan(
     monto: number,
     descripcion: string,
@@ -77,8 +65,6 @@ export class MercadoPagoService {
   ): Promise<void> {
     try {
       const checkoutUrl = await this.crearPreferenciaPago(monto, descripcion, userId, planId);
-      
-      // Redirigir al checkout de MercadoPago
       window.location.href = checkoutUrl;
     } catch (error: any) {
       console.error('Error al procesar pago:', error);

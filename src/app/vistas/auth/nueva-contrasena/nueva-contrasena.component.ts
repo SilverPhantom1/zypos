@@ -47,7 +47,6 @@ export class NuevaContrasenaComponent implements OnInit {
           this.router.navigate(['/recuperar-contrasena']);
         }, 2000);
       } else {
-        // Verificar si el token es válido al cargar la página
         await this.verificarToken();
       }
     });
@@ -68,7 +67,6 @@ export class NuevaContrasenaComponent implements OnInit {
     this.estaCargando = true;
     
     try {
-      // Verificar si el token es válido y no ha expirado
       await verifyPasswordResetCode(this.auth, this.codigoOOB);
       this.tokenValido = true;
       this.tokenVerificado = true;
@@ -94,36 +92,31 @@ export class NuevaContrasenaComponent implements OnInit {
     }
   }
 
-  // Validador personalizado para contraseña segura
   validarContraseñaSegura(control: any) {
     const valor = control.value;
     if (!valor) {
-      return null; // Si está vacío, el validador required se encargará
+      return null;
     }
     
     const errores: any = {};
     
-    // Verificar si tiene al menos una mayúscula
     if (!/[A-Z]/.test(valor)) {
       errores.sinMayuscula = true;
     }
     
-    // Verificar si tiene al menos un número
     if (!/[0-9]/.test(valor)) {
       errores.sinNumero = true;
     }
     
-    // Verificar si tiene al menos un carácter especial
     if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(valor)) {
       errores.sinCaracterEspecial = true;
     }
     
-    // Si hay errores, retornarlos
     if (Object.keys(errores).length > 0) {
       return errores;
     }
     
-    return null; // Válido
+    return null;
   }
 
   validarContraseñasCoinciden(formGroup: FormGroup) {

@@ -31,14 +31,10 @@ export class HomeComponent implements OnInit {
   }
 
   async ngOnInit() {
-    // Esperar a que Firebase Auth se inicialice completamente (importante después de refresh)
-    // onAuthStateChanged se ejecuta cuando Firebase Auth termina de inicializarse
     onAuthStateChanged(this.auth, async (user) => {
       if (!user) {
-        // Si no hay usuario después de la inicialización, redirigir
         this.router.navigate(['/iniciar-sesion'], { replaceUrl: true });
       } else {
-        // Si hay usuario, cargar datos
         if (user.uid !== this.usuarioId) {
           this.usuarioId = user.uid;
         this.verificandoAuth = false;
@@ -57,7 +53,6 @@ export class HomeComponent implements OnInit {
       if (usuarioDoc.exists()) {
         this.datosUsuario = usuarioDoc.data();
         
-        // Cargar información del plan
         if (this.datosUsuario.suscripcion) {
           this.planActual = this.datosUsuario.suscripcion.nombre || 'free';
           if (this.datosUsuario.suscripcion.vence) {
@@ -67,7 +62,6 @@ export class HomeComponent implements OnInit {
             const diferencia = fechaVencimiento.getTime() - ahora.getTime();
             this.diasRestantes = Math.max(0, Math.ceil(diferencia / (1000 * 60 * 60 * 24)));
             
-            // Verificar si la suscripción ha vencido y degradar automáticamente
             if (diferencia < 0 && this.planActual === 'plus') {
               await this.degradarSuscripcionVencida();
             }
@@ -83,7 +77,6 @@ export class HomeComponent implements OnInit {
     if (!this.usuarioId) return;
     
     try {
-      // Actualizar suscripción del usuario a Free
       await setDoc(doc(this.firestore, 'usuarios', this.usuarioId), {
         suscripcion: {
           nombre: 'free',
@@ -92,7 +85,6 @@ export class HomeComponent implements OnInit {
         }
       }, { merge: true });
 
-      // Actualizar la última suscripción activa en la colección suscripciones
       try {
         const suscripcionesRef = collection(this.firestore, 'suscripciones');
         const q = query(
@@ -112,15 +104,12 @@ export class HomeComponent implements OnInit {
           });
         }
       } catch (error) {
-        // Si falla la query (por ejemplo, falta índice), continuar sin actualizar la colección
         console.warn('No se pudo actualizar la colección suscripciones:', error);
       }
 
-      // Actualizar estado local
       this.planActual = 'free';
       this.diasRestantes = 0;
       
-      // Mostrar notificación al usuario
       this.mostrarToast('Tu suscripción Plus ha vencido. Has sido degradado al plan Free. Solo puedes acceder a tu perfil.', 'warning');
       
     } catch (error) {
@@ -136,21 +125,12 @@ export class HomeComponent implements OnInit {
     return this.planActual === 'free' ? 'Gratis' : this.planActual.charAt(0).toUpperCase() + this.planActual.slice(1);
   }
 
-  // Cerrar sesión
   async cerrarSesion() {
     try {
-      // Limpiar datos locales primero
       localStorage.clear();
       sessionStorage.clear();
-      
-      // Cerrar sesión en Firebase
       await signOut(this.auth);
-      
-      // Redirigir inmediatamente y reemplazar toda la historia del navegador
-      // Esto previene que el usuario pueda volver atrás
       this.router.navigate(['/iniciar-sesion'], { replaceUrl: true }).then(() => {
-        // Forzar recarga de la página para limpiar completamente el estado
-        // Esto asegura que no queden datos en memoria
         window.history.replaceState(null, '', '/iniciar-sesion');
       });
     } catch (error) {

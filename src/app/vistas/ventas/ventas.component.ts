@@ -31,26 +31,22 @@ export class VentasComponent implements OnInit {
   verificandoAuth: boolean = true;
   usuarioId: string | null = null;
   
-  // Carrito
   carrito: ProductoCarrito[] = [];
   total: number = 0;
   private readonly CARRITO_STORAGE_KEY = 'zypos_carrito_ventas';
   
-  // Búsqueda de productos
   terminoBusqueda: string = '';
   productos: any[] = [];
   productosFiltrados: any[] = [];
   estaCargandoProductos: boolean = false;
   mostrandoBusqueda: boolean = false;
   
-  // Proceso de pago
   mostrandoModalPago: boolean = false;
   metodoPago: 'efectivo' | 'mercadopago' | 'transferencia' | null = null;
   montoRecibido: number = 0;
   cambio: number = 0;
   estaProcesandoVenta: boolean = false;
   
-  // Detectar si es móvil
   esPlataformaMovil: boolean = false;
   
   constructor(
@@ -73,19 +69,13 @@ export class VentasComponent implements OnInit {
         if (user.uid !== this.usuarioId) {
           this.usuarioId = user.uid;
           this.verificandoAuth = false;
-          
-          // Cargar carrito desde localStorage
           this.cargarCarrito();
-          
-          // Cargar productos
           await this.cargarProductos();
         }
       }
     });
   }
 
-  // ========== GESTIÓN DEL CARRITO ==========
-  
   cargarCarrito(): void {
     try {
       const carritoStr = localStorage.getItem(this.CARRITO_STORAGE_KEY);
@@ -110,8 +100,6 @@ export class VentasComponent implements OnInit {
   calcularTotal(): void {
     this.total = this.carrito.reduce((sum, item) => sum + item.subtotal, 0);
   }
-  
-  // ========== CARGAR PRODUCTOS ==========
   
   async cargarProductos() {
     if (!this.usuarioId) return;
@@ -156,20 +144,15 @@ export class VentasComponent implements OnInit {
     this.mostrandoBusqueda = this.terminoBusqueda.length > 0;
   }
   
-  // ========== AGREGAR PRODUCTOS AL CARRITO ==========
-  
   async agregarProductoAlCarrito(producto: any, cantidad: number = 1): Promise<void> {
-    // Validar stock
     if (producto.stock < cantidad) {
       this.mostrarToast(`Stock insuficiente. Disponible: ${producto.stock}`, 'warning');
       return;
     }
     
-    // Buscar si el producto ya está en el carrito
     const itemExistente = this.carrito.find(item => item.productoId === producto.id);
     
     if (itemExistente) {
-      // Validar que la nueva cantidad no exceda el stock
       const nuevaCantidad = itemExistente.cantidad + cantidad;
       if (nuevaCantidad > producto.stock) {
         this.mostrarToast(`Stock insuficiente. Disponible: ${producto.stock}`, 'warning');
@@ -179,7 +162,6 @@ export class VentasComponent implements OnInit {
       itemExistente.cantidad = nuevaCantidad;
       itemExistente.subtotal = itemExistente.precio * itemExistente.cantidad;
     } else {
-      // Agregar nuevo producto al carrito
       this.carrito.push({
         productoId: producto.id,
         nombre: producto.nombre,
@@ -230,8 +212,6 @@ export class VentasComponent implements OnInit {
     
     await alert.present();
   }
-  
-  // ========== ESCANEO DE CÓDIGOS DE BARRAS ==========
   
   async escanearCodigoBarras(): Promise<void> {
     try {
@@ -320,10 +300,7 @@ export class VentasComponent implements OnInit {
     }
   }
   
-  // ========== MODIFICAR CARRITO ==========
-  
   aumentarCantidad(item: ProductoCarrito): void {
-    // Validar stock disponible
     const producto = this.productos.find(p => p.id === item.productoId);
     if (producto && item.cantidad + 1 > producto.stock) {
       this.mostrarToast(`Stock insuficiente. Disponible: ${producto.stock}`, 'warning');
@@ -377,8 +354,6 @@ export class VentasComponent implements OnInit {
     await alert.present();
   }
   
-  // ========== PROCESO DE PAGO ==========
-  
   abrirModalPago(): void {
     if (this.carrito.length === 0) {
       this.mostrarToast('El carrito está vacío', 'warning');
@@ -427,7 +402,6 @@ export class VentasComponent implements OnInit {
     this.estaProcesandoVenta = true;
     
     try {
-      // Crear documento de venta
       const ventaData: any = {
         userId: this.usuarioId,
         fecha: serverTimestamp(),
@@ -450,10 +424,8 @@ export class VentasComponent implements OnInit {
         ventaData.cambio = this.cambio;
       }
       
-      // Guardar venta en Firestore
       await addDoc(collection(this.firestore, 'ventas'), ventaData);
       
-      // Descontar stock de productos
       for (const item of this.carrito) {
         const productoRef = doc(this.firestore, 'productos', item.productoId);
         const productoDoc = await getDoc(productoRef);
@@ -465,18 +437,11 @@ export class VentasComponent implements OnInit {
         }
       }
       
-      // Limpiar carrito
       this.carrito = [];
       this.total = 0;
       this.guardarCarrito();
-      
-      // Cerrar modal
       this.cerrarModalPago();
-      
-      // Mostrar mensaje de éxito
       this.mostrarToast('Venta procesada exitosamente', 'success');
-      
-      // Recargar productos para actualizar stock
       await this.cargarProductos();
       
     } catch (error) {
@@ -486,8 +451,6 @@ export class VentasComponent implements OnInit {
       this.estaProcesandoVenta = false;
     }
   }
-  
-  // ========== UTILIDADES ==========
   
   formatearPrecio(precio: number): string {
     return new Intl.NumberFormat('es-CL', {

@@ -13,7 +13,6 @@
   }
 }
 
-// ========== SELECTOR DE PERÍODO Y CONTROLES ==========
 .seccion-controls {
   display: flex;
   align-items: center;
@@ -83,7 +82,6 @@
   }
 }
 
-// ========== BOTONES HEADER ==========
 .boton-volver-header {
   --background: var(--zypos-color-primary) !important;
   --color: #ffffff !important;
@@ -98,7 +96,6 @@
   color: #ffffff !important;
 }
 
-// ========== SECCIONES DE REPORTE ==========
 .seccion-reporte {
   margin-bottom: 2.5rem;
 }
@@ -126,7 +123,6 @@
   }
 }
 
-// ========== TARJETAS DE MÉTRICAS ==========
 .tarjetas-metricas {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -196,7 +192,6 @@
   }
 }
 
-// ========== TARJETAS DE GRÁFICOS ==========
 .tarjeta-grafico {
   margin: 0 0 1.5rem 0;
   border-radius: 16px;
@@ -228,7 +223,6 @@
   }
 }
 
-// ========== TARJETAS DE LISTA ==========
 .tarjeta-lista {
   margin: 0;
   border-radius: 16px;
@@ -326,7 +320,6 @@
   }
 }
 
-// ========== SIN DATOS ==========
 .sin-datos {
   text-align: center;
   padding: 3rem 1rem;
@@ -346,7 +339,6 @@
   }
 }
 
-// ========== ESTADO DE CARGA ==========
 .cargando,
 .cargando-auth {
   text-align: center;
@@ -355,7 +347,6 @@
   font-size: 1rem;
 }
 
-// ========== MODAL DE EXPORTACIÓN ==========
 .contenido-modal-exportar {
   --background: var(--zypos-color-background);
 }

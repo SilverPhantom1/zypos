@@ -20,7 +20,6 @@ export class GestionSuscripcionComponent implements OnInit {
   usuarioId: string | null = null;
   verificandoAuth: boolean = true;
   
-  // Estado de suscripción actual
   suscripcionActual: any = null;
   diasRestantes: number = 0;
 

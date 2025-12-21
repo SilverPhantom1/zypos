@@ -54,40 +54,29 @@ export class InformesComponent implements OnInit, AfterViewInit {
   verificandoAuth: boolean = true;
   usuarioId: string | null = null;
   
-  // Período seleccionado
   periodoSeleccionado: 'dia' | 'semana' | 'mes' = 'dia';
   
-  // Ventas
   ventas: Venta[] = [];
   ventasFiltradas: Venta[] = [];
   estaCargandoVentas: boolean = false;
   
-  // Reportes por período
   totalVentas: number = 0;
   cantidadVentas: number = 0;
   promedioVenta: number = 0;
   
-  // Productos más vendidos
   productosMasVendidos: ProductoReporte[] = [];
-  
-  // Productos menos vendidos
   productosMenosVendidos: ProductoReporte[] = [];
   
-  // Gráficos
   mostrarGraficoTendencias: boolean = true;
   
-  // Modal de exportación
   mostrandoModalExportar: boolean = false;
   tipoReporteExportar: 'general' | 'masVendidos' | 'menosVendidos' | 'todos' = 'todos';
   formatoExportar: 'excel' | 'pdf' = 'excel';
   estaExportando: boolean = false;
   
-  
-  // Referencias a los canvas
   @ViewChild('canvasTendencias', { static: false }) canvasTendencias!: ElementRef<HTMLCanvasElement>;
   @ViewChild('canvasMasVendidos', { static: false }) canvasMasVendidos!: ElementRef<HTMLCanvasElement>;
   
-  // Referencias a los gráficos
   private chartTendencias: Chart | null = null;
   private chartMasVendidos: Chart | null = null;
 
@@ -125,8 +114,6 @@ export class InformesComponent implements OnInit, AfterViewInit {
     }, 200);
   }
 
-  // ========== CARGAR VENTAS ==========
-  
   async cargarVentas() {
     if (!this.usuarioId) return;
     
@@ -136,7 +123,7 @@ export class InformesComponent implements OnInit, AfterViewInit {
       const q = query(
         ventasRef,
         where('userId', '==', this.usuarioId),
-        where('anulada', '==', false) // Solo ventas no anuladas
+        where('anulada', '==', false)
       );
       
       const querySnapshot = await getDocs(q);
@@ -150,7 +137,6 @@ export class InformesComponent implements OnInit, AfterViewInit {
         } as Venta;
       });
       
-      // Ordenar por fecha descendente
       this.ventas.sort((a, b) => {
         const fechaA = a.fecha instanceof Timestamp ? a.fecha.toDate() : new Date(a.fecha);
         const fechaB = b.fecha instanceof Timestamp ? b.fecha.toDate() : new Date(b.fecha);
@@ -167,8 +153,6 @@ export class InformesComponent implements OnInit, AfterViewInit {
       this.estaCargandoVentas = false;
     }
   }
-  
-  // ========== FILTRO POR PERÍODO ==========
   
   cambiarPeriodo() {
     this.aplicarFiltroPeriodo();
@@ -206,22 +190,17 @@ export class InformesComponent implements OnInit, AfterViewInit {
     this.calcularProductosMasVendidos();
     this.calcularProductosMenosVendidos();
     
-    // Actualizar gráficos después de un pequeño delay para asegurar que los canvas estén listos
     setTimeout(() => {
       this.actualizarGraficoTendencias();
       this.actualizarGraficoMasVendidos();
     }, 100);
   }
   
-  // ========== MÉTRICAS ==========
-  
   calcularMetricas(): void {
     this.cantidadVentas = this.ventasFiltradas.length;
     this.totalVentas = this.ventasFiltradas.reduce((sum, venta) => sum + venta.total, 0);
     this.promedioVenta = this.cantidadVentas > 0 ? this.totalVentas / this.cantidadVentas : 0;
   }
-  
-  // ========== PRODUCTOS MÁS VENDIDOS ==========
   
   calcularProductosMasVendidos(): void {
     const productosMap: { [key: string]: ProductoReporte } = {};
@@ -243,15 +222,12 @@ export class InformesComponent implements OnInit, AfterViewInit {
     
     this.productosMasVendidos = Object.values(productosMap)
       .sort((a, b) => b.cantidadVendida - a.cantidadVendida)
-      .slice(0, 10); // Top 10
+      .slice(0, 10);
     
-    // Actualizar gráfico después de un pequeño delay
     setTimeout(() => {
       this.actualizarGraficoMasVendidos();
     }, 100);
   }
-  
-  // ========== PRODUCTOS MENOS VENDIDOS ==========
   
   calcularProductosMenosVendidos(): void {
     const productosMap: { [key: string]: ProductoReporte } = {};
@@ -273,10 +249,8 @@ export class InformesComponent implements OnInit, AfterViewInit {
     
     this.productosMenosVendidos = Object.values(productosMap)
       .sort((a, b) => a.cantidadVendida - b.cantidadVendida)
-      .slice(0, 10); // Top 10 menos vendidos
+      .slice(0, 10);
   }
-  
-  // ========== GRÁFICOS ==========
   
   actualizarGraficoTendencias(): void {
     if (!this.mostrarGraficoTendencias || !this.canvasTendencias) return;
@@ -427,8 +401,6 @@ export class InformesComponent implements OnInit, AfterViewInit {
       }
     });
   }
-  
-  // ========== EXPORTACIÓN ==========
   
   abrirModalExportar(): void {
     this.mostrandoModalExportar = true;
@@ -652,8 +624,6 @@ export class InformesComponent implements OnInit, AfterViewInit {
     const nombreArchivo = `Reporte_${this.obtenerNombrePeriodo()}_${new Date().toISOString().split('T')[0]}.pdf`;
     doc.save(nombreArchivo);
   }
-  
-  // ========== UTILIDADES ==========
   
   formatearPrecio(precio: number): string {
     return new Intl.NumberFormat('es-CL', {

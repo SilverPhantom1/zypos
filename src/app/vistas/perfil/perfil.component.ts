@@ -17,31 +17,26 @@ import { Firestore, doc, getDoc, setDoc, Timestamp } from '@angular/fire/firesto
   imports: [IonHeader, IonToolbar, IonContent, IonItem, IonLabel, IonInput, IonButton, IonIcon, ReactiveFormsModule, CommonModule, RouterLink]
 })
 export class PerfilComponent implements OnInit {
-  // Datos del usuario
   usuarioId: string | null = null;
   datosUsuario: any = null;
   estaCargando: boolean = false;
-  verificandoAuth: boolean = true; // Estado para verificar autenticación
+  verificandoAuth: boolean = true;
   
-  // Formularios
   formularioDatos: FormGroup;
   formularioEmail: FormGroup;
   formularioPassword: FormGroup;
   formularioTelefono: FormGroup;
   
-  // Estados de edición
   editandoDatos: boolean = false;
   editandoEmpresa: boolean = false;
   editandoEmail: boolean = false;
   editandoPassword: boolean = false;
   editandoTelefono: boolean = false;
   
-  // Variables para mostrar/ocultar contraseñas
   mostrarPasswordActual: boolean = false;
   mostrarPasswordNueva: boolean = false;
   mostrarPasswordConfirmar: boolean = false;
   
-  // Plan del usuario
   planActual: string = '';
   fechaVencimiento: Date | null = null;
 
@@ -49,13 +44,11 @@ export class PerfilComponent implements OnInit {
   ) {
     addIcons({ personCircle, logOut, save, eye, eyeOff, checkmarkCircle, arrowBack });
     
-    // Formulario de datos generales
     this.formularioDatos = this.formBuilder.group({
       nombre: ['', [Validators.required]],
       nombreEmpresa: ['']
     });
     
-    // Formulario de email
     this.formularioEmail = this.formBuilder.group({
       contrasenaActual: ['', [Validators.required]],
       nuevoEmail: ['', [Validators.required, Validators.email]],
@@ -64,7 +57,6 @@ export class PerfilComponent implements OnInit {
       validators: this.validarEmailsCoinciden
     });
     
-    // Formulario de contraseña
     this.formularioPassword = this.formBuilder.group({
       contrasenaActual: ['', [Validators.required]],
       contrasenaNueva: ['', [Validators.required, Validators.minLength(6)]],
@@ -73,21 +65,16 @@ export class PerfilComponent implements OnInit {
       validators: this.validarPasswordsCoinciden
     });
     
-    // Formulario de teléfono
     this.formularioTelefono = this.formBuilder.group({
       telefono: ['', [Validators.required, Validators.pattern(/^[0-9+\-\s()]+$/)]]
     });
   }
 
   async ngOnInit() {
-    // Esperar a que Firebase Auth se inicialice completamente (importante después de refresh)
-    // onAuthStateChanged se ejecuta cuando Firebase Auth termina de inicializarse
     onAuthStateChanged(this.auth, async (user) => {
       if (!user) {
-        // Si no hay usuario después de la inicialización, redirigir
         this.router.navigate(['/iniciar-sesion'], { replaceUrl: true });
       } else {
-        // Si hay usuario, cargar datos
         if (user.uid !== this.usuarioId) {
           this.usuarioId = user.uid;
           this.verificandoAuth = false;
@@ -107,7 +94,6 @@ export class PerfilComponent implements OnInit {
       if (usuarioDoc.exists()) {
         this.datosUsuario = usuarioDoc.data();
         
-        // Cargar datos en formularios
         this.formularioDatos.patchValue({
           nombre: this.datosUsuario.nombre || '',
           nombreEmpresa: this.datosUsuario.nombreEmpresa || ''
@@ -117,7 +103,6 @@ export class PerfilComponent implements OnInit {
           telefono: this.datosUsuario.telefono || ''
         });
         
-        // Cargar información del plan
         if (this.datosUsuario.suscripcion) {
           this.planActual = this.datosUsuario.suscripcion.nombre || 'free';
           if (this.datosUsuario.suscripcion.vence) {
@@ -134,7 +119,6 @@ export class PerfilComponent implements OnInit {
     }
   }
 
-  // Validadores
   validarEmailsCoinciden(formGroup: FormGroup) {
     const nuevoEmail = formGroup.get('nuevoEmail')?.value;
     const confirmarEmail = formGroup.get('confirmarEmail')?.value;
@@ -157,7 +141,6 @@ export class PerfilComponent implements OnInit {
     return null;
   }
 
-  // Actualizar datos generales
   async guardarDatos() {
     if (this.formularioDatos.invalid || !this.usuarioId) return;
     
@@ -180,7 +163,6 @@ export class PerfilComponent implements OnInit {
     }
   }
 
-  // Actualizar datos de empresa
   async guardarEmpresa() {
     if (!this.usuarioId) return;
     
@@ -203,7 +185,6 @@ export class PerfilComponent implements OnInit {
     }
   }
 
-  // Actualizar email
   async guardarEmail() {
     if (this.formularioEmail.invalid || !this.usuarioId) return;
     
@@ -217,14 +198,9 @@ export class PerfilComponent implements OnInit {
         return;
       }
       
-      // Reautenticar antes de cambiar email (requerido por Firebase)
       const credential = EmailAuthProvider.credential(user.email, contrasenaActual);
       await reauthenticateWithCredential(user, credential);
-      
-      // Actualizar email
       await updateEmail(user, nuevoEmail);
-      
-      // Actualizar en Firestore
       await setDoc(doc(this.firestore, 'usuarios', this.usuarioId), {
         email: nuevoEmail
       }, { merge: true });
@@ -253,7 +229,6 @@ export class PerfilComponent implements OnInit {
     }
   }
 
-  // Actualizar contraseña
   async guardarPassword() {
     if (this.formularioPassword.invalid || !this.usuarioId) return;
     
@@ -267,11 +242,8 @@ export class PerfilComponent implements OnInit {
         return;
       }
       
-      // Reautenticar usuario
       const credential = EmailAuthProvider.credential(user.email, contrasenaActual);
       await reauthenticateWithCredential(user, credential);
-      
-      // Actualizar contraseña
       await updatePassword(user, contrasenaNueva);
       
       this.editandoPassword = false;
@@ -295,7 +267,6 @@ export class PerfilComponent implements OnInit {
     }
   }
 
-  // Actualizar teléfono
   async guardarTelefono() {
     if (this.formularioTelefono.invalid || !this.usuarioId) return;
     
@@ -318,26 +289,16 @@ export class PerfilComponent implements OnInit {
     }
   }
 
-  // Volver atrás
   volverAtras() {
     this.router.navigate(['/home']);
   }
 
-  // Cerrar sesión
   async cerrarSesion() {
     try {
-      // Limpiar datos locales primero
       localStorage.clear();
       sessionStorage.clear();
-      
-      // Cerrar sesión en Firebase
       await signOut(this.auth);
-      
-      // Redirigir inmediatamente y reemplazar toda la historia del navegador
-      // Esto previene que el usuario pueda volver atrás
       this.router.navigate(['/iniciar-sesion'], { replaceUrl: true }).then(() => {
-        // Forzar recarga de la página para limpiar completamente el estado
-        // Esto asegura que no queden datos en memoria
         window.history.replaceState(null, '', '/iniciar-sesion');
       });
     } catch (error) {
@@ -346,7 +307,6 @@ export class PerfilComponent implements OnInit {
     }
   }
 
-  // Alternar visibilidad de contraseñas
   alternarVisibilidadPasswordActual() {
     this.mostrarPasswordActual = !this.mostrarPasswordActual;
   }
@@ -368,7 +328,6 @@ export class PerfilComponent implements OnInit {
     });
   }
 
-  // Calcular tiempo restante hasta el vencimiento
   calcularTiempoRestante(): string {
     const ahora = new Date();
     const vencimiento = new Date(this.fechaVencimiento!);
@@ -405,7 +364,6 @@ export class PerfilComponent implements OnInit {
     }
   }
 
-  // Mostrar toast
   async mostrarToast(mensaje: string, color: string = 'danger') {
     const toast = await this.toastController.create({
       message: mensaje,

@@ -28,32 +28,26 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
   estaCargandoCategorias: boolean = false;
   estaCargandoProveedores: boolean = false;
   
-  // Listas de categorías y proveedores
   categorias: any[] = [];
   proveedores: any[] = [];
   
-  // Foto del producto
   fotoSeleccionada: string | null = null;
   archivoFoto: File | null = null;
   estaSubiendoFoto: boolean = false;
   
-  // Formulario de producto
   formularioProducto!: FormGroup;
   
-  // Lista de productos
   productos: any[] = [];
   productosFiltrados: any[] = [];
   estaCargandoProductos: boolean = false;
   
-  // Búsqueda y filtros
   terminoBusqueda: string = '';
   categoriaFiltro: string = 'todas';
   proveedorFiltro: string = 'todos';
   ordenamiento: string = 'nombre';
-  vistaGrid: boolean = true; // true = grid, false = lista
-  umbralBajoStock: number = 10; // Umbral para considerar bajo stock
+  vistaGrid: boolean = true;
+  umbralBajoStock: number = 10;
   
-  // Modales y estados
   mostrandoModalEditar: boolean = false;
   mostrandoModalAjusteStock: boolean = false;
   mostrandoModalCategorias: boolean = false;
@@ -61,18 +55,14 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
   productoAjustandoStock: any = null;
   nuevoStock: number = 0;
   
-  // Detectar si es móvil
   esPlataformaMovil: boolean = false;
   
-  // Menú contextual para web
   mostrandoMenuContextual: boolean = false;
   productoSeleccionado: any = null;
   posicionMenu: { x: number, y: number } = { x: 0, y: 0 };
   
-  // Formulario de edición
   formularioEdicion!: FormGroup;
   
-  // Gestión de categorías
   formularioCategoria!: FormGroup;
   categoriaEditando: any = null;
   estaCargandoCategoria: boolean = false;
@@ -91,30 +81,19 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
   }
 
   async ngOnInit() {
-    // Detectar si es plataforma móvil
     this.esPlataformaMovil = Capacitor.getPlatform() !== 'web';
     
-    // Esperar a que Firebase Auth se inicialice completamente (importante después de refresh)
-    // onAuthStateChanged se ejecuta cuando Firebase Auth termina de inicializarse
     onAuthStateChanged(this.auth, async (user) => {
       if (!user) {
-        // Si no hay usuario después de la inicialización, redirigir
         this.router.navigate(['/iniciar-sesion'], { replaceUrl: true });
       } else {
-        // Si hay usuario, permitir acceso
         if (user.uid !== this.usuarioId) {
           this.usuarioId = user.uid;
           this.verificandoAuth = false;
-          
-          // Inicializar formulario
           this.inicializarFormulario();
           this.inicializarFormularioCategoria();
-          
-          // Cargar categorías y proveedores
           await this.cargarCategorias();
           await this.cargarProveedores();
-          
-          // Cargar productos
           await this.cargarProductos();
         }
       }
@@ -140,11 +119,10 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
     });
   }
 
-  // Validador personalizado para precio positivo
   validarPrecioPositivo(control: any) {
     const valor = control.value;
     if (!valor && valor !== 0) {
-      return null; // Si está vacío, el validador required se encargará
+      return null;
     }
     const precio = parseFloat(valor);
     if (isNaN(precio) || precio <= 0) {
@@ -153,11 +131,10 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
     return null;
   }
 
-  // Validador personalizado para stock no negativo
   validarStockNoNegativo(control: any) {
     const valor = control.value;
     if (!valor && valor !== 0) {
-      return null; // Si está vacío, el validador required se encargará
+      return null;
     }
     const stock = parseFloat(valor);
     if (isNaN(stock) || stock < 0) {
@@ -166,7 +143,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
     return null;
   }
 
-  // Cargar categorías del usuario (y categorías predeterminadas)
   async cargarCategorias() {
     if (!this.usuarioId) {
       console.warn('No hay usuarioId, no se pueden cargar categorías');
@@ -174,8 +150,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
       return;
     }
     
-    console.log('=== INICIANDO CARGA DE CATEGORÍAS ===');
-    console.log('usuarioId:', this.usuarioId);
     this.estaCargandoCategorias = true;
     
     const categoriasUsuario: any[] = [];
@@ -184,9 +158,7 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
     try {
       const categoriasRef = collection(this.firestore, 'categorias');
       
-      // Cargar categorías del usuario con consulta específica
       try {
-        console.log('Cargando categorías del usuario...');
         const qUsuario = query(categoriasRef, where('userId', '==', this.usuarioId));
         const snapshotUsuario = await getDocs(qUsuario);
         
@@ -198,15 +170,11 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
             userId: data['userId']
           });
         });
-        console.log('✓ Categorías del usuario cargadas:', categoriasUsuario.length);
       } catch (errorUsuario: any) {
-        console.error('✗ Error al cargar categorías del usuario:', errorUsuario);
-        // Continuar aunque falle, para intentar cargar las predeterminadas
+        console.error('Error al cargar categorías del usuario:', errorUsuario);
       }
       
-      // Cargar categorías predeterminadas (userId == null)
       try {
-        console.log('Cargando categorías predeterminadas...');
         const qPredeterminadas = query(categoriasRef, where('userId', '==', null));
         const snapshotPredeterminadas = await getDocs(qPredeterminadas);
         
@@ -218,51 +186,27 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
             userId: null
           });
         });
-        console.log('✓ Categorías predeterminadas cargadas:', categoriasPredeterminadas.length);
       } catch (errorPredeterminadas: any) {
-        console.error('✗ Error al cargar categorías predeterminadas:', errorPredeterminadas);
-        // Continuar aunque falle
+        console.error('Error al cargar categorías predeterminadas:', errorPredeterminadas);
       }
       
-      // Combinar ambas listas
       this.categorias = [...categoriasUsuario, ...categoriasPredeterminadas];
       
-      console.log('=== CATEGORÍAS CARGADAS ===');
-      console.log('Total categorías:', this.categorias.length);
-      console.log('Categorías:', this.categorias);
-      
-      if (this.categorias.length === 0) {
-        console.warn('⚠ No se encontraron categorías. Verifica las reglas de Firestore.');
-      }
-      
     } catch (error: any) {
-      console.error('=== ERROR GENERAL AL CARGAR CATEGORÍAS ===');
-      console.error('Error:', error);
-      console.error('Código:', error.code);
-      console.error('Mensaje:', error.message);
-      
-      // Mantener las categorías que se pudieron cargar
       if (categoriasUsuario.length > 0 || categoriasPredeterminadas.length > 0) {
         this.categorias = [...categoriasUsuario, ...categoriasPredeterminadas];
-        console.log('Se mantienen las categorías cargadas parcialmente:', this.categorias.length);
       } else {
         this.categorias = [];
       }
       
       if (error.code === 'permission-denied' || error.code === 'missing-or-insufficient-permissions') {
-        console.error('❌ ERROR DE PERMISOS');
-        console.error('Las reglas de Firestore deben permitir leer categorías donde:');
-        console.error('  1. resource.data.userId == request.auth.uid (categorías del usuario)');
-        console.error('  2. resource.data.userId == null (categorías predeterminadas)');
         this.mostrarToast('Error de permisos. Verifica las reglas de Firestore para "categorias".', 'danger');
       }
     } finally {
       this.estaCargandoCategorias = false;
-      console.log('=== FIN CARGA DE CATEGORÍAS ===');
     }
   }
 
-  // Cargar proveedores del usuario
   async cargarProveedores() {
     if (!this.usuarioId) return;
     
@@ -282,29 +226,24 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
       if (error.code !== 'permission-denied' && error.code !== 'missing-or-insufficient-permissions') {
         console.error('Error al cargar proveedores:', error);
       }
-      // Inicializar como lista vacía si hay error
       this.proveedores = [];
     } finally {
       this.estaCargandoProveedores = false;
     }
   }
 
-  // Generar código de barras único
   generarCodigoBarras(): string {
     const timestamp = Date.now();
     const random = Math.floor(Math.random() * 10000);
     return `ZY${timestamp}${random}`;
   }
 
-  // Seleccionar/tomar foto
   async seleccionarFoto() {
-    // Si está en web, usar input file nativo
     if (Capacitor.getPlatform() === 'web') {
       this.seleccionarFotoWeb();
       return;
     }
 
-    // Si está en móvil, usar Capacitor Camera
     try {
       const imagen = await Camera.getPhoto({
         quality: 80,
@@ -323,7 +262,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
         this.archivoFoto = new File([blob], nombreArchivo, { type: blob.type });
       }
     } catch (error: any) {
-      // Si el usuario cancela, no mostrar error
       if (error.message !== 'User cancelled photos app' && !error.message?.includes('cancel')) {
         console.error('Error al seleccionar foto:', error);
         this.mostrarToast('Error al seleccionar la foto', 'danger');
@@ -331,7 +269,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
     }
   }
 
-  // Seleccionar foto en web usando input file nativo
   seleccionarFotoWeb() {
     const input = document.createElement('input');
     input.type = 'file';
@@ -342,13 +279,11 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
       const archivo = event.target.files?.[0];
       if (!archivo) return;
 
-      // Validar que sea una imagen
       if (!archivo.type.startsWith('image/')) {
         this.mostrarToast('Por favor selecciona un archivo de imagen', 'danger');
         return;
       }
 
-      // Validar tamaño (máximo 5MB)
       if (archivo.size > 5 * 1024 * 1024) {
         this.mostrarToast('La imagen es muy grande. Máximo 5MB', 'danger');
         return;
@@ -362,7 +297,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
         };
         reader.readAsDataURL(archivo);
         
-        // Guardar el archivo
         this.archivoFoto = archivo;
       } catch (error) {
         console.error('Error al leer la imagen:', error);
@@ -374,13 +308,11 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
     input.click();
   }
 
-  // Eliminar foto seleccionada
   eliminarFoto() {
     this.fotoSeleccionada = null;
     this.archivoFoto = null;
   }
 
-  // Obtener texto de la categoría seleccionada
   obtenerTextoCategoria(): string {
     const categoriaId = this.formularioProducto.get('categoriaId')?.value;
     if (!categoriaId || categoriaId === 'ninguna') {
@@ -390,7 +322,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
     return categoria?.nombre || 'Categoría seleccionada';
   }
 
-  // Obtener texto del proveedor seleccionado
   obtenerTextoProveedor(): string {
     const proveedorId = this.formularioProducto.get('proveedorId')?.value;
     if (!proveedorId || proveedorId === 'ninguna') {
@@ -400,7 +331,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
     return proveedor?.nombre || 'Proveedor seleccionado';
   }
 
-  // Obtener texto del estado seleccionado
   obtenerTextoEstado(): string {
     const estado = this.formularioProducto.get('estado')?.value;
     if (estado === 'buen estado') {
@@ -412,7 +342,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
     return '';
   }
 
-  // Subir foto a Firebase Storage
   async subirFotoAStorage(): Promise<string | null> {
     if (!this.archivoFoto || !this.usuarioId) {
       return null;
@@ -420,21 +349,15 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
 
     this.estaSubiendoFoto = true;
     try {
-      // Limpiar nombre de archivo (remover espacios y caracteres especiales)
       const nombreLimpio = this.archivoFoto.name.replace(/[^a-zA-Z0-9.-]/g, '_');
       const nombreArchivo = `productos/${this.usuarioId}/${Date.now()}_${nombreLimpio}`;
       const storageRef = ref(this.storage, nombreArchivo);
-      
-      // Subir archivo (File ya es compatible con uploadBytes)
       await uploadBytes(storageRef, this.archivoFoto);
-      
-      // Obtener URL de descarga
       const url = await getDownloadURL(storageRef);
       return url;
     } catch (error: any) {
       console.error('Error al subir foto:', error);
       
-      // Mensajes de error más específicos
       let mensajeError = 'Error al subir la foto';
       if (error.code === 'storage/unauthorized') {
         mensajeError = 'No tienes permisos para subir fotos. Verifica las reglas de Storage.';
@@ -451,7 +374,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
     }
   }
 
-  // Mostrar/ocultar formulario
   toggleFormulario() {
     this.mostrandoFormulario = !this.mostrandoFormulario;
     if (!this.mostrandoFormulario) {
@@ -465,10 +387,8 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
     }
   }
 
-  // Guardar producto
   async guardarProducto() {
     if (this.formularioProducto.invalid || !this.usuarioId) {
-      // Marcar todos los campos como tocados para mostrar errores
       Object.keys(this.formularioProducto.controls).forEach(key => {
         this.formularioProducto.get(key)?.markAsTouched();
       });
@@ -480,29 +400,23 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
     try {
       const valores = this.formularioProducto.value;
       
-      // Generar código de barras si no se proporcionó uno
       let codigoBarras = valores.codigoBarras?.trim() || '';
       if (!codigoBarras) {
         codigoBarras = this.generarCodigoBarras();
       }
 
-      // Subir foto si existe (solo si Storage está disponible)
       let fotoUrl: string | null = null;
       if (this.archivoFoto) {
         try {
           fotoUrl = await this.subirFotoAStorage();
-          // Si falla la subida, continuar sin foto (no bloquear el guardado)
           if (!fotoUrl) {
             console.warn('No se pudo subir la foto, pero se guardará el producto sin foto');
-            // No retornar, continuar con el guardado del producto
           }
         } catch (error) {
           console.error('Error al subir foto, continuando sin foto:', error);
-          // Continuar sin foto
         }
       }
 
-      // Preparar datos del producto
       const datosProducto: any = {
         nombre: valores.nombre.trim(),
         descripcion: valores.descripcion?.trim() || '',
@@ -513,12 +427,10 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
         userId: this.usuarioId
       };
 
-      // Agregar foto si existe
       if (fotoUrl) {
         datosProducto.fotoUrl = fotoUrl;
       }
 
-      // Agregar campos opcionales solo si tienen valor (y no es la opción "ninguna")
       if (valores.categoriaId && valores.categoriaId !== 'ninguna') {
         datosProducto.categoriaId = valores.categoriaId;
       }
@@ -526,13 +438,10 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
         datosProducto.proveedorId = valores.proveedorId;
       }
 
-      // Guardar en Firestore
       await addDoc(collection(this.firestore, 'productos'), datosProducto);
 
-      // Mostrar mensaje de éxito
       await this.mostrarToast('Producto creado exitosamente', 'success');
 
-      // Limpiar formulario y ocultar
       this.formularioProducto.reset({
         estado: 'buen estado',
         categoriaId: 'ninguna',
@@ -542,7 +451,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
       this.archivoFoto = null;
       this.mostrandoFormulario = false;
 
-      // Recargar productos
       await this.cargarProductos();
 
     } catch (error: any) {
@@ -553,7 +461,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
     }
   }
 
-  // Mostrar toast
   async mostrarToast(mensaje: string, color: string = 'danger') {
     const toast = await this.toastController.create({
       message: mensaje,
@@ -575,9 +482,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
     this.router.navigate(['/home'], { replaceUrl: true });
   }
 
-  // ========== FUNCIONALIDADES DE LISTADO ==========
-
-  // Cargar productos desde Firestore
   async cargarProductos() {
     if (!this.usuarioId) return;
     
@@ -595,7 +499,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
       // Aplicar filtros y ordenamiento
       this.aplicarFiltrosYOrdenamiento();
       
-      // Generar códigos de barras después de cargar
       setTimeout(() => {
         this.generarCodigosBarras();
       }, 100);
@@ -664,31 +567,26 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
     
     this.productosFiltrados = productosFiltrados;
     
-    // Regenerar códigos de barras después de filtrar
     setTimeout(() => {
       this.generarCodigosBarras();
     }, 100);
   }
 
-  // Obtener nombre de categoría
   obtenerNombreCategoria(categoriaId: string | null | undefined): string {
     if (!categoriaId) return 'Sin categoría';
     const categoria = this.categorias.find(c => c.id === categoriaId);
     return categoria?.nombre || 'Sin categoría';
   }
 
-  // Verificar si una categoría existe en la lista de categorías disponibles
   tieneCategoriaValida(categoriaId: string | null | undefined): boolean {
     if (!categoriaId) return false;
     return this.categorias.some(c => c.id === categoriaId);
   }
 
-  // Cambiar vista (grid/lista)
   cambiarVista() {
     this.vistaGrid = !this.vistaGrid;
   }
 
-  // Cambiar ordenamiento
   cambiarOrdenamiento() {
     const opciones = ['nombre', 'precio', 'stock'];
     const indiceActual = opciones.indexOf(this.ordenamiento);
@@ -697,7 +595,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
     this.aplicarFiltrosYOrdenamiento();
   }
 
-  // Verificar estado de stock
   obtenerEstadoStock(stock: number): 'normal' | 'bajo' | 'sin-stock' {
     if (stock === 0) return 'sin-stock';
     if (stock <= this.umbralBajoStock) return 'bajo';
@@ -714,8 +611,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
     }).format(precio);
   }
 
-  // ========== FUNCIONALIDADES DE EDICIÓN ==========
-
   // Abrir modal de edición
   abrirModalEditar(producto: any) {
     this.productoEditando = { ...producto };
@@ -723,7 +618,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
     this.mostrandoModalEditar = true;
   }
 
-  // Cerrar modal de edición
   cerrarModalEditar() {
     this.mostrandoModalEditar = false;
     this.productoEditando = null;
@@ -731,7 +625,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
     this.archivoFoto = null;
   }
 
-  // Inicializar formulario de edición
   inicializarFormularioEdicion() {
     if (!this.productoEditando) return;
     
@@ -746,13 +639,11 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
       estado: [this.productoEditando.estado || 'buen estado', [Validators.required]]
     });
     
-    // Cargar foto si existe
     if (this.productoEditando.fotoUrl) {
       this.fotoSeleccionada = this.productoEditando.fotoUrl;
     }
   }
 
-  // Guardar cambios de edición
   async guardarEdicion() {
     if (this.formularioEdicion.invalid || !this.productoEditando || !this.usuarioId) {
       Object.keys(this.formularioEdicion.controls).forEach(key => {
@@ -766,10 +657,8 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
     try {
       const valores = this.formularioEdicion.value;
       
-      // Subir nueva foto si existe
       let fotoUrl: string | null = this.productoEditando.fotoUrl || null;
       if (this.archivoFoto) {
-        // Eliminar foto anterior si existe
         if (fotoUrl) {
           try {
             const fotoAnteriorRef = ref(this.storage, fotoUrl);
@@ -779,11 +668,9 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
           }
         }
         
-        // Subir nueva foto
         fotoUrl = await this.subirFotoAStorage();
       }
 
-      // Preparar datos actualizados
       const datosActualizados: any = {
         nombre: valores.nombre.trim(),
         descripcion: valores.descripcion?.trim() || '',
@@ -793,12 +680,10 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
         estado: valores.estado
       };
 
-      // Agregar foto si existe
       if (fotoUrl) {
         datosActualizados.fotoUrl = fotoUrl;
       }
 
-      // Agregar campos opcionales
       if (valores.categoriaId && valores.categoriaId !== 'ninguna') {
         datosActualizados.categoriaId = valores.categoriaId;
       } else {
@@ -811,13 +696,10 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
         datosActualizados.proveedorId = null;
       }
 
-      // Actualizar en Firestore
       const productoRef = doc(this.firestore, 'productos', this.productoEditando.id);
       await updateDoc(productoRef, datosActualizados);
 
       await this.mostrarToast('Producto actualizado exitosamente', 'success');
-
-      // Recargar productos y cerrar modal
       await this.cargarProductos();
       this.cerrarModalEditar();
 
@@ -829,9 +711,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
     }
   }
 
-  // ========== FUNCIONALIDADES DE ELIMINACIÓN ==========
-
-  // Mostrar opciones de acción (editar/eliminar)
   async mostrarOpcionesProducto(producto: any, event?: MouseEvent) {
     if (this.esPlataformaMovil) {
       // En móvil: usar ActionSheet
@@ -875,7 +754,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
         event.preventDefault();
         event.stopPropagation();
         
-        // Calcular posición del menú (ajustar para que no se salga de la pantalla)
         const menuWidth = 220;
         const menuHeight = 200;
         let x = event.clientX;
@@ -899,7 +777,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
         
         this.posicionMenu = { x, y };
       } else {
-        // Si no hay evento, centrar en la pantalla
         this.posicionMenu = { 
           x: window.innerWidth / 2 - 110, 
           y: window.innerHeight / 2 - 100 
@@ -911,7 +788,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
     }
   }
 
-  // Cerrar menú contextual
   cerrarMenuContextual() {
     this.mostrandoMenuContextual = false;
     this.productoSeleccionado = null;
@@ -921,10 +797,9 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
   ejecutarAccion(accion: string) {
     if (!this.productoSeleccionado) return;
     
-    const producto = { ...this.productoSeleccionado }; // Guardar copia del producto
+    const producto = { ...this.productoSeleccionado };
     this.cerrarMenuContextual();
     
-    // Usar setTimeout para asegurar que el menú se cierre antes de abrir modales
     setTimeout(() => {
       switch (accion) {
         case 'editar':
@@ -963,14 +838,12 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
     await alert.present();
   }
 
-  // Eliminar producto
   async eliminarProducto(producto: any) {
     if (!producto.id || !this.usuarioId) return;
 
     this.estaCargando = true;
 
     try {
-      // Eliminar foto de Storage si existe
       if (producto.fotoUrl) {
         try {
           const fotoRef = ref(this.storage, producto.fotoUrl);
@@ -980,16 +853,12 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
         }
       }
 
-      // TODO: Eliminar referencias en ventas, historial, etc. (eliminación en cascada)
-      // Por ahora solo eliminamos el producto
 
-      // Eliminar producto de Firestore
       const productoRef = doc(this.firestore, 'productos', producto.id);
       await deleteDoc(productoRef);
 
       await this.mostrarToast('Producto eliminado exitosamente', 'success');
 
-      // Recargar productos
       await this.cargarProductos();
 
     } catch (error: any) {
@@ -1000,9 +869,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
     }
   }
 
-  // ========== FUNCIONALIDADES DE BÚSQUEDA ==========
-
-  // Buscar productos
   onBuscar(event: any) {
     this.terminoBusqueda = event.detail.value || '';
     this.aplicarFiltrosYOrdenamiento();
@@ -1020,7 +886,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
       });
 
       if (imagen.dataUrl) {
-        // Crear una imagen para procesar con ZXing
         const img = new Image();
         img.src = imagen.dataUrl;
         
@@ -1040,7 +905,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
             this.terminoBusqueda = codigoBarras;
             this.aplicarFiltrosYOrdenamiento();
             
-            // Si hay un solo resultado, mostrar opciones
             setTimeout(() => {
               if (this.productosFiltrados.length === 1) {
                 this.mostrarOpcionesProducto(this.productosFiltrados[0]);
@@ -1062,8 +926,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
     }
   }
 
-  // ========== FUNCIONALIDADES DE AJUSTE DE STOCK ==========
-
   // Abrir modal de ajuste de stock
   abrirModalAjusteStock(producto: any) {
     this.productoAjustandoStock = producto;
@@ -1071,14 +933,12 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
     this.mostrandoModalAjusteStock = true;
   }
 
-  // Cerrar modal de ajuste de stock
   cerrarModalAjusteStock() {
     this.mostrandoModalAjusteStock = false;
     this.productoAjustandoStock = null;
     this.nuevoStock = 0;
   }
 
-  // Guardar ajuste de stock
   async guardarAjusteStock() {
     if (!this.productoAjustandoStock || !this.usuarioId) return;
 
@@ -1096,8 +956,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
       });
 
       await this.mostrarToast('Stock actualizado exitosamente', 'success');
-
-      // Recargar productos y cerrar modal
       await this.cargarProductos();
       this.cerrarModalAjusteStock();
 
@@ -1109,14 +967,11 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
     }
   }
 
-  // Actualizar productos después de crear uno nuevo
   async onProductoCreado() {
     await this.cargarProductos();
   }
 
-  // Generar código de barras visual
   ngAfterViewChecked() {
-    // Generar códigos de barras después de que la vista se actualice
     if (this.productosFiltrados.length > 0) {
       setTimeout(() => {
         this.generarCodigosBarras();
@@ -1125,18 +980,15 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
   }
 
   generarCodigosBarras() {
-    // Generar códigos de barras para todos los productos visibles
     this.productosFiltrados.forEach((producto, index) => {
       if (producto.codigoBarras) {
         const uniqueId = producto.id || `prod-${index}-${Date.now()}`;
         
-        // Para vista grid
         const svgId = `barcode-${uniqueId}`;
         const svgElement = document.getElementById(svgId);
         
         if (svgElement && !svgElement.hasAttribute('data-barcode-generated')) {
           try {
-            // Limpiar el SVG antes de generar
             svgElement.innerHTML = '';
             JsBarcode(svgElement, producto.codigoBarras, {
               format: "CODE128",
@@ -1146,7 +998,7 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
               fontSize: 10,
               margin: 2,
               background: "transparent",
-              lineColor: "#0a3254ff" // Color corporativo: --zypos-color-text
+              lineColor: "#0a3254ff"
             });
             svgElement.setAttribute('data-barcode-generated', 'true');
           } catch (error) {
@@ -1154,13 +1006,11 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
           }
         }
         
-        // Para vista lista
         const svgIdLista = `barcode-lista-${uniqueId}`;
         const svgElementLista = document.getElementById(svgIdLista);
         
         if (svgElementLista && !svgElementLista.hasAttribute('data-barcode-generated')) {
           try {
-            // Limpiar el SVG antes de generar
             svgElementLista.innerHTML = '';
             JsBarcode(svgElementLista, producto.codigoBarras, {
               format: "CODE128",
@@ -1170,7 +1020,7 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
               fontSize: 10,
               margin: 2,
               background: "transparent",
-              lineColor: "#0a3254ff" // Color corporativo: --zypos-color-text
+              lineColor: "#0a3254ff"
             });
             svgElementLista.setAttribute('data-barcode-generated', 'true');
           } catch (error) {
@@ -1181,25 +1031,20 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
     });
   }
 
-  // ========== GESTIÓN DE CATEGORÍAS ==========
-
   // Abrir modal de categorías
   async abrirModalCategorias() {
     this.categoriaEditando = null;
     this.inicializarFormularioCategoria();
-    // Recargar categorías antes de abrir el modal
     await this.cargarCategorias();
     this.mostrandoModalCategorias = true;
   }
 
-  // Cerrar modal de categorías
   cerrarModalCategorias() {
     this.mostrandoModalCategorias = false;
     this.categoriaEditando = null;
     this.inicializarFormularioCategoria();
   }
 
-  // Crear nueva categoría
   async crearCategoria() {
     if (this.formularioCategoria.invalid || !this.usuarioId) {
       this.formularioCategoria.get('nombre')?.markAsTouched();
@@ -1213,7 +1058,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
       return;
     }
 
-    // Validar que no exista una categoría con el mismo nombre para este usuario
     const categoriaExistente = this.categorias.find(
       cat => cat.nombre.toLowerCase() === nombre.toLowerCase() && cat.userId === this.usuarioId
     );
@@ -1240,13 +1084,10 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
       // Log para depuración
       console.log('Categoría creada con ID:', docRef.id, 'userId:', this.usuarioId);
 
-      // Esperar un momento para que Firestore procese la escritura
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      // Recargar categorías
       await this.cargarCategorias();
       
-      // Limpiar formulario
       this.inicializarFormularioCategoria();
       
       // Log para depuración
@@ -1283,7 +1124,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
     this.inicializarFormularioCategoria();
   }
 
-  // Guardar edición de categoría
   async guardarEdicionCategoria() {
     if (this.formularioCategoria.invalid || !this.usuarioId || !this.categoriaEditando) {
       this.formularioCategoria.get('nombre')?.markAsTouched();
@@ -1297,7 +1137,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
       return;
     }
 
-    // Validar que no exista otra categoría con el mismo nombre para este usuario
     const categoriaExistente = this.categorias.find(
       cat => cat.id !== this.categoriaEditando.id && 
             cat.nombre.toLowerCase() === nombre.toLowerCase() && 
@@ -1317,10 +1156,7 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
         nombre: nombre
       });
 
-      // Recargar categorías
       await this.cargarCategorias();
-      
-      // Limpiar formulario y cancelar edición
       this.cancelarEdicionCategoria();
       
       this.mostrarToast('Categoría actualizada exitosamente', 'success');
@@ -1340,7 +1176,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
     }
   }
 
-  // Contar productos de una categoría
   async contarProductosCategoria(categoriaId: string): Promise<number> {
     if (!this.usuarioId) return 0;
 
@@ -1359,14 +1194,11 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
     }
   }
 
-  // Eliminar categoría
   async eliminarCategoria(categoria: any) {
     if (!this.usuarioId) return;
 
-    // Contar productos de esta categoría
     const cantidadProductos = await this.contarProductosCategoria(categoria.id);
 
-    // Mostrar alerta de confirmación con advertencia
     const alert = await this.alertController.create({
       header: 'Eliminar Categoría',
       message: cantidadProductos > 0
@@ -1385,10 +1217,7 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
               const categoriaRef = doc(this.firestore, 'categorias', categoria.id);
               await deleteDoc(categoriaRef);
 
-              // Recargar categorías
               await this.cargarCategorias();
-              
-              // Recargar productos para actualizar la vista
               await this.cargarProductos();
               
               this.mostrarToast('Categoría eliminada exitosamente', 'success');
@@ -1416,10 +1245,8 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
   async asignarCategoriaRapida(producto: any) {
     if (!this.usuarioId || !producto) return;
 
-    // Asegurarse de que las categorías estén cargadas
     await this.cargarCategorias();
 
-    // Verificar que hay categorías disponibles
     if (this.categorias.length === 0) {
       this.mostrarToast('No hay categorías disponibles. Crea una categoría primero.', 'warning');
       return;
@@ -1459,7 +1286,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
     await alert.present();
   }
 
-  // Actualizar categoría de un producto
   async actualizarCategoriaProducto(productoId: string, categoriaId: string | null) {
     if (!this.usuarioId) return;
 
@@ -1469,7 +1295,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
         categoriaId: categoriaId
       });
 
-      // Recargar productos
       await this.cargarProductos();
       
       this.mostrarToast('Categoría asignada exitosamente', 'success');

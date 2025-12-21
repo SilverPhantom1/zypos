@@ -13,7 +13,6 @@
   }
 }
 
-// ========== FILTROS Y BÚSQUEDA ==========
 .seccion-filtros {
   margin-bottom: 2rem;
 }
@@ -62,7 +61,6 @@
   }
 }
 
-// ========== LISTA DE VENTAS ==========
 .lista-ventas {
   display: flex;
   flex-direction: column;
@@ -237,7 +235,6 @@
   }
 }
 
-// ========== MODAL DE DETALLE ==========
 .contenido-modal {
   --background: var(--zypos-color-background);
 }
@@ -352,7 +349,6 @@
   font-size: 1.3rem;
 }
 
-// ========== MODAL DE ANULACIÓN ==========
 .contenedor-modal-anular {
   max-width: 600px;
   margin: 0 auto;
@@ -452,7 +448,6 @@
   height: 45px;
 }
 
-// ========== MODAL DE MODIFICACIÓN ==========
 .contenedor-modal-modificar {
   max-width: 600px;
   margin: 0 auto;
@@ -611,7 +606,6 @@
   height: 50px;
 }
 
-// ========== BOTÓN VOLVER ==========
 .boton-volver-header {
   --background: var(--zypos-color-primary) !important; // Color primario coral
   --color: #ffffff !important;
@@ -626,7 +620,6 @@
   color: #ffffff !important;
 }
 
-// ========== ESTADO DE CARGA ==========
 .cargando,
 .cargando-auth {
   text-align: center;

@@ -136,12 +136,10 @@
     --placeholder-color: #666;
     --placeholder-opacity: 0.6;
     
-    // Asegurar que el valor seleccionado se muestre
     &::part(text) {
       color: var(--zypos-color-text);
     }
     
-    // Si tiene un valor, mostrar el texto en lugar del placeholder
     &[value]:not([value=""]) {
       --placeholder-opacity: 0;
     }
@@ -301,8 +299,6 @@
   align-items: center;
 }
 
-// ========== ESTILOS PARA LISTA DE PRODUCTOS ==========
-
 .contenedor-controles {
   margin-bottom: 2rem;
   
@@ -446,7 +442,6 @@
   font-size: 1rem;
 }
 
-// ========== ESTILOS PARA VISTA GRID ==========
 
 .grid-productos {
   padding: 0;
@@ -663,7 +658,6 @@
   }
 }
 
-// ========== ESTILOS PARA VISTA LISTA ==========
 
 .lista-productos {
   display: flex;
@@ -872,7 +866,6 @@
   }
 }
 
-// ========== ESTILOS PARA SIN RESULTADOS ==========
 
 .sin-resultados {
   text-align: center;
@@ -910,7 +903,6 @@
   }
 }
 
-// ========== ESTILOS PARA MODALES ==========
 
 .contenido-modal {
   --background: var(--zypos-color-background);
@@ -961,7 +953,6 @@
   }
 }
 
-// ========== ESTILOS PARA MENÚ CONTEXTUAL EN WEB ==========
 
 .overlay-menu-contextual {
   position: fixed;
@@ -1093,7 +1084,6 @@
   }
 }
 
-// ========== ESTILOS MODAL DE CATEGORÍAS ==========
 
 .contenedor-modal-categorias {
   max-width: 90%;

@@ -38,21 +38,16 @@ export class PlanesComponent implements OnInit {
   }
 
   async ngOnInit() {
-    // Verificar si hay parámetros de retorno de MercadoPago
     this.route.queryParams.subscribe(async params => {
       if (params['payment_status'] && params['user_id'] && params['plan_id']) {
         await this.manejarRetornoPago(params['payment_status'], params['user_id'], params['plan_id']);
       }
     });
 
-    // Esperar a que Firebase Auth se inicialice completamente (importante después de refresh)
-    // onAuthStateChanged se ejecuta cuando Firebase Auth termina de inicializarse
     onAuthStateChanged(this.auth, async (user) => {
       if (!user) {
-        // Si no hay usuario después de la inicialización, redirigir
         this.router.navigate(['/iniciar-sesion'], { replaceUrl: true });
       } else {
-        // Si hay usuario, cargar datos
         if (user.uid !== this.usuarioId) {
           this.usuarioId = user.uid;
           this.verificandoAuth = false;
@@ -95,7 +90,6 @@ export class PlanesComponent implements OnInit {
       
       if (usuarioDoc.exists()) {
         const datosUsuario = usuarioDoc.data();
-        // Verificar si ya usó el plan gratuito
         this.planGratuitoUsado = datosUsuario['planGratuitoUsado'] || false;
       }
     } catch (error) {
@@ -106,7 +100,6 @@ export class PlanesComponent implements OnInit {
   seleccionarPlan(nombrePlan: string) {
     const nombrePlanLower = nombrePlan.toLowerCase();
     
-    // Validar si intenta seleccionar plan gratuito y ya lo usó
     if (nombrePlanLower === 'free' && this.planGratuitoUsado) {
       this.mostrarToast('El plan gratuito solo puede utilizarse una vez. Por favor, selecciona el plan Plus.', 'warning');
       return;
@@ -119,7 +112,6 @@ export class PlanesComponent implements OnInit {
     if (precio === 0) {
       return 'Gratis';
     }
-    // Formatear precio en pesos chilenos con separador de miles
     return `$${precio.toLocaleString('es-CL')}`;
   }
 
@@ -130,7 +122,6 @@ export class PlanesComponent implements OnInit {
       return;
     }
 
-    // Validar plan gratuito
     if (this.planSeleccionado === 'free' && this.planGratuitoUsado) {
       this.mostrarToast('El plan gratuito solo puede utilizarse una vez. Por favor, selecciona el plan Plus.', 'warning');
       return;
@@ -146,26 +137,22 @@ export class PlanesComponent implements OnInit {
         return;
       }
 
-      // Si es plan Plus, procesar pago con MercadoPago
       if (planElegido.precio > 0) {
-        this.estaProcesando = false; // Liberar el estado mientras se procesa el pago
+        this.estaProcesando = false;
         
-        // Mostrar confirmación antes de proceder con el pago
         const confirmado = await this.mostrarConfirmacionPago(planElegido);
         if (!confirmado) {
-          return; // El usuario canceló
+          return;
         }
 
-        // Procesar pago con MercadoPago
         try {
-          this.estaProcesando = true; // Volver a activar el estado de procesamiento
+          this.estaProcesando = true;
           await this.procesarPagoMercadoPago(planElegido);
-          return; // La redirección se hace en procesarPagoMercadoPago
+          return;
         } catch (error: any) {
           console.error('Error al procesar pago:', error);
           this.estaProcesando = false;
           
-          // Mostrar mensaje de error más detallado
           let mensajeError = 'Error al procesar el pago. Por favor, intenta nuevamente.';
           if (error.message?.includes('Error al crear preferencia')) {
             mensajeError = 'Error al conectar con el sistema de pagos. Por favor, intenta nuevamente.';
@@ -176,7 +163,6 @@ export class PlanesComponent implements OnInit {
         }
       }
 
-      // Si es plan gratuito, activar directamente
       await this.activarPlan(planElegido, false);
 
     } catch (error: any) {
@@ -217,7 +203,6 @@ export class PlanesComponent implements OnInit {
       const planId = plan.id || plan.nombre;
       const descripcion = `Plan ${plan.nombre} - ${plan.descripcion}`;
       
-      // Procesar pago con Checkout Pro usando Vercel
       await this.mercadoPagoService.procesarPagoPlan(
         plan.precio,
         descripcion,
@@ -230,24 +215,19 @@ export class PlanesComponent implements OnInit {
     }
   }
 
-  /**
-   * Maneja el retorno de un pago (Checkout Pro)
-   */
   async manejarRetornoPago(paymentStatus: string, userId: string, planId: string) {
     if (!this.usuarioId || this.usuarioId !== userId) {
       return;
     }
 
-    // Limpiar parámetros de la URL
     this.router.navigate(['/planes'], { replaceUrl: true, queryParams: {} });
 
     if (paymentStatus === 'approved') {
-      // Pago aprobado, activar el plan
       const planElegido = this.planes.find(p => (p.id === planId || p.nombre.toLowerCase() === planId.toLowerCase()));
       
       if (planElegido) {
         this.planSeleccionado = planElegido.nombre.toLowerCase();
-        await this.activarPlan(planElegido, true); // true indica que el pago ya fue procesado
+        await this.activarPlan(planElegido, true);
         this.mostrarToast('¡Pago aprobado! Plan activado correctamente.', 'success');
       } else {
         this.mostrarToast('Plan no encontrado', 'danger');
@@ -255,10 +235,8 @@ export class PlanesComponent implements OnInit {
     } else if (paymentStatus === 'pending') {
       this.mostrarToast('Tu pago está pendiente. Te notificaremos cuando sea aprobado.', 'warning');
     } else if (paymentStatus === 'failure' || paymentStatus === 'rejected') {
-      // Pago rechazado o fallido - no activar el plan
       this.mostrarToast('El pago fue rechazado. Por favor, verifica tu tarjeta o intenta con otro método de pago.', 'danger');
     } else {
-      // Cualquier otro estado
       this.mostrarToast('Estado de pago desconocido. Por favor, verifica tu suscripción.', 'warning');
     }
   }
@@ -271,14 +249,12 @@ export class PlanesComponent implements OnInit {
     try {
       const duracionDias = planElegido.duracionDias || 30;
       
-      // Calcular fechas
       const fechaActual = new Date();
       const fechaInicio = Timestamp.fromDate(fechaActual);
       const fechaVencimiento = new Date(fechaActual);
       fechaVencimiento.setDate(fechaVencimiento.getDate() + duracionDias);
       const fechaVencimientoTimestamp = Timestamp.fromDate(fechaVencimiento);
 
-      // Obtener datos del usuario
       const usuarioDoc = await getDoc(doc(this.firestore, 'usuarios', this.usuarioId));
       
       if (!usuarioDoc.exists()) {
@@ -288,7 +264,6 @@ export class PlanesComponent implements OnInit {
 
       const datosUsuario = usuarioDoc.data();
       
-      // Preparar datos de suscripción para el usuario
       const suscripcionUsuario = {
         nombre: this.planSeleccionado,
         vence: fechaVencimientoTimestamp,
@@ -296,12 +271,10 @@ export class PlanesComponent implements OnInit {
         estado: 'activa'
       };
 
-      // Actualizar suscripción del usuario (mantener compatibilidad)
       const actualizacionUsuario: any = {
         suscripcion: suscripcionUsuario
       };
 
-      // Si es plan gratuito, marcar como usado
       if (this.planSeleccionado === 'free') {
         actualizacionUsuario.planGratuitoUsado = true;
       }
@@ -311,7 +284,6 @@ export class PlanesComponent implements OnInit {
         ...actualizacionUsuario
       }, { merge: true });
 
-      // Crear documento en colección suscripciones (nuevo)
       const suscripcionData = {
         userId: this.usuarioId,
         plan: this.planSeleccionado,
@@ -330,12 +302,10 @@ export class PlanesComponent implements OnInit {
 
       this.mostrarToast('Plan activado correctamente', 'success');
 
-      // Actualizar estado local
       if (this.planSeleccionado === 'free') {
         this.planGratuitoUsado = true;
       }
 
-      // Redirigir al home después de un breve delay
       setTimeout(() => {
         this.router.navigate(['/home'], { replaceUrl: true });
       }, 2000);
@@ -349,8 +319,6 @@ export class PlanesComponent implements OnInit {
   }
 
   verDespues() {
-    // El usuario ya tiene el plan gratuito asignado por defecto al registrarse
-    // Redirigir directamente al home
     this.router.navigate(['/home'], { replaceUrl: true });
   }
 
