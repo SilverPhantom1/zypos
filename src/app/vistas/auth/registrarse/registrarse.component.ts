@@ -30,6 +30,7 @@ export class RegistrarseComponent implements OnInit {
   ngOnInit() {
     this.formularioRegistro = this.formBuilder.group({
       nombre: ['', [Validators.required, this.validarSoloLetras]],
+      rut: ['', [Validators.required, this.validarRut.bind(this)]],
       email: ['', [Validators.required, Validators.email]],
       contraseña: ['', [Validators.required, Validators.minLength(6), this.validarContraseñaSegura]],
       confirmarContraseña: ['', [Validators.required]]
@@ -39,6 +40,58 @@ export class RegistrarseComponent implements OnInit {
   }
 
  
+  limpiarRut(rut: string): string {
+    return rut.replace(/[^0-9kK]/g, '').toUpperCase();
+  }
+
+  formatearRut(rut: string): string {
+    const rutLimpio = this.limpiarRut(rut);
+    if (rutLimpio.length < 2) return rutLimpio;
+    const cuerpo = rutLimpio.slice(0, -1);
+    const dv = rutLimpio.slice(-1);
+    const cuerpoFormateado = cuerpo.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    return `${cuerpoFormateado}-${dv}`;
+  }
+
+  validarRut(control: any) {
+    const valor = control.value;
+    if (!valor || !valor.trim()) {
+      return null;
+    }
+    const rutLimpio = this.limpiarRut(valor);
+    if (rutLimpio.length < 8 || rutLimpio.length > 9) {
+      return { rutInvalido: true };
+    }
+    const cuerpo = rutLimpio.slice(0, -1);
+    const dv = rutLimpio.slice(-1);
+    if (!/^\d+$/.test(cuerpo)) {
+      return { rutInvalido: true };
+    }
+    let suma = 0;
+    let multiplicador = 2;
+    for (let i = cuerpo.length - 1; i >= 0; i--) {
+      suma += parseInt(cuerpo.charAt(i)) * multiplicador;
+      multiplicador = multiplicador === 7 ? 2 : multiplicador + 1;
+    }
+    const resto = suma % 11;
+    let dvCalculado: number | string = 11 - resto;
+    if (dvCalculado === 11) {
+      dvCalculado = 0;
+    } else if (dvCalculado === 10) {
+      dvCalculado = 'K';
+    }
+    if (String(dvCalculado) !== dv.toUpperCase()) {
+      return { rutInvalido: true };
+    }
+    return null;
+  }
+
+  formatearRutInput(event: any) {
+    const valor = event.detail.value || '';
+    const rutFormateado = this.formatearRut(valor);
+    this.formularioRegistro.patchValue({ rut: rutFormateado }, { emitEvent: false });
+  }
+
   validarSoloLetras(control: any) {
     const valor = control.value;
     if (!valor) {
@@ -95,7 +148,8 @@ export class RegistrarseComponent implements OnInit {
       this.estaCargando = true;
       
       try {
-        const { nombre, email, contraseña } = this.formularioRegistro.value;
+        const { nombre, rut, email, contraseña } = this.formularioRegistro.value;
+        const rutLimpio = this.limpiarRut(rut);
         
         const credencialUsuario = await createUserWithEmailAndPassword(this.auth, email, contraseña);
         const usuarioId = credencialUsuario.user.uid;
@@ -108,7 +162,7 @@ export class RegistrarseComponent implements OnInit {
         
         const fechaCreacion = serverTimestamp();
         
-        await setDoc(doc(this.firestore, 'usuarios', usuarioId), {nombre: nombre,email: email,creacion: fechaCreacion,
+        await setDoc(doc(this.firestore, 'usuarios', usuarioId), {nombre: nombre,rut: rutLimpio,email: email,creacion: fechaCreacion,
           suscripcion: {
             nombre: 'free',
             vence: fechaVencimientoTimestamp,

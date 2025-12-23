@@ -1,0 +1,126 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-button fill="solid" slot="start" (click)="volverAtras()" class="boton-volver-header">
+      <ion-icon name="arrow-back" slot="start"></ion-icon>
+      <span class="texto-boton-volver">Volver</span>
+    </ion-button>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="contenido-gestion-trabajadores">
+  <div class="ion-padding">
+
+    <div *ngIf="verificandoAuth" class="cargando">
+      <p>Verificando autenticación...</p>
+    </div>
+
+    <div *ngIf="!verificandoAuth">
+      <div class="header-acciones">
+        <ion-button (click)="abrirModal()" color="primary">
+          <ion-icon name="add" slot="start"></ion-icon>
+          Agregar Trabajador
+        </ion-button>
+      </div>
+
+      <div *ngIf="estaCargando && trabajadores.length === 0" class="cargando">
+        <p>Cargando trabajadores...</p>
+      </div>
+
+      <div *ngIf="!estaCargando && trabajadores.length === 0" class="sin-trabajadores">
+        <ion-icon name="people-outline" class="icono-vacio"></ion-icon>
+        <p>No hay trabajadores registrados</p>
+        <p class="subtitulo-vacio">Agrega trabajadores para que puedan acceder al sistema</p>
+      </div>
+
+      <div *ngIf="trabajadores.length > 0" class="lista-trabajadores">
+        <div *ngFor="let trabajador of trabajadores" class="tarjeta-trabajador">
+          <div class="info-trabajador">
+            <h3>{{ trabajador.nombre }}</h3>
+            <p class="rut-trabajador">{{ formatearRut(trabajador.rut) }}</p>
+            <ion-badge [color]="trabajador.activo ? 'success' : 'danger'">
+              {{ trabajador.activo ? 'Activo' : 'Inactivo' }}
+            </ion-badge>
+          </div>
+          <div class="botones-acciones">
+            <ion-button
+              fill="outline"
+              [color]="trabajador.activo ? 'danger' : 'success'"
+              (click)="cambiarEstadoTrabajador(trabajador)">
+              {{ trabajador.activo ? 'Desactivar' : 'Activar' }}
+            </ion-button>
+            <ion-button
+              fill="outline"
+              color="danger"
+              (click)="eliminarTrabajador(trabajador)">
+              <ion-icon name="trash" slot="icon-only"></ion-icon>
+            </ion-button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</ion-content>
+
+<ion-modal [isOpen]="mostrandoModal">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>Agregar Trabajador</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="cerrarModal()">
+            <ion-icon name="close"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="ion-padding">
+      <form [formGroup]="formularioTrabajador" (ngSubmit)="agregarTrabajador()">
+
+        <ion-item>
+          <ion-label position="stacked">RUT</ion-label>
+          <ion-input
+            type="text"
+            formControlName="rut"
+            placeholder="12.345.678-9"
+            (ionInput)="formatearRutInput($event)">
+          </ion-input>
+        </ion-item>
+        <div *ngIf="formularioTrabajador.get('rut')?.invalid && (formularioTrabajador.get('rut')?.touched || formularioTrabajador.get('rut')?.dirty)"
+             class="mensaje-error">
+          <span *ngIf="formularioTrabajador.get('rut')?.errors?.['required']">
+            El RUT es requerido
+          </span>
+          <span *ngIf="formularioTrabajador.get('rut')?.errors?.['rutInvalido']">
+            El RUT no es válido
+          </span>
+        </div>
+
+        <ion-item>
+          <ion-label position="stacked">Nombre</ion-label>
+          <ion-input
+            type="text"
+            formControlName="nombre"
+            placeholder="Nombre completo">
+          </ion-input>
+        </ion-item>
+        <div *ngIf="formularioTrabajador.get('nombre')?.invalid && (formularioTrabajador.get('nombre')?.touched || formularioTrabajador.get('nombre')?.dirty)"
+             class="mensaje-error">
+          <span *ngIf="formularioTrabajador.get('nombre')?.errors?.['required']">
+            El nombre es requerido
+          </span>
+        </div>
+
+        <ion-button
+          expand="block"
+          type="submit"
+          [disabled]="formularioTrabajador.invalid || estaCargando">
+          <span *ngIf="!estaCargando">Agregar</span>
+          <span *ngIf="estaCargando">Agregando...</span>
+        </ion-button>
+
+      </form>
+    </ion-content>
+  </ng-template>
+</ion-modal>
+

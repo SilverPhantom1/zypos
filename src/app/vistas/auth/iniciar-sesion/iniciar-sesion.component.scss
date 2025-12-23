@@ -46,6 +46,28 @@
   }
 }
 
+.segmento-login {
+  margin-bottom: 2rem;
+  
+  ion-segment-button {
+    --color: #2c3e50;
+    --color-checked: var(--zypos-color-primary);
+    --indicator-color: var(--zypos-color-primary);
+    
+    ion-label {
+      color: #2c3e50;
+      font-weight: 600;
+    }
+    
+    &.segment-button-checked {
+      ion-label {
+        color: var(--zypos-color-primary);
+        font-weight: 700;
+      }
+    }
+  }
+}
+
 .campo-formulario {
   --background: #ffffff;
   margin-bottom: 1rem;

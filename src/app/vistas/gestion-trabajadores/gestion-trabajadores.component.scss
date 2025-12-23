@@ -1,0 +1,103 @@
+.contenido-gestion-trabajadores {
+  --background: var(--zypos-color-background);
+}
+
+.header-acciones {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.boton-volver-header {
+  --background: var(--zypos-color-primary) !important;
+  --color: #ffffff !important;
+  margin: 0;
+  font-weight: 500;
+}
+
+.texto-boton-volver {
+  margin-left: 0.25rem;
+  color: #ffffff !important;
+}
+
+.cargando {
+  text-align: center;
+  padding: 2rem;
+  color: var(--zypos-color-text);
+}
+
+.sin-trabajadores {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--zypos-color-text);
+
+  .icono-vacio {
+    font-size: 4rem;
+    color: var(--zypos-color-accent);
+    margin-bottom: 1rem;
+  }
+
+  p {
+    font-size: 1.2rem;
+    margin: 0.5rem 0;
+  }
+
+  .subtitulo-vacio {
+    font-size: 0.9rem;
+    color: var(--zypos-color-text);
+    opacity: 0.7;
+  }
+}
+
+.lista-trabajadores {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.tarjeta-trabajador {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+  .info-trabajador {
+    flex: 1;
+
+    h3 {
+      margin: 0 0 0.5rem 0;
+      color: var(--zypos-color-text);
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+
+    .rut-trabajador {
+      margin: 0.25rem 0;
+      color: var(--zypos-color-text);
+      opacity: 0.7;
+      font-size: 0.9rem;
+    }
+
+    ion-badge {
+      margin-top: 0.5rem;
+    }
+  }
+
+  .botones-acciones {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+}
+
+.mensaje-error {
+  color: var(--ion-color-danger);
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  margin-left: 1rem;
+}
+

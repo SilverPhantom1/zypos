@@ -76,6 +76,12 @@ export class HistorialVentasComponent implements OnInit {
   }
 
   async ngOnInit() {
+    const sesionTrabajador = sessionStorage.getItem('zypos_sesion_trabajador');
+    if (sesionTrabajador) {
+      this.router.navigate(['/ventas'], { replaceUrl: true });
+      return;
+    }
+
     onAuthStateChanged(this.auth, async (user) => {
       if (!user) {
         this.router.navigate(['/iniciar-sesion'], { replaceUrl: true });

@@ -83,6 +83,12 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
   async ngOnInit() {
     this.esPlataformaMovil = Capacitor.getPlatform() !== 'web';
     
+    const sesionTrabajador = sessionStorage.getItem('zypos_sesion_trabajador');
+    if (sesionTrabajador) {
+      this.router.navigate(['/ventas'], { replaceUrl: true });
+      return;
+    }
+    
     onAuthStateChanged(this.auth, async (user) => {
       if (!user) {
         this.router.navigate(['/iniciar-sesion'], { replaceUrl: true });

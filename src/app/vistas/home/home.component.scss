@@ -319,6 +319,10 @@
   &.informes {
     background: linear-gradient(135deg, var(--zypos-color-primary) 0%, #ffa99a 100%);
   }
+
+  &.trabajadores {
+    background: linear-gradient(135deg, var(--zypos-color-accent) 0%, #7a95f0 100%);
+  }
   
   @media (max-width: 576px) {
     width: 70px;

@@ -6,9 +6,18 @@
 <ion-content [fullscreen]="true" class="contenido-login" [scrollY]="true">
   <div class="ion-padding contenedor-login">
     <h2 class="titulo-login">Iniciar Sesión</h2>
-    
-    <!-- Formulario -->
-    <form [formGroup]="formularioLogin" (ngSubmit)="enviarFormulario()">
+
+    <ion-segment [(ngModel)]="tipoLogin" (ionChange)="cambiarModo($event)" mode="md" class="segmento-login">
+      <ion-segment-button value="propietario">
+        <ion-label>Propietario</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="trabajador">
+        <ion-label>Trabajador</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+
+    <!-- Formulario Propietario -->
+    <form *ngIf="tipoLogin === 'propietario'" [formGroup]="formularioLogin" (ngSubmit)="enviarFormulario()">
       
       <!-- Email -->
       <ion-item class="campo-formulario">
@@ -20,7 +29,7 @@
         </ion-input>
       </ion-item>
       <!-- Mensaje de error para email -->
-      <div *ngIf="formularioLogin.get('email')?.invalid && formularioLogin.get('email')?.touched" 
+      <div *ngIf="formularioLogin.get('email')?.invalid && (formularioLogin.get('email')?.touched || formularioLogin.get('email')?.dirty)" 
            class="mensaje-error">
         <span *ngIf="formularioLogin.get('email')?.errors?.['required']">
           El email es requerido
@@ -47,7 +56,7 @@
         </ion-button>
       </ion-item>
       <!-- Mensaje de error para contraseña -->
-      <div *ngIf="formularioLogin.get('contraseña')?.invalid && formularioLogin.get('contraseña')?.touched" 
+      <div *ngIf="formularioLogin.get('contraseña')?.invalid && (formularioLogin.get('contraseña')?.touched || formularioLogin.get('contraseña')?.dirty)" 
            class="mensaje-error">
         <span *ngIf="formularioLogin.get('contraseña')?.errors?.['required']">
           La contraseña es requerida
@@ -72,6 +81,84 @@
       <!-- ir a registro -->
       <div class="link-registro">
         <p>¿No tienes cuenta? <a routerLink="/registrarse">Regístrate</a></p>
+      </div>
+
+    </form>
+
+    <!-- Formulario Trabajador -->
+    <form *ngIf="tipoLogin === 'trabajador'" [formGroup]="formularioTrabajador" (ngSubmit)="enviarFormulario()">
+
+      <ion-item class="campo-formulario">
+        <ion-label position="stacked">RUT Trabajador</ion-label>
+        <ion-input
+          type="text"
+          formControlName="rutTrabajador"
+          placeholder="12.345.678-9"
+          (ionInput)="formatearRutInput($event, 'rutTrabajador')">
+        </ion-input>
+      </ion-item>
+      <div *ngIf="formularioTrabajador.get('rutTrabajador')?.invalid && (formularioTrabajador.get('rutTrabajador')?.touched || formularioTrabajador.get('rutTrabajador')?.dirty)"
+           class="mensaje-error">
+        <span *ngIf="formularioTrabajador.get('rutTrabajador')?.errors?.['required']">
+          El RUT del trabajador es requerido
+        </span>
+        <span *ngIf="formularioTrabajador.get('rutTrabajador')?.errors?.['rutInvalido']">
+          El RUT del trabajador no es válido
+        </span>
+      </div>
+
+      <ion-item class="campo-formulario">
+        <ion-label position="stacked">RUT Empleador</ion-label>
+        <ion-input
+          type="text"
+          formControlName="rutEmpleador"
+          placeholder="12.345.678-9"
+          (ionInput)="formatearRutInput($event, 'rutEmpleador')">
+        </ion-input>
+      </ion-item>
+      <div *ngIf="formularioTrabajador.get('rutEmpleador')?.invalid && (formularioTrabajador.get('rutEmpleador')?.touched || formularioTrabajador.get('rutEmpleador')?.dirty)"
+           class="mensaje-error">
+        <span *ngIf="formularioTrabajador.get('rutEmpleador')?.errors?.['required']">
+          El RUT del empleador es requerido
+        </span>
+        <span *ngIf="formularioTrabajador.get('rutEmpleador')?.errors?.['rutInvalido']">
+          El RUT del empleador no es válido
+        </span>
+      </div>
+
+      <ion-item class="campo-formulario">
+        <ion-label position="stacked">Email Empleador</ion-label>
+        <ion-input
+          type="email"
+          formControlName="emailEmpleador"
+          placeholder="email@empleador.com">
+        </ion-input>
+      </ion-item>
+      <div *ngIf="formularioTrabajador.get('emailEmpleador')?.invalid && (formularioTrabajador.get('emailEmpleador')?.touched || formularioTrabajador.get('emailEmpleador')?.dirty)"
+           class="mensaje-error">
+        <span *ngIf="formularioTrabajador.get('emailEmpleador')?.errors?.['required']">
+          El email del empleador es requerido
+        </span>
+        <span *ngIf="formularioTrabajador.get('emailEmpleador')?.errors?.['email']">
+          Ingresa un email válido
+        </span>
+      </div>
+
+      <div class="mensaje-error" *ngIf="mensajeError">
+        {{ mensajeError }}
+      </div>
+
+      <ion-button
+        expand="block"
+        type="submit"
+        class="boton-login"
+        [disabled]="formularioTrabajador.invalid || estaCargando">
+        <span *ngIf="!estaCargando">Iniciar Sesión Trabajador</span>
+        <span *ngIf="estaCargando">Iniciando sesión...</span>
+      </ion-button>
+
+      <div class="link-registro">
+        <p>¿Eres propietario? <a (click)="tipoLogin = 'propietario'">Inicia sesión aquí</a></p>
       </div>
 
     </form>

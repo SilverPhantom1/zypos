@@ -38,6 +38,12 @@ export class PlanesComponent implements OnInit {
   }
 
   async ngOnInit() {
+    const sesionTrabajador = sessionStorage.getItem('zypos_sesion_trabajador');
+    if (sesionTrabajador) {
+      this.router.navigate(['/ventas'], { replaceUrl: true });
+      return;
+    }
+
     this.route.queryParams.subscribe(async params => {
       if (params['payment_status'] && params['user_id'] && params['plan_id']) {
         await this.manejarRetornoPago(params['payment_status'], params['user_id'], params['plan_id']);

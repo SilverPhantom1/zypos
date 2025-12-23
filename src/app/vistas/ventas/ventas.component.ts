@@ -1,10 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, ViewChild } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { IonHeader, IonToolbar, IonContent, IonButton, IonIcon, IonItem, IonLabel, IonInput, IonSearchbar, ToastController, IonCard, IonCardContent, IonModal, IonButtons, IonTitle, AlertController } from '@ionic/angular/standalone';
-import { arrowBack, add, remove, trash, barcode, search, cart, cash, card, swapHorizontal, checkmarkCircle, receipt } from 'ionicons/icons';
+import { arrowBack, add, remove, trash, barcode, search, cart, cash, card, swapHorizontal, checkmarkCircle, receipt, logOut, closeCircle, close, cube, cubeOutline, searchOutline } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 import { CommonModule } from '@angular/common';
-import { Auth, onAuthStateChanged } from '@angular/fire/auth';
+import { Auth, onAuthStateChanged, signOut } from '@angular/fire/auth';
 import { Firestore, collection, addDoc, getDocs, query, where, doc, updateDoc, getDoc, serverTimestamp, Timestamp } from '@angular/fire/firestore';
 import { FormsModule } from '@angular/forms';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
@@ -32,7 +32,10 @@ export class VentasComponent implements OnInit {
   usuarioId: string | null = null;
   
   carrito: ProductoCarrito[] = [];
+  subtotal: number = 0;
+  iva: number = 0;
   total: number = 0;
+  private readonly IVA_PORCENTAJE = 0.19;
   private readonly CARRITO_STORAGE_KEY = 'zypos_carrito_ventas';
   
   terminoBusqueda: string = '';
@@ -48,19 +51,41 @@ export class VentasComponent implements OnInit {
   estaProcesandoVenta: boolean = false;
   
   esPlataformaMovil: boolean = false;
+
+  cajaAbierta: any = null;
+  cajaId: string | null = null;
+  mostrandoModalAperturaCaja: boolean = false;
+  montoInicialCaja: number = 0;
+  estaAbriendoCaja: boolean = false;
+  mostrandoModalCierreCaja: boolean = false;
+  estaCerrandoCaja: boolean = false;
+  
+  @ViewChild('modalAperturaCaja', { static: false }) modalAperturaCaja?: IonModal;
   
   constructor(
     private auth: Auth,
     private router: Router,
     private firestore: Firestore,
     private toastController: ToastController,
-    private alertController: AlertController
+    private alertController: AlertController,
+    private cdr: ChangeDetectorRef
   ) {
-    addIcons({ arrowBack, add, remove, trash, barcode, search, cart, cash, card, swapHorizontal, checkmarkCircle, receipt });
+    addIcons({ arrowBack, add, remove, trash, barcode, search, cart, cash, card, swapHorizontal, checkmarkCircle, receipt, logOut, closeCircle, close, cube, cubeOutline, searchOutline });
   }
 
   async ngOnInit() {
     this.esPlataformaMovil = Capacitor.getPlatform() !== 'web';
+    
+    const sesionTrabajador = sessionStorage.getItem('zypos_sesion_trabajador');
+    if (sesionTrabajador) {
+      const sesion = JSON.parse(sesionTrabajador);
+      this.usuarioId = sesion.empleadorId;
+      this.verificandoAuth = false;
+      this.cargarCarrito();
+      await this.cargarProductos();
+      await this.verificarCajaAbierta(sesion);
+      return;
+    }
     
     onAuthStateChanged(this.auth, async (user) => {
       if (!user) {
@@ -98,7 +123,9 @@ export class VentasComponent implements OnInit {
   }
   
   calcularTotal(): void {
-    this.total = this.carrito.reduce((sum, item) => sum + item.subtotal, 0);
+    this.subtotal = this.carrito.reduce((sum, item) => sum + item.subtotal, 0);
+    this.iva = this.subtotal * this.IVA_PORCENTAJE;
+    this.total = this.subtotal + this.iva;
   }
   
   async cargarProductos() {
@@ -118,7 +145,9 @@ export class VentasComponent implements OnInit {
       this.aplicarFiltroBusqueda();
     } catch (error) {
       console.error('Error al cargar productos:', error);
-      this.mostrarToast('Error al cargar productos', 'danger');
+      if (!this.esTrabajador()) {
+        this.mostrarToast('Error al cargar productos', 'danger');
+      }
     } finally {
       this.estaCargandoProductos = false;
     }
@@ -402,9 +431,14 @@ export class VentasComponent implements OnInit {
     this.estaProcesandoVenta = true;
     
     try {
+      const sesionTrabajador = sessionStorage.getItem('zypos_sesion_trabajador');
+      const esTrabajador = sesionTrabajador !== null;
+      
       const ventaData: any = {
         userId: this.usuarioId,
         fecha: serverTimestamp(),
+        subtotal: this.subtotal,
+        iva: this.iva,
         total: this.total,
         metodoPago: this.metodoPago,
         productos: this.carrito.map(item => ({
@@ -419,12 +453,24 @@ export class VentasComponent implements OnInit {
         modificada: false
       };
       
+      if (esTrabajador) {
+        const sesion = JSON.parse(sesionTrabajador);
+        ventaData.trabajadorId = sesion.trabajadorId;
+        ventaData.trabajadorNombre = sesion.trabajadorNombre;
+        ventaData.trabajadorRut = sesion.trabajadorRut;
+      }
+      
       if (this.metodoPago === 'efectivo') {
         ventaData.montoRecibido = this.montoRecibido;
         ventaData.cambio = this.cambio;
       }
       
-      await addDoc(collection(this.firestore, 'ventas'), ventaData);
+      const ventaDocRef = await addDoc(collection(this.firestore, 'ventas'), ventaData);
+      const ventaId = ventaDocRef.id;
+      
+      if (this.metodoPago === 'efectivo' && this.esTrabajador() && this.cajaId) {
+        await this.actualizarCajaConVenta(ventaId, this.total);
+      }
       
       for (const item of this.carrito) {
         const productoRef = doc(this.firestore, 'productos', item.productoId);
@@ -438,6 +484,8 @@ export class VentasComponent implements OnInit {
       }
       
       this.carrito = [];
+      this.subtotal = 0;
+      this.iva = 0;
       this.total = 0;
       this.guardarCarrito();
       this.cerrarModalPago();
@@ -461,6 +509,208 @@ export class VentasComponent implements OnInit {
     }).format(precio);
   }
   
+  esTrabajador(): boolean {
+    const sesionTrabajador = sessionStorage.getItem('zypos_sesion_trabajador');
+    return sesionTrabajador !== null;
+  }
+
+  async cerrarSesion(): Promise<void> {
+    const alert = await this.alertController.create({
+      header: 'Cerrar sesión',
+      message: '¿Estás seguro de cerrar sesión?',
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel'
+        },
+        {
+          text: 'Cerrar sesión',
+          handler: async () => {
+            if (this.cajaId) {
+              await this.cerrarCajaAutomatico();
+            }
+            sessionStorage.removeItem('zypos_sesion_trabajador');
+            await signOut(this.auth);
+            this.router.navigate(['/iniciar-sesion'], { replaceUrl: true });
+          }
+        }
+      ]
+    });
+    await alert.present();
+  }
+
+  async verificarCajaAbierta(sesion: any): Promise<void> {
+    if (!this.esTrabajador()) return;
+
+    try {
+      const cajasRef = collection(this.firestore, 'cajas');
+      const q = query(
+        cajasRef,
+        where('trabajadorId', '==', sesion.trabajadorId),
+        where('estado', '==', 'abierta')
+      );
+      const snapshot = await getDocs(q);
+
+      if (!snapshot.empty) {
+        const cajaDoc = snapshot.docs[0];
+        this.cajaId = cajaDoc.id;
+        this.cajaAbierta = cajaDoc.data();
+      } else {
+        this.mostrandoModalAperturaCaja = true;
+      }
+    } catch (error) {
+      console.error('Error al verificar caja:', error);
+      this.mostrandoModalAperturaCaja = true;
+    }
+  }
+
+  async abrirCaja(): Promise<void> {
+    if (!this.montoInicialCaja || this.montoInicialCaja <= 0) {
+      this.mostrarToast('Ingresa un monto inicial válido', 'warning');
+      return;
+    }
+
+    const sesionTrabajador = sessionStorage.getItem('zypos_sesion_trabajador');
+    if (!sesionTrabajador) {
+      this.mostrarToast('Error: Sesión de trabajador no encontrada', 'danger');
+      return;
+    }
+
+    const sesion = JSON.parse(sesionTrabajador);
+    this.estaAbriendoCaja = true;
+
+    try {
+      const cajaData = {
+        trabajadorId: sesion.trabajadorId,
+        trabajadorNombre: sesion.trabajadorNombre,
+        trabajadorRut: sesion.trabajadorRut,
+        empleadorId: sesion.empleadorId,
+        montoInicial: this.montoInicialCaja,
+        totalVentasEfectivo: 0,
+        ventas: [],
+        fechaApertura: serverTimestamp(),
+        fechaCierre: null,
+        estado: 'abierta'
+      };
+
+      const cajaDocRef = await addDoc(collection(this.firestore, 'cajas'), cajaData);
+      this.cajaId = cajaDocRef.id;
+      this.cajaAbierta = cajaData;
+      this.montoInicialCaja = 0;
+      
+      this.mostrandoModalAperturaCaja = false;
+      this.cdr.detectChanges();
+      
+      await new Promise(resolve => setTimeout(resolve, 50));
+      
+      if (this.modalAperturaCaja) {
+        try {
+          await this.modalAperturaCaja.dismiss();
+        } catch (e) {
+        }
+      }
+      
+      this.mostrarToast('Caja abierta correctamente', 'success');
+    } catch (error) {
+      console.error('Error al abrir caja:', error);
+      this.mostrarToast('Error al abrir la caja', 'danger');
+    } finally {
+      this.estaAbriendoCaja = false;
+    }
+  }
+
+  async actualizarCajaConVenta(ventaId: string, montoVenta: number): Promise<void> {
+    if (!this.cajaId) return;
+
+    try {
+      const cajaRef = doc(this.firestore, 'cajas', this.cajaId);
+      const cajaDoc = await getDoc(cajaRef);
+
+      if (cajaDoc.exists()) {
+        const cajaData = cajaDoc.data();
+        const nuevoTotal = (cajaData['totalVentasEfectivo'] || 0) + montoVenta;
+        const ventas = cajaData['ventas'] || [];
+        ventas.push(ventaId);
+
+        await updateDoc(cajaRef, {
+          totalVentasEfectivo: nuevoTotal,
+          ventas: ventas
+        });
+
+        this.cajaAbierta = {
+          ...cajaData,
+          totalVentasEfectivo: nuevoTotal,
+          ventas: ventas
+        };
+      }
+    } catch (error) {
+      console.error('Error al actualizar caja:', error);
+    }
+  }
+
+  async cerrarCaja(): Promise<void> {
+    if (!this.cajaId) {
+      this.mostrarToast('No hay caja abierta', 'warning');
+      return;
+    }
+
+    this.mostrandoModalCierreCaja = true;
+  }
+
+  async confirmarCierreCaja(): Promise<void> {
+    if (!this.cajaId) return;
+
+    this.estaCerrandoCaja = true;
+
+    try {
+      const cajaRef = doc(this.firestore, 'cajas', this.cajaId);
+      const cajaDoc = await getDoc(cajaRef);
+
+      if (cajaDoc.exists()) {
+        const cajaData = cajaDoc.data();
+        const montoFinal = (cajaData['montoInicial'] || 0) + (cajaData['totalVentasEfectivo'] || 0);
+
+        await updateDoc(cajaRef, {
+          estado: 'cerrada',
+          fechaCierre: serverTimestamp(),
+          montoFinal: montoFinal
+        });
+
+        this.cajaId = null;
+        this.cajaAbierta = null;
+        this.mostrandoModalCierreCaja = false;
+        this.mostrarToast('Caja cerrada correctamente', 'success');
+      }
+    } catch (error) {
+      console.error('Error al cerrar caja:', error);
+      this.mostrarToast('Error al cerrar la caja', 'danger');
+    } finally {
+      this.estaCerrandoCaja = false;
+    }
+  }
+
+  async cerrarCajaAutomatico(): Promise<void> {
+    if (!this.cajaId) return;
+
+    try {
+      const cajaRef = doc(this.firestore, 'cajas', this.cajaId);
+      const cajaDoc = await getDoc(cajaRef);
+
+      if (cajaDoc.exists()) {
+        const cajaData = cajaDoc.data();
+        const montoFinal = (cajaData['montoInicial'] || 0) + (cajaData['totalVentasEfectivo'] || 0);
+
+        await updateDoc(cajaRef, {
+          estado: 'cerrada',
+          fechaCierre: serverTimestamp(),
+          montoFinal: montoFinal
+        });
+      }
+    } catch (error) {
+      console.error('Error al cerrar caja automáticamente:', error);
+    }
+  }
+
   volverAtras(): void {
     this.router.navigate(['/home'], { replaceUrl: true });
   }

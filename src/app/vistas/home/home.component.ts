@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { IonHeader, IonToolbar, IonContent, IonButton, IonIcon, ToastController, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonBadge } from '@ionic/angular/standalone';
-import { personCircle, logOut, cube, storefront, timeOutline, checkmarkCircle, mailOutline, callOutline, informationCircleOutline, cart, receipt, barChart } from 'ionicons/icons';
+import { personCircle, logOut, cube, storefront, timeOutline, checkmarkCircle, mailOutline, callOutline, informationCircleOutline, cart, receipt, barChart, peopleOutline } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 import { RouterLink, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -27,10 +27,16 @@ export class HomeComponent implements OnInit {
     private router: Router,
     private toastController: ToastController
   ) {
-    addIcons({ personCircle, logOut, cube, storefront, timeOutline, checkmarkCircle, mailOutline, callOutline, informationCircleOutline, cart, receipt, barChart });
+    addIcons({ personCircle, logOut, cube, storefront, timeOutline, checkmarkCircle, mailOutline, callOutline, informationCircleOutline, cart, receipt, barChart, peopleOutline });
   }
 
   async ngOnInit() {
+    const sesionTrabajador = sessionStorage.getItem('zypos_sesion_trabajador');
+    if (sesionTrabajador) {
+      this.router.navigate(['/ventas'], { replaceUrl: true });
+      return;
+    }
+
     onAuthStateChanged(this.auth, async (user) => {
       if (!user) {
         this.router.navigate(['/iniciar-sesion'], { replaceUrl: true });

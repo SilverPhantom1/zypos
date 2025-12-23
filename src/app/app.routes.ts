@@ -57,5 +57,9 @@ export const routes: Routes = [
   {
     path: 'informes',
     loadComponent: () => import('./vistas/informes/informes.component').then(m => m.InformesComponent)
+  },
+  {
+    path: 'gestion-trabajadores',
+    loadComponent: () => import('./vistas/gestion-trabajadores/gestion-trabajadores.component').then(m => m.GestionTrabajadoresComponent)
   }
 ];
