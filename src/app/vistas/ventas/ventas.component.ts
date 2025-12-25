@@ -45,7 +45,7 @@ export class VentasComponent implements OnInit {
   mostrandoBusqueda: boolean = false;
   
   mostrandoModalPago: boolean = false;
-  metodoPago: 'efectivo' | 'mercadopago' | 'transferencia' | null = null;
+  metodoPago: 'efectivo' | 'transferencia' | null = null;
   montoRecibido: number = 0;
   cambio: number = 0;
   estaProcesandoVenta: boolean = false;
@@ -401,11 +401,14 @@ export class VentasComponent implements OnInit {
     this.cambio = 0;
   }
   
-  seleccionarMetodoPago(metodo: 'efectivo' | 'mercadopago' | 'transferencia'): void {
+  seleccionarMetodoPago(metodo: 'efectivo' | 'transferencia'): void {
     this.metodoPago = metodo;
     if (metodo === 'efectivo') {
       this.montoRecibido = this.total;
       this.calcularCambio();
+    } else {
+      this.montoRecibido = this.total;
+      this.cambio = 0;
     }
   }
   
@@ -469,7 +472,7 @@ export class VentasComponent implements OnInit {
       const ventaId = ventaDocRef.id;
       
       if (this.metodoPago === 'efectivo' && this.esTrabajador() && this.cajaId) {
-        await this.actualizarCajaConVenta(ventaId, this.total);
+        await this.actualizarCajaConVenta(ventaId, this.montoRecibido, this.cambio);
       }
       
       for (const item of this.carrito) {
@@ -587,6 +590,7 @@ export class VentasComponent implements OnInit {
         empleadorId: sesion.empleadorId,
         montoInicial: this.montoInicialCaja,
         totalVentasEfectivo: 0,
+        totalVueltos: 0,
         ventas: [],
         fechaApertura: serverTimestamp(),
         fechaCierre: null,
@@ -619,7 +623,7 @@ export class VentasComponent implements OnInit {
     }
   }
 
-  async actualizarCajaConVenta(ventaId: string, montoVenta: number): Promise<void> {
+  async actualizarCajaConVenta(ventaId: string, montoRecibido: number, vuelto: number): Promise<void> {
     if (!this.cajaId) return;
 
     try {
@@ -628,18 +632,25 @@ export class VentasComponent implements OnInit {
 
       if (cajaDoc.exists()) {
         const cajaData = cajaDoc.data();
-        const nuevoTotal = (cajaData['totalVentasEfectivo'] || 0) + montoVenta;
+        // Sumamos el monto recibido y restamos el vuelto
+        const totalVentasActual = cajaData['totalVentasEfectivo'] || 0;
+        const totalVueltosActual = cajaData['totalVueltos'] || 0;
+        const nuevoTotalVentas = totalVentasActual + montoRecibido;
+        const nuevoTotalVueltos = totalVueltosActual + vuelto;
+        
         const ventas = cajaData['ventas'] || [];
         ventas.push(ventaId);
 
         await updateDoc(cajaRef, {
-          totalVentasEfectivo: nuevoTotal,
+          totalVentasEfectivo: nuevoTotalVentas,
+          totalVueltos: nuevoTotalVueltos,
           ventas: ventas
         });
 
         this.cajaAbierta = {
           ...cajaData,
-          totalVentasEfectivo: nuevoTotal,
+          totalVentasEfectivo: nuevoTotalVentas,
+          totalVueltos: nuevoTotalVueltos,
           ventas: ventas
         };
       }
@@ -668,7 +679,11 @@ export class VentasComponent implements OnInit {
 
       if (cajaDoc.exists()) {
         const cajaData = cajaDoc.data();
-        const montoFinal = (cajaData['montoInicial'] || 0) + (cajaData['totalVentasEfectivo'] || 0);
+        const montoInicial = cajaData['montoInicial'] || 0;
+        const totalVentas = cajaData['totalVentasEfectivo'] || 0;
+        const totalVueltos = cajaData['totalVueltos'] || 0;
+        // Monto final = monto inicial + dinero recibido - vueltos dados
+        const montoFinal = montoInicial + totalVentas - totalVueltos;
 
         await updateDoc(cajaRef, {
           estado: 'cerrada',
@@ -698,7 +713,11 @@ export class VentasComponent implements OnInit {
 
       if (cajaDoc.exists()) {
         const cajaData = cajaDoc.data();
-        const montoFinal = (cajaData['montoInicial'] || 0) + (cajaData['totalVentasEfectivo'] || 0);
+        const montoInicial = cajaData['montoInicial'] || 0;
+        const totalVentas = cajaData['totalVentasEfectivo'] || 0;
+        const totalVueltos = cajaData['totalVueltos'] || 0;
+        // Monto final = monto inicial + dinero recibido - vueltos dados
+        const montoFinal = montoInicial + totalVentas - totalVueltos;
 
         await updateDoc(cajaRef, {
           estado: 'cerrada',

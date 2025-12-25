@@ -6,8 +6,8 @@ import { addIcons } from 'ionicons';
 import { CommonModule } from '@angular/common';
 import { Auth, onAuthStateChanged } from '@angular/fire/auth';
 import { Firestore, collection, addDoc, getDocs, query, where, doc, updateDoc, deleteDoc, orderBy } from '@angular/fire/firestore';
-import { Storage, ref, uploadBytes, getDownloadURL, deleteObject } from '@angular/fire/storage';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { CloudinaryService } from '../../servicios/cloudinary.service';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Capacitor } from '@capacitor/core';
 import { BrowserMultiFormatReader } from '@zxing/library';
@@ -71,7 +71,7 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
     private auth: Auth,
     private router: Router,
     private firestore: Firestore,
-    private storage: Storage,
+    private cloudinaryService: CloudinaryService,
     private formBuilder: FormBuilder,
     private toastController: ToastController,
     private actionSheetController: ActionSheetController,
@@ -350,27 +350,36 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
 
   async subirFotoAStorage(): Promise<string | null> {
     if (!this.archivoFoto || !this.usuarioId) {
+      console.warn('No hay archivo de foto o usuarioId para subir');
       return null;
     }
 
     this.estaSubiendoFoto = true;
+    console.log('Iniciando subida de foto a Cloudinary...', {
+      archivo: this.archivoFoto.name,
+      tamaño: this.archivoFoto.size,
+      tipo: this.archivoFoto.type
+    });
+
     try {
-      const nombreLimpio = this.archivoFoto.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-      const nombreArchivo = `productos/${this.usuarioId}/${Date.now()}_${nombreLimpio}`;
-      const storageRef = ref(this.storage, nombreArchivo);
-      await uploadBytes(storageRef, this.archivoFoto);
-      const url = await getDownloadURL(storageRef);
+      const url = await this.cloudinaryService.subirImagen(
+        this.archivoFoto,
+        'zypos/productos',
+        this.usuarioId
+      );
+      console.log('Foto subida exitosamente a Cloudinary:', url);
+      this.mostrarToast('Foto subida correctamente', 'success');
       return url;
     } catch (error: any) {
-      console.error('Error al subir foto:', error);
+      console.error('Error al subir foto a Cloudinary:', error);
       
       let mensajeError = 'Error al subir la foto';
-      if (error.code === 'storage/unauthorized') {
-        mensajeError = 'No tienes permisos para subir fotos. Verifica las reglas de Storage.';
-      } else if (error.code === 'storage/canceled') {
-        mensajeError = 'La subida fue cancelada';
-      } else if (error.message?.includes('CORS') || error.message?.includes('network')) {
-        mensajeError = 'Error de conexión. Verifica las reglas de Firebase Storage.';
+      if (error.message?.includes('Cloudinary no está configurado')) {
+        mensajeError = 'El servicio de imágenes no está configurado. Contacta al administrador.';
+      } else if (error.message?.includes('network') || error.message?.includes('fetch')) {
+        mensajeError = 'Error de conexión. Verifica tu conexión a internet.';
+      } else {
+        mensajeError = error.message || 'Error al subir la foto';
       }
       
       this.mostrarToast(mensajeError, 'danger');
@@ -414,13 +423,20 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
       let fotoUrl: string | null = null;
       if (this.archivoFoto) {
         try {
+          console.log('Intentando subir foto antes de guardar producto...');
           fotoUrl = await this.subirFotoAStorage();
           if (!fotoUrl) {
             console.warn('No se pudo subir la foto, pero se guardará el producto sin foto');
+            this.mostrarToast('El producto se guardó pero sin foto', 'warning');
+          } else {
+            console.log('Foto URL obtenida:', fotoUrl);
           }
         } catch (error) {
           console.error('Error al subir foto, continuando sin foto:', error);
+          this.mostrarToast('Error al subir la foto. El producto se guardará sin foto.', 'warning');
         }
+      } else {
+        console.log('No hay archivo de foto para subir');
       }
 
       const datosProducto: any = {
@@ -435,7 +451,12 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
 
       if (fotoUrl) {
         datosProducto.fotoUrl = fotoUrl;
+        console.log('Agregando fotoUrl al producto:', fotoUrl);
+      } else {
+        console.log('No se agregó fotoUrl al producto');
       }
+
+      console.log('Datos del producto a guardar:', datosProducto);
 
       if (valores.categoriaId && valores.categoriaId !== 'ninguna') {
         datosProducto.categoriaId = valores.categoriaId;
@@ -665,15 +686,8 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
       
       let fotoUrl: string | null = this.productoEditando.fotoUrl || null;
       if (this.archivoFoto) {
-        if (fotoUrl) {
-          try {
-            const fotoAnteriorRef = ref(this.storage, fotoUrl);
-            await deleteObject(fotoAnteriorRef);
-          } catch (error) {
-            console.warn('No se pudo eliminar la foto anterior:', error);
-          }
-        }
-        
+        // Nota: Las imágenes anteriores en Cloudinary se mantienen por seguridad
+        // Se pueden eliminar manualmente desde el dashboard de Cloudinary si es necesario
         fotoUrl = await this.subirFotoAStorage();
       }
 
@@ -850,15 +864,8 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
     this.estaCargando = true;
 
     try {
-      if (producto.fotoUrl) {
-        try {
-          const fotoRef = ref(this.storage, producto.fotoUrl);
-          await deleteObject(fotoRef);
-        } catch (error) {
-          console.warn('No se pudo eliminar la foto del producto:', error);
-        }
-      }
-
+      // Nota: Las imágenes en Cloudinary se mantienen al eliminar el producto
+      // Se pueden eliminar manualmente desde el dashboard de Cloudinary si es necesario
 
       const productoRef = doc(this.firestore, 'productos', producto.id);
       await deleteDoc(productoRef);

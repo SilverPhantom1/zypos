@@ -9,5 +9,9 @@ export const environment = {
       appId: "1:195897723848:web:9e81a7f6291c9efa620efd",
       measurementId: "G-74SH5W0R9N"
     },
-    vercelUrl: 'https://zypos.vercel.app'
+    vercelUrl: 'https://zypos.vercel.app',
+    cloudinary: {
+      cloudName: 'dakowutzm', // Tu Cloud name de Cloudinary
+      uploadPreset: 'zypos-productos' // Upload preset sin firmar (crea este preset en Cloudinary)
+    }
   };

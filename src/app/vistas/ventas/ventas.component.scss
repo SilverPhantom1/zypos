@@ -728,10 +728,30 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+.info-total-recibir {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background: rgba(var(--ion-color-primary-rgb), 0.1);
+  border-radius: 8px;
+  text-align: center;
+  
+  p {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 0.95rem;
+    
+    strong {
+      color: var(--zypos-color-primary);
+      font-size: 1.1rem;
+    }
+  }
+}
+
 .cambio-container {
   margin-top: 1rem;
   padding: 1rem;
-  background: rgba(44, 62, 80, 0.1);
+  background: rgba(76, 175, 80, 0.15);
+  border: 2px solid rgba(76, 175, 80, 0.3);
   border-radius: 8px;
   display: flex;
   justify-content: space-between;

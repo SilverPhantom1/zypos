@@ -6,7 +6,7 @@
 <ion-content [fullscreen]="true" class="contenido-login" [scrollY]="true">
   <div class="ion-padding contenedor-login">
     <h2 class="titulo-login">Iniciar Sesión</h2>
-
+    
     <ion-segment [(ngModel)]="tipoLogin" (ionChange)="cambiarModo($event)" mode="md" class="segmento-login">
       <ion-segment-button value="propietario">
         <ion-label>Propietario</ion-label>

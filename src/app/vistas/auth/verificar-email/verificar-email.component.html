@@ -1,0 +1,109 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-button fill="clear" slot="start" (click)="volverAtras()">
+      <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
+    </ion-button>
+    <ion-title>Verificar Email</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="contenido-verificacion" [scrollY]="true">
+  <div class="ion-padding contenedor-verificacion">
+    
+    <div *ngIf="!codigoVerificado" class="contenido-principal">
+      <div class="icono-email">
+        <ion-icon name="mail"></ion-icon>
+      </div>
+      
+      <h2 class="titulo-verificacion">Verifica tu Email</h2>
+      
+      <p class="texto-explicacion">
+        Hemos enviado un código de verificación de 6 dígitos a:
+      </p>
+      
+      <div class="email-destino">
+        <strong>{{ email }}</strong>
+      </div>
+      
+      <p class="texto-ayuda">
+        Ingresa el código que recibiste en tu correo electrónico para completar tu registro.
+      </p>
+
+      <!-- Contador de tiempo -->
+      <div *ngIf="fechaExpiracion && tiempoRestante !== '00:00'" class="contador-tiempo">
+        <ion-icon name="time-outline"></ion-icon>
+        <span class="texto-contador">Tiempo restante: <strong>{{ tiempoRestante }}</strong></span>
+      </div>
+
+      <div *ngIf="tiempoRestante === '00:00' && fechaExpiracion" class="codigo-expirado">
+        <p>⏰ El código ha expirado. Solicita uno nuevo.</p>
+      </div>
+
+      <form [formGroup]="formularioVerificacion" (ngSubmit)="verificarCodigo()">
+        <ion-item class="campo-codigo">
+          <ion-label position="stacked">Código de Verificación</ion-label>
+          <ion-input 
+            type="text" 
+            formControlName="codigo"
+            placeholder="000000"
+            maxlength="6"
+            inputmode="numeric"
+            autocomplete="off">
+          </ion-input>
+        </ion-item>
+        
+        <!-- Mensaje de error -->
+        <div *ngIf="formularioVerificacion.get('codigo')?.invalid && (formularioVerificacion.get('codigo')?.touched || formularioVerificacion.get('codigo')?.dirty)" 
+             class="mensaje-error">
+          <span *ngIf="formularioVerificacion.get('codigo')?.errors?.['required']">
+            El código es requerido
+          </span>
+          <span *ngIf="formularioVerificacion.get('codigo')?.errors?.['pattern']">
+            El código debe ser de 6 dígitos
+          </span>
+        </div>
+
+        <div *ngIf="mensajeError" class="mensaje-error-general">
+          {{ mensajeError }}
+        </div>
+
+        <ion-button 
+          expand="block" 
+          type="submit"
+          [disabled]="estaCargando || formularioVerificacion.invalid"
+          class="boton-verificar">
+          <ion-icon name="checkmark-circle" slot="start"></ion-icon>
+          {{ estaCargando ? 'Verificando...' : 'Verificar Código' }}
+        </ion-button>
+      </form>
+
+      <div class="seccion-reenviar">
+        <p class="texto-no-recibiste">¿No recibiste el código?</p>
+        <ion-button 
+          fill="clear" 
+          (click)="enviarCodigo()"
+          [disabled]="estaEnviandoCodigo"
+          class="boton-reenviar">
+          <ion-icon name="refresh" slot="start"></ion-icon>
+          {{ estaEnviandoCodigo ? 'Enviando...' : 'Reenviar Código' }}
+        </ion-button>
+      </div>
+
+      <div class="advertencia">
+        <p><strong>⚠️ Importante:</strong> El código expira en 2 minutos.</p>
+      </div>
+    </div>
+
+    <div *ngIf="codigoVerificado" class="contenido-exitoso">
+      <div class="icono-exito">
+        <ion-icon name="checkmark-circle"></ion-icon>
+      </div>
+      <h2 class="titulo-exito">¡Email Verificado!</h2>
+      <p class="texto-exito">
+        Tu email ha sido verificado exitosamente. Redirigiendo...
+      </p>
+    </div>
+
+  </div>
+</ion-content>
+

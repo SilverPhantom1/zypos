@@ -8,6 +8,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { Auth, createUserWithEmailAndPassword } from '@angular/fire/auth';
 import { Firestore, doc, setDoc, serverTimestamp, Timestamp } from '@angular/fire/firestore';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-registrarse',
@@ -91,7 +92,7 @@ export class RegistrarseComponent implements OnInit {
     const rutFormateado = this.formatearRut(valor);
     this.formularioRegistro.patchValue({ rut: rutFormateado }, { emitEvent: false });
   }
-
+ 
   validarSoloLetras(control: any) {
     const valor = control.value;
     if (!valor) {
@@ -162,7 +163,12 @@ export class RegistrarseComponent implements OnInit {
         
         const fechaCreacion = serverTimestamp();
         
-        await setDoc(doc(this.firestore, 'usuarios', usuarioId), {nombre: nombre,rut: rutLimpio,email: email,creacion: fechaCreacion,
+        await setDoc(doc(this.firestore, 'usuarios', usuarioId), {
+          nombre: nombre,
+          rut: rutLimpio,
+          email: email,
+          creacion: fechaCreacion,
+          emailVerificado: false, // Inicialmente no verificado
           suscripcion: {
             nombre: 'free',
             vence: fechaVencimientoTimestamp,
@@ -172,7 +178,38 @@ export class RegistrarseComponent implements OnInit {
           planGratuitoUsado: true
         });
 
-        this.router.navigate(['/planes'], { replaceUrl: true });
+        // Enviar código de verificación
+        try {
+          const response = await fetch(`${environment.vercelUrl}/api/enviar-codigo-verificacion`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              email: email,
+              nombre: nombre
+            })
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            console.error('Error al enviar código:', data);
+            // Continuar aunque falle el envío del código
+            this.mostrarToast('Cuenta creada, pero no se pudo enviar el código de verificación. Puedes verificarlo más tarde.', 'warning');
+          } else {
+            this.mostrarToast('Código de verificación enviado a tu email', 'success');
+          }
+        } catch (error) {
+          console.error('Error al enviar código de verificación:', error);
+          // Continuar aunque falle
+        }
+
+        // Redirigir a la página de verificación
+        this.router.navigate(['/verificar-email'], { 
+          replaceUrl: true,
+          queryParams: { email: email }
+        });
         
       } catch (error: any) {
         console.error('Error al registrar usuario:', error);

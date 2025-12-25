@@ -23,6 +23,10 @@ export const routes: Routes = [
     loadComponent: () => import('./vistas/auth/nueva-contrasena/nueva-contrasena.component').then(m => m.NuevaContrasenaComponent)
   },
   {
+    path: 'verificar-email',
+    loadComponent: () => import('./vistas/auth/verificar-email/verificar-email.component').then(m => m.VerificarEmailComponent)
+  },
+  {
     path: 'home',
     loadComponent: () => import('./vistas/home/home.component').then(m => m.HomeComponent)
   },

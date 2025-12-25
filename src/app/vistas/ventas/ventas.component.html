@@ -5,7 +5,7 @@
       <span class="texto-boton-volver">Volver</span>
     </ion-button>
     <div *ngIf="esTrabajador() && cajaAbierta" slot="start" class="info-caja-header">
-      <span class="texto-caja">Caja: {{ formatearPrecio(cajaAbierta.montoInicial + (cajaAbierta.totalVentasEfectivo || 0)) }}</span>
+      <span class="texto-caja">Caja: {{ formatearPrecio(cajaAbierta.montoInicial + (cajaAbierta.totalVentasEfectivo || 0) - (cajaAbierta.totalVueltos || 0)) }}</span>
       <ion-button fill="clear" size="small" (click)="cerrarCaja()" class="boton-cerrar-caja-header">
         <ion-icon name="close-circle" slot="icon-only"></ion-icon>
       </ion-button>
@@ -281,16 +281,6 @@
               <ion-icon name="swap-horizontal" slot="start"></ion-icon>
               Transferencia Directa
             </ion-button>
-            
-            <ion-button 
-              expand="block"
-              [fill]="metodoPago === 'mercadopago' ? 'solid' : 'outline'"
-              (click)="seleccionarMetodoPago('mercadopago')"
-              class="boton-metodo-pago"
-              disabled>
-              <ion-icon name="card" slot="start"></ion-icon>
-              MercadoPago
-            </ion-button>
           </div>
         </div>
 
@@ -302,16 +292,20 @@
               type="number"
               [(ngModel)]="montoRecibido"
               (ionInput)="calcularCambio()"
-              placeholder="0"
-              min="0">
+              placeholder="Ingresa el monto con el que paga el cliente"
+              min="0"
+              autofocus>
             </ion-input>
           </ion-item>
+          <div class="info-total-recibir">
+            <p>Total a cobrar: <strong>{{ formatearPrecio(total) }}</strong></p>
+          </div>
           <div *ngIf="cambio > 0" class="cambio-container">
-            <p class="label-cambio">Cambio:</p>
+            <p class="label-cambio">Vuelto a entregar:</p>
             <p class="valor-cambio">{{ formatearPrecio(cambio) }}</p>
           </div>
           <div *ngIf="montoRecibido > 0 && montoRecibido < total" class="mensaje-error-pago">
-            <p>El monto recibido es menor al total</p>
+            <p>El monto recibido es menor al total. Faltan {{ formatearPrecio(total - montoRecibido) }}</p>
           </div>
         </div>
 
@@ -411,9 +405,13 @@
             <span>Total Ventas en Efectivo:</span>
             <strong>{{ formatearPrecio(cajaAbierta.totalVentasEfectivo || 0) }}</strong>
           </div>
+          <div class="item-resumen-caja">
+            <span>Total Vueltos Dados:</span>
+            <strong>{{ formatearPrecio(cajaAbierta.totalVueltos || 0) }}</strong>
+          </div>
           <div class="item-resumen-caja total-caja">
             <span>Monto Final:</span>
-            <strong>{{ formatearPrecio(cajaAbierta.montoInicial + (cajaAbierta.totalVentasEfectivo || 0)) }}</strong>
+            <strong>{{ formatearPrecio(cajaAbierta.montoInicial + (cajaAbierta.totalVentasEfectivo || 0) - (cajaAbierta.totalVueltos || 0)) }}</strong>
           </div>
         </div>
 

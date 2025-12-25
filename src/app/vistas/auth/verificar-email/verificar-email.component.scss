@@ -1,0 +1,225 @@
+.contenido-verificacion {
+  --background: var(--zypos-color-background);
+}
+
+.contenedor-verificacion {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  min-height: calc(100vh - 120px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.contenido-principal {
+  width: 100%;
+}
+
+.icono-email {
+  text-align: center;
+  margin-bottom: 2rem;
+  
+  ion-icon {
+    font-size: 4rem;
+    color: var(--zypos-color-primary);
+  }
+}
+
+.titulo-verificacion {
+  text-align: center;
+  color: var(--zypos-color-text);
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.texto-explicacion {
+  text-align: center;
+  color: var(--zypos-color-text);
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.email-destino {
+  text-align: center;
+  background: rgba(var(--ion-color-primary-rgb), 0.1);
+  padding: 1rem;
+  border-radius: 8px;
+  margin: 1rem 0;
+  
+  strong {
+    color: var(--zypos-color-primary);
+    font-size: 1.1rem;
+  }
+}
+
+.texto-ayuda {
+  text-align: center;
+  color: #666;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.contador-tiempo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: rgba(var(--ion-color-primary-rgb), 0.1);
+  border: 2px solid var(--zypos-color-primary);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  
+  ion-icon {
+    font-size: 1.5rem;
+    color: var(--zypos-color-primary);
+  }
+  
+  .texto-contador {
+    color: var(--zypos-color-text);
+    font-size: 1rem;
+    
+    strong {
+      color: var(--zypos-color-primary);
+      font-size: 1.2rem;
+      font-weight: 700;
+      font-family: 'Courier New', monospace;
+    }
+  }
+}
+
+.codigo-expirado {
+  background: rgba(var(--ion-color-danger-rgb), 0.1);
+  border: 2px solid var(--ion-color-danger);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  
+  p {
+    margin: 0;
+    color: var(--ion-color-danger);
+    font-weight: 600;
+    font-size: 1rem;
+  }
+}
+
+.campo-codigo {
+  margin-bottom: 1rem;
+  --background: #ffffff;
+  --border-radius: 12px;
+  --padding-start: 1rem;
+  --padding-end: 1rem;
+  --inner-padding-end: 0;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  
+  ion-input {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: 0.5rem;
+    text-align: center;
+  }
+}
+
+.mensaje-error {
+  color: var(--ion-color-danger);
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
+  padding-left: 1rem;
+}
+
+.mensaje-error-general {
+  background: rgba(var(--ion-color-danger-rgb), 0.1);
+  color: var(--ion-color-danger);
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  text-align: center;
+  border-left: 4px solid var(--ion-color-danger);
+}
+
+.boton-verificar {
+  --background: var(--zypos-color-primary);
+  --color: #ffffff;
+  --border-radius: 12px;
+  font-weight: 600;
+  margin-top: 1.5rem;
+  height: 50px;
+}
+
+.seccion-reenviar {
+  text-align: center;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.texto-no-recibiste {
+  color: #666;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.boton-reenviar {
+  --color: var(--zypos-color-primary);
+  font-weight: 600;
+}
+
+.advertencia {
+  background: rgba(255, 193, 7, 0.1);
+  border-left: 4px solid #ffc107;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-top: 2rem;
+  
+  p {
+    margin: 0;
+    color: #856404;
+    font-size: 0.9rem;
+  }
+}
+
+.contenido-exitoso {
+  text-align: center;
+  width: 100%;
+}
+
+.icono-exito {
+  margin-bottom: 2rem;
+  
+  ion-icon {
+    font-size: 5rem;
+    color: #28a745;
+  }
+}
+
+.titulo-exito {
+  color: var(--zypos-color-text);
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.texto-exito {
+  color: #666;
+  font-size: 1rem;
+}
+
+@media (max-width: 576px) {
+  .contenedor-verificacion {
+    padding: 1.5rem 0.75rem;
+  }
+  
+  .titulo-verificacion {
+    font-size: 1.5rem;
+  }
+  
+  .icono-email ion-icon {
+    font-size: 3rem;
+  }
+}
+
