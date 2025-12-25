@@ -6,7 +6,7 @@ import { addIcons } from 'ionicons';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { Auth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from '@angular/fire/auth';
+import { Auth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from '@angular/fire/auth';
 import { Firestore, collection, getDocs, doc, getDoc, updateDoc, query, where } from '@angular/fire/firestore';
 
 @Component({
@@ -106,41 +106,63 @@ export class IniciarSesionComponent implements OnInit {
 
   async enviarFormulario() {
     if (this.tipoLogin === 'propietario') {
-      if (this.formularioLogin.valid) {
-        this.estaCargando = true;
+    if (this.formularioLogin.valid) {
+      this.estaCargando = true;
+      
+      try {
+        const { email, contraseña } = this.formularioLogin.value;
         
-        try {
-          const { email, contraseña } = this.formularioLogin.value;
+        await signInWithEmailAndPassword(this.auth, email, contraseña);
           
-          await signInWithEmailAndPassword(this.auth, email, contraseña);
-          this.router.navigate(['/home']);
+          // Verificar si el email está verificado
+          const usuariosRef = collection(this.firestore, 'usuarios');
+          const q = query(usuariosRef, where('email', '==', email.toLowerCase().trim()));
+          const usuarioSnapshot = await getDocs(q);
           
-        } catch (error: any) {
-          console.error('Error al iniciar sesión:', error);
-          
-          let mensajeError = 'Error al iniciar sesión. Por favor, intenta nuevamente.';
-          
-          if (error.code === 'auth/user-not-found') {
-            mensajeError = 'No existe una cuenta con este email.';
-          } else if (error.code === 'auth/wrong-password') {
-            mensajeError = 'La contraseña es incorrecta.';
-          } else if (error.code === 'auth/invalid-email') {
-            mensajeError = 'El email no es válido. Por favor, verifica el formato.';
-          } else if (error.code === 'auth/network-request-failed') {
-            mensajeError = 'Error de conexión. Verifica tu internet e intenta nuevamente.';
-          } else if (error.code === 'auth/too-many-requests') {
-            mensajeError = 'Demasiados intentos fallidos. Intenta más tarde.';
+          if (!usuarioSnapshot.empty) {
+            const usuarioDoc = usuarioSnapshot.docs[0];
+            const usuarioData = usuarioDoc.data();
+            
+            // Si el email no está verificado, redirigir a verificación
+            if (usuarioData['emailVerificado'] === false || usuarioData['emailVerificado'] === undefined) {
+              // Cerrar sesión para que no pueda acceder
+              await signOut(this.auth);
+              this.mostrarToast('Por favor, verifica tu email antes de iniciar sesión. Revisa tu correo electrónico.', 'warning');
+              this.router.navigate(['/verificar-email'], { 
+                queryParams: { email: email } 
+              });
+              return;
+            }
           }
           
-          this.mensajeError = mensajeError;
-          this.mostrarToast(mensajeError, 'danger');
-        } finally {
-          this.estaCargando = false;
+        this.router.navigate(['/home']);
+        
+      } catch (error: any) {
+        console.error('Error al iniciar sesión:', error);
+        
+        let mensajeError = 'Error al iniciar sesión. Por favor, intenta nuevamente.';
+        
+        if (error.code === 'auth/user-not-found') {
+          mensajeError = 'No existe una cuenta con este email.';
+        } else if (error.code === 'auth/wrong-password') {
+          mensajeError = 'La contraseña es incorrecta.';
+        } else if (error.code === 'auth/invalid-email') {
+          mensajeError = 'El email no es válido. Por favor, verifica el formato.';
+        } else if (error.code === 'auth/network-request-failed') {
+          mensajeError = 'Error de conexión. Verifica tu internet e intenta nuevamente.';
+        } else if (error.code === 'auth/too-many-requests') {
+          mensajeError = 'Demasiados intentos fallidos. Intenta más tarde.';
         }
-      } else {
-        Object.keys(this.formularioLogin.controls).forEach(key => {
-          this.formularioLogin.get(key)?.markAsTouched();
-        });
+        
+        this.mensajeError = mensajeError;
+        this.mostrarToast(mensajeError, 'danger');
+      } finally {
+        this.estaCargando = false;
+      }
+    } else {
+      Object.keys(this.formularioLogin.controls).forEach(key => {
+        this.formularioLogin.get(key)?.markAsTouched();
+      });
       }
     } else {
       if (this.formularioTrabajador.valid) {

@@ -72,29 +72,52 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const db = getFirestore();
     const emailNormalizado = email.toLowerCase().trim();
+    const codigoNormalizado = codigo.trim(); // Asegurar que el código sea string
 
     // Buscar código de verificación
+    // Primero buscar por email y código sin filtrar por usado, para ver todos los códigos
     const codigosQuery = await db.collection('codigosVerificacion')
       .where('email', '==', emailNormalizado)
-      .where('codigo', '==', codigo)
-      .where('usado', '==', false)
-      .limit(1)
+      .where('codigo', '==', codigoNormalizado)
+      .limit(10) // Obtener más resultados para debug
       .get();
 
     if (codigosQuery.empty) {
+      return res.status(400).json({ 
+        error: 'Código inválido. Verifica que hayas ingresado el código correcto.' 
+      });
+    }
+
+    // Buscar el código no usado más reciente
+    const codigoDoc = codigosQuery.docs
+      .filter(doc => doc.data().usado === false)
+      .sort((a, b) => {
+        const fechaA = a.data().fechaCreacion?.toMillis() || 0;
+        const fechaB = b.data().fechaCreacion?.toMillis() || 0;
+        return fechaB - fechaA; // Más reciente primero
+      })[0];
+
+    if (!codigoDoc) {
+      // Verificar si todos están usados o expirados
+      const todosUsados = codigosQuery.docs.every(doc => doc.data().usado === true);
+      if (todosUsados) {
+        return res.status(400).json({ 
+          error: 'Este código ya fue utilizado. Solicita uno nuevo.' 
+        });
+      }
       return res.status(400).json({ 
         error: 'Código inválido o ya utilizado' 
       });
     }
 
-    const codigoDoc = codigosQuery.docs[0];
     const codigoData = codigoDoc.data();
 
     // Verificar que el código no haya expirado
     const ahora = Timestamp.now();
     const fechaExpiracion = codigoData.fechaExpiracion as Timestamp;
+    const tiempoRestante = fechaExpiracion.toMillis() - ahora.toMillis();
 
-    if (ahora.toMillis() > fechaExpiracion.toMillis()) {
+    if (tiempoRestante <= 0) {
       // Marcar como usado aunque haya expirado
       await codigoDoc.ref.update({ usado: true });
       
@@ -106,19 +129,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Marcar código como usado
     await codigoDoc.ref.update({ usado: true });
 
-    // Actualizar usuario en Firestore para marcar email como verificado
-    const usuariosQuery = await db.collection('usuarios')
-      .where('email', '==', emailNormalizado)
-      .limit(1)
-      .get();
-
-    if (!usuariosQuery.empty) {
-      const usuarioDoc = usuariosQuery.docs[0];
-      await usuarioDoc.ref.update({
-        emailVerificado: true,
-        fechaVerificacionEmail: Timestamp.now()
-      });
-    }
+    // El usuario se creará en el frontend después de verificar el código
+    // No intentamos actualizar un usuario que aún no existe
 
     return res.status(200).json({ 
       success: true,

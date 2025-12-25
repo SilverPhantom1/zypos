@@ -6,8 +6,8 @@ import { addIcons } from 'ionicons';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { Auth, createUserWithEmailAndPassword } from '@angular/fire/auth';
-import { Firestore, doc, setDoc, serverTimestamp, Timestamp } from '@angular/fire/firestore';
+import { Auth, createUserWithEmailAndPassword, signOut } from '@angular/fire/auth';
+import { Firestore, doc, setDoc, serverTimestamp, Timestamp, collection, query, where, getDocs } from '@angular/fire/firestore';
 import { environment } from '../../../../environments/environment';
 
 @Component({
@@ -38,6 +38,23 @@ export class RegistrarseComponent implements OnInit {
     }, {
       validators: this.validarContraseñasCoinciden
     });
+
+    // Verificar si hay un registro pendiente y si el código ya expiró
+    this.verificarYLimpiarRegistroExpirado();
+  }
+
+  verificarYLimpiarRegistroExpirado() {
+    const fechaExpiracionStr = sessionStorage.getItem('zypos_codigo_expiracion');
+    if (fechaExpiracionStr) {
+      const fechaExpiracion = parseInt(fechaExpiracionStr);
+      const ahora = Date.now();
+      
+      // Si el código ya expiró, limpiar los datos
+      if (ahora >= fechaExpiracion) {
+        sessionStorage.removeItem('zypos_datos_registro_pendiente');
+        sessionStorage.removeItem('zypos_codigo_expiracion');
+      }
+    }
   }
 
  
@@ -151,32 +168,74 @@ export class RegistrarseComponent implements OnInit {
       try {
         const { nombre, rut, email, contraseña } = this.formularioRegistro.value;
         const rutLimpio = this.limpiarRut(rut);
+        const emailNormalizado = email.toLowerCase().trim();
         
-        const credencialUsuario = await createUserWithEmailAndPassword(this.auth, email, contraseña);
-        const usuarioId = credencialUsuario.user.uid;
+        // Verificar si el email ya existe en Firestore
+        const usuariosRef = collection(this.firestore, 'usuarios');
+        const qEmail = query(usuariosRef, where('email', '==', emailNormalizado));
+        const usuarioSnapshotEmail = await getDocs(qEmail);
         
-        const fechaActual = new Date();
-        const fechaInicio = Timestamp.fromDate(fechaActual);
-        const fechaVencimiento = new Date(fechaActual);
-        fechaVencimiento.setDate(fechaVencimiento.getDate() + 30);
-        const fechaVencimientoTimestamp = Timestamp.fromDate(fechaVencimiento);
+        if (!usuarioSnapshotEmail.empty) {
+          this.mostrarToast('Este email ya está registrado. Por favor, usa otro email o inicia sesión.', 'danger');
+          this.estaCargando = false;
+          return;
+        }
         
-        const fechaCreacion = serverTimestamp();
+        // Verificar si el RUT ya existe en Firestore
+        const qRut = query(usuariosRef, where('rut', '==', rutLimpio));
+        const usuarioSnapshotRut = await getDocs(qRut);
         
-        await setDoc(doc(this.firestore, 'usuarios', usuarioId), {
+        if (!usuarioSnapshotRut.empty) {
+          this.mostrarToast('Este RUT ya está registrado. Por favor, usa otro RUT o inicia sesión.', 'danger');
+          this.estaCargando = false;
+          return;
+        }
+        
+        // También verificar si hay un registro pendiente con este email o RUT
+        // Primero verificar si el código anterior ya expiró
+        this.verificarYLimpiarRegistroExpirado();
+        
+        const registroPendiente = sessionStorage.getItem('zypos_datos_registro_pendiente');
+        if (registroPendiente) {
+          try {
+            const datos = JSON.parse(registroPendiente);
+            
+            // Verificar si el código aún no ha expirado
+            const fechaExpiracionStr = sessionStorage.getItem('zypos_codigo_expiracion');
+            let codigoValido = false;
+            if (fechaExpiracionStr) {
+              const fechaExpiracion = parseInt(fechaExpiracionStr);
+              const ahora = Date.now();
+              codigoValido = ahora < fechaExpiracion;
+            }
+            
+            // Solo mostrar el mensaje si el código aún es válido
+            if (codigoValido) {
+              if (datos.email && datos.email.toLowerCase().trim() === emailNormalizado) {
+                this.mostrarToast('Ya tienes un registro en proceso. Verifica tu email o espera a que expire el código.', 'warning');
+                this.estaCargando = false;
+                return;
+              }
+              if (datos.rut && datos.rut === rutLimpio) {
+                this.mostrarToast('Ya tienes un registro en proceso con este RUT. Verifica tu email o espera a que expire el código.', 'warning');
+                this.estaCargando = false;
+                return;
+              }
+            }
+          } catch (e) {
+            // Si hay error parseando, continuamos
+          }
+        }
+        
+        // NO crear cuenta en Auth todavía
+        // Guardar datos temporalmente en sessionStorage para crear la cuenta después de verificar
+        const datosRegistro = {
           nombre: nombre,
           rut: rutLimpio,
           email: email,
-          creacion: fechaCreacion,
-          emailVerificado: false, // Inicialmente no verificado
-          suscripcion: {
-            nombre: 'free',
-            vence: fechaVencimientoTimestamp,
-            fechaInicio: fechaInicio,
-            estado: 'activa'
-          },
-          planGratuitoUsado: true
-        });
+          contraseña: contraseña
+        };
+        sessionStorage.setItem('zypos_datos_registro_pendiente', JSON.stringify(datosRegistro));
 
         // Enviar código de verificación
         try {
@@ -195,14 +254,17 @@ export class RegistrarseComponent implements OnInit {
 
           if (!response.ok) {
             console.error('Error al enviar código:', data);
-            // Continuar aunque falle el envío del código
-            this.mostrarToast('Cuenta creada, pero no se pudo enviar el código de verificación. Puedes verificarlo más tarde.', 'warning');
-          } else {
-            this.mostrarToast('Código de verificación enviado a tu email', 'success');
+            sessionStorage.removeItem('zypos_datos_registro_pendiente');
+            throw new Error(data.error || 'Error al enviar el código de verificación');
           }
-        } catch (error) {
+
+          this.mostrarToast('Código de verificación enviado a tu email', 'success');
+        } catch (error: any) {
           console.error('Error al enviar código de verificación:', error);
-          // Continuar aunque falle
+          sessionStorage.removeItem('zypos_datos_registro_pendiente');
+          this.mostrarToast(error.message || 'Error al enviar el código de verificación. Intenta nuevamente.', 'danger');
+          this.estaCargando = false;
+          return;
         }
 
         // Redirigir a la página de verificación

@@ -7,13 +7,15 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { environment } from '../../../../environments/environment';
+import { Auth, createUserWithEmailAndPassword } from '@angular/fire/auth';
+import { Firestore, doc, setDoc, serverTimestamp, Timestamp } from '@angular/fire/firestore';
 
 @Component({
   selector: 'app-verificar-email',
   templateUrl: './verificar-email.component.html',
   styleUrls: ['./verificar-email.component.scss'],
   standalone: true,
-  imports: [IonHeader, IonToolbar, IonTitle, IonContent, IonItem, IonLabel, IonInput, IonButton, IonIcon, ReactiveFormsModule, CommonModule]
+  imports: [IonHeader, IonToolbar, IonContent, IonItem, IonLabel, IonInput, IonButton, IonIcon, ReactiveFormsModule, CommonModule]
 })
 export class VerificarEmailComponent implements OnInit, OnDestroy {
   formularioVerificacion!: FormGroup;
@@ -30,7 +32,9 @@ export class VerificarEmailComponent implements OnInit, OnDestroy {
     private formBuilder: FormBuilder,
     private router: Router,
     private route: ActivatedRoute,
-    private toastController: ToastController
+    private toastController: ToastController,
+    private auth: Auth,
+    private firestore: Firestore
   ) {
     addIcons({ mail, checkmarkCircle, arrowBack, refresh, timeOutline });
   }
@@ -67,22 +71,32 @@ export class VerificarEmailComponent implements OnInit, OnDestroy {
       clearInterval(this.intervaloContador);
     }
 
-    this.intervaloContador = setInterval(() => {
-      if (this.fechaExpiracion) {
-        const ahora = Date.now();
-        const diferencia = this.fechaExpiracion - ahora;
+    // Actualizar inmediatamente el tiempo restante
+    this.actualizarTiempoRestante();
 
-        if (diferencia <= 0) {
-          this.tiempoRestante = '00:00';
-          clearInterval(this.intervaloContador);
-          this.mensajeError = 'El código ha expirado. Solicita uno nuevo.';
-        } else {
-          const minutos = Math.floor(diferencia / 60000);
-          const segundos = Math.floor((diferencia % 60000) / 1000);
-          this.tiempoRestante = `${String(minutos).padStart(2, '0')}:${String(segundos).padStart(2, '0')}`;
-        }
-      }
+    this.intervaloContador = setInterval(() => {
+      this.actualizarTiempoRestante();
     }, 1000); // Actualizar cada segundo
+  }
+
+  actualizarTiempoRestante() {
+    if (this.fechaExpiracion) {
+      const ahora = Date.now();
+      const diferencia = this.fechaExpiracion - ahora;
+
+      if (diferencia <= 0) {
+        this.tiempoRestante = '00:00';
+        if (this.intervaloContador) {
+          clearInterval(this.intervaloContador);
+          this.intervaloContador = null;
+        }
+        this.mensajeError = 'El código ha expirado. Solicita uno nuevo.';
+      } else {
+        const minutos = Math.floor(diferencia / 60000);
+        const segundos = Math.floor((diferencia % 60000) / 1000);
+        this.tiempoRestante = `${String(minutos).padStart(2, '0')}:${String(segundos).padStart(2, '0')}`;
+      }
+    }
   }
 
   async enviarCodigo() {
@@ -114,10 +128,16 @@ export class VerificarEmailComponent implements OnInit, OnDestroy {
 
       // Guardar fecha de expiración
       if (data.fechaExpiracion) {
+        // Limpiar intervalo anterior si existe
+        if (this.intervaloContador) {
+          clearInterval(this.intervaloContador);
+          this.intervaloContador = null;
+        }
+        
         this.fechaExpiracion = data.fechaExpiracion;
         sessionStorage.setItem('zypos_codigo_expiracion', data.fechaExpiracion.toString());
         this.mensajeError = ''; // Limpiar mensaje de error si había
-        this.iniciarContador();
+        this.iniciarContador(); // Esto actualizará el tiempo inmediatamente
       }
 
       this.mostrarToast('Código de verificación enviado a tu email', 'success');
@@ -164,6 +184,53 @@ export class VerificarEmailComponent implements OnInit, OnDestroy {
 
       if (!response.ok) {
         throw new Error(data.error || 'Error al verificar el código');
+      }
+
+      // Si el código es válido, crear la cuenta en Firebase Auth y Firestore
+      const datosRegistroStr = sessionStorage.getItem('zypos_datos_registro_pendiente');
+      if (datosRegistroStr) {
+        try {
+          const datosRegistro = JSON.parse(datosRegistroStr);
+          
+          // Crear cuenta en Firebase Auth
+          const credencialUsuario = await createUserWithEmailAndPassword(
+            this.auth, 
+            datosRegistro.email, 
+            datosRegistro.contraseña
+          );
+          const usuarioId = credencialUsuario.user.uid;
+          
+          // Crear documento en Firestore
+          const fechaActual = new Date();
+          const fechaInicio = Timestamp.fromDate(fechaActual);
+          const fechaVencimiento = new Date(fechaActual);
+          fechaVencimiento.setDate(fechaVencimiento.getDate() + 30);
+          const fechaVencimientoTimestamp = Timestamp.fromDate(fechaVencimiento);
+          
+          const fechaCreacion = serverTimestamp();
+          
+          await setDoc(doc(this.firestore, 'usuarios', usuarioId), {
+            nombre: datosRegistro.nombre,
+            rut: datosRegistro.rut,
+            email: datosRegistro.email,
+            creacion: fechaCreacion,
+            emailVerificado: true, // Ya está verificado
+            fechaVerificacionEmail: Timestamp.now(),
+            suscripcion: {
+              nombre: 'free',
+              vence: fechaVencimientoTimestamp,
+              fechaInicio: fechaInicio,
+              estado: 'activa'
+            },
+            planGratuitoUsado: true
+          });
+          
+          // Limpiar datos temporales
+          sessionStorage.removeItem('zypos_datos_registro_pendiente');
+        } catch (error: any) {
+          console.error('Error al crear cuenta después de verificación:', error);
+          this.mostrarToast('Código verificado, pero hubo un error al crear la cuenta. Por favor, intenta iniciar sesión.', 'warning');
+        }
       }
 
       this.codigoVerificado = true;
