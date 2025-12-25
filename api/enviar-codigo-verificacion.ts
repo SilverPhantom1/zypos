@@ -31,6 +31,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const origin = req.headers.origin;
   
   // Permitir localhost para desarrollo y el dominio de producción
+  // Actualizado para incluir localhost en CORS
   const allowedOrigins = [
     'http://localhost:4200',
     'http://localhost:3000',
