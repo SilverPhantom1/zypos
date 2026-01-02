@@ -209,19 +209,28 @@
         <!-- Búsqueda -->
         <div class="contenedor-busqueda">
           <ion-searchbar
+            #searchbar
             [(ngModel)]="terminoBusqueda"
             (ionInput)="onBuscar($event)"
-            placeholder="Buscar por nombre, descripción, código de barras o categoría..."
+            (keydown.enter)="onBuscarKeyDown($event)"
+            placeholder="Buscar por nombre, descripción, código de barras o categoría... (También puedes escanear con pistola lectora)"
             class="barra-busqueda">
           </ion-searchbar>
           <ion-button 
-            *ngIf="esPlataformaMovil"
             fill="outline" 
             (click)="escanearCodigoBarras()"
             class="boton-escanear">
-            <ion-icon name="barcode" slot="icon-only"></ion-icon>
+            <ion-icon name="barcode" slot="start"></ion-icon>
+            <span *ngIf="!esPlataformaMovil">Escanear con Cámara</span>
+            <span *ngIf="esPlataformaMovil">Escanear</span>
           </ion-button>
         </div>
+        
+        <p class="ayuda-lectora" style="margin: 0.5rem 0; padding: 0.5rem; background: #f0f0f0; border-radius: 8px; font-size: 0.9rem; color: #666;">
+          💡 <strong>Pistola lectora:</strong> Simplemente escanea cualquier código de barras en el buscador de arriba y presiona Enter. El sistema lo detectará automáticamente.
+          <br>
+          💡 <strong>Cámara del móvil:</strong> Usa el botón "Escanear con Cámara" de arriba.
+        </p>
 
         <!-- Filtros y ordenamiento -->
         <div class="contenedor-filtros">

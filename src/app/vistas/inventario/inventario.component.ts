@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewChecked, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, AfterViewChecked, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { IonHeader, IonToolbar, IonContent, IonButton, IonIcon, IonItem, IonLabel, IonInput, IonTextarea, IonSelect, IonSelectOption, ToastController, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonBadge, IonSearchbar, IonModal, IonButtons, IonTitle, IonGrid, IonRow, IonCol, ActionSheetController, AlertController } from '@ionic/angular/standalone';
 import { arrowBack, add, save, camera, image, close, create, trash, warning, checkmarkCircle, barcode, list, grid, search, filter, swapVertical, pricetags, addCircle, checkmark, storefront } from 'ionicons/icons';
@@ -20,7 +20,7 @@ import JsBarcode from 'jsbarcode';
   standalone: true,
   imports: [IonHeader, IonToolbar, IonContent, IonButton, IonIcon, IonItem, IonLabel, IonInput, IonTextarea, IonSelect, IonSelectOption, CommonModule, ReactiveFormsModule, FormsModule, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonBadge, IonSearchbar, IonModal, IonButtons, IonTitle, IonGrid, IonRow, IonCol, RouterLink]
 })
-export class InventarioComponent implements OnInit, AfterViewChecked {
+export class InventarioComponent implements OnInit, AfterViewChecked, AfterViewInit {
   verificandoAuth: boolean = true;
   usuarioId: string | null = null;
   mostrandoFormulario: boolean = false;
@@ -66,6 +66,13 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
   formularioCategoria!: FormGroup;
   categoriaEditando: any = null;
   estaCargandoCategoria: boolean = false;
+  
+  // Para pistola lectora
+  procesandoCodigo: boolean = false;
+  ultimaBusqueda: string = '';
+  tiempoUltimaBusqueda: number = 0;
+  tiempoInicioEscritura: number = 0;
+  timeoutProcesarCodigo: any = null;
 
   constructor(
     private auth: Auth,
@@ -104,6 +111,33 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
         }
       }
     });
+  }
+
+  @ViewChild('searchbar', { static: false }) searchbar!: any;
+
+  ngAfterViewInit() {
+    // Exponer función de prueba en la consola para desarrollo
+    if (typeof window !== 'undefined') {
+      (window as any).simularEscaneoPistola = (codigo: string) => {
+        this.terminoBusqueda = codigo;
+        this.procesarCodigoBarras(codigo);
+      };
+      console.log('💡 Modo de prueba activado. Usa: simularEscaneoPistola("1234567890123") en la consola');
+    }
+    
+    // Agregar listener directo al input del searchbar para capturar Enter
+    setTimeout(() => {
+      if (this.searchbar && this.searchbar.el) {
+        const inputElement = this.searchbar.el.querySelector('input');
+        if (inputElement) {
+          inputElement.addEventListener('keydown', (event: KeyboardEvent) => {
+            if (event.key === 'Enter') {
+              this.onBuscarKeyDown(event);
+            }
+          });
+        }
+      }
+    }, 500);
   }
 
   inicializarFormulario() {
@@ -883,11 +917,165 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
   }
 
   onBuscar(event: any) {
-    this.terminoBusqueda = event.detail.value || '';
+    const valor = event.detail.value || '';
+    this.terminoBusqueda = valor;
+    
+    // Detectar si es un escaneo rápido (pistola lectora)
+    // Las pistolas lectoras normalmente escanean muy rápido (menos de 300ms)
+    const ahora = Date.now();
+    
+    if (this.tiempoInicioEscritura === 0) {
+      this.tiempoInicioEscritura = ahora;
+    }
+    
+    const tiempoTranscurrido = ahora - this.tiempoInicioEscritura;
+    
+    // Limpiar timeout anterior si existe
+    if (this.timeoutProcesarCodigo) {
+      clearTimeout(this.timeoutProcesarCodigo);
+    }
+    
+    // Si el texto es largo (más de 8 caracteres) y se escribió muy rápido, probablemente es un escaneo
+    // Esperamos 500ms después de que el usuario deje de escribir para procesar
+    if (valor.length >= 8) {
+      this.timeoutProcesarCodigo = setTimeout(async () => {
+        // Si el texto parece un código de barras (alfanumérico, longitud típica)
+        // o si se escribió muy rápido (menos de 500ms), procesarlo como código
+        const tiempoTotal = Date.now() - this.tiempoInicioEscritura;
+        const esEscaneoRapido = tiempoTotal < 500 && valor.length >= 8;
+        const pareceCodigoBarras = /^[A-Z0-9]{8,}$/i.test(valor.trim());
+        
+        if (esEscaneoRapido || pareceCodigoBarras) {
+          await this.procesarCodigoBarras(valor.trim());
+        }
+        
+        // Resetear contadores
+        this.tiempoInicioEscritura = 0;
+        this.timeoutProcesarCodigo = null;
+      }, 500);
+    } else {
+      // Si el texto es corto, resetear el contador
+      this.tiempoInicioEscritura = 0;
+    }
+    
+    this.ultimaBusqueda = valor;
+    this.tiempoUltimaBusqueda = ahora;
     this.aplicarFiltrosYOrdenamiento();
   }
 
-  // Escanear código de barras
+  // Detectar Enter en el buscador para procesar códigos de barras
+  async onBuscarKeyDown(event: KeyboardEvent | any) {
+    // Manejar tanto KeyboardEvent como eventos de Angular
+    const key = event.key || event.detail?.key || 'Enter';
+    const codigo = this.terminoBusqueda.trim();
+    
+    if (key === 'Enter' && codigo) {
+      if (event.preventDefault) {
+        event.preventDefault();
+      }
+      if (event.stopPropagation) {
+        event.stopPropagation();
+      }
+      
+      // Limpiar timeout si existe
+      if (this.timeoutProcesarCodigo) {
+        clearTimeout(this.timeoutProcesarCodigo);
+        this.timeoutProcesarCodigo = null;
+      }
+      
+      // Verificar si parece un código de barras (alfanumérico, longitud típica)
+      // Acepta códigos como "ZY17672968840145533" o códigos numéricos
+      // Cualquier código de 8 o más caracteres alfanuméricos se considera código de barras
+      if (/^[A-Z0-9]{8,}$/i.test(codigo)) {
+        await this.procesarCodigoBarras(codigo);
+        // Limpiar el buscador después de procesar
+        this.terminoBusqueda = '';
+        this.tiempoInicioEscritura = 0;
+      }
+      // Si no es un código de barras, dejar que se procese como búsqueda normal
+    }
+  }
+
+  // Procesar código de barras escaneado (para pistola lectora o entrada manual)
+  async procesarCodigoBarras(codigo: string) {
+    if (!codigo || !codigo.trim() || this.procesandoCodigo) {
+      return;
+    }
+
+    this.procesandoCodigo = true;
+    const codigoLimpio = codigo.trim();
+    
+    // Limpiar el buscador inmediatamente para estar listo para el siguiente escaneo
+    this.terminoBusqueda = '';
+
+    try {
+      // Buscar si el producto ya existe
+      const productoExistente = this.productos.find(p => p.codigoBarras === codigoLimpio);
+
+      if (productoExistente) {
+        // Producto encontrado - mostrar opciones
+        const alert = await this.alertController.create({
+          header: 'Producto Encontrado',
+          message: `El producto "${productoExistente.nombre}" ya está registrado con este código de barras.`,
+          buttons: [
+            {
+              text: 'Agregar Stock',
+              handler: () => {
+                this.abrirModalAjusteStock(productoExistente);
+              }
+            },
+            {
+              text: 'Ver Detalles',
+              handler: () => {
+                this.mostrarOpcionesProducto(productoExistente);
+              }
+            },
+            {
+              text: 'Cancelar',
+              role: 'cancel'
+            }
+          ]
+        });
+        await alert.present();
+      } else {
+        // Producto no encontrado - ofrecer crear nuevo
+        const alert = await this.alertController.create({
+          header: 'Producto No Encontrado',
+          message: `No se encontró un producto con el código de barras: ${codigoLimpio}. ¿Deseas crear un nuevo producto con este código?`,
+          buttons: [
+            {
+              text: 'Crear Producto',
+              handler: () => {
+                this.mostrandoFormulario = true;
+                this.formularioProducto.patchValue({
+                  codigoBarras: codigoLimpio
+                });
+                // Hacer scroll al formulario
+                setTimeout(() => {
+                  const formulario = document.querySelector('.contenedor-formulario');
+                  if (formulario) {
+                    formulario.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }, 100);
+              }
+            },
+            {
+              text: 'Cancelar',
+              role: 'cancel'
+            }
+          ]
+        });
+        await alert.present();
+      }
+    } catch (error) {
+      console.error('Error al procesar código de barras:', error);
+      this.mostrarToast('Error al procesar el código de barras', 'danger');
+    } finally {
+      this.procesandoCodigo = false;
+    }
+  }
+
+  // Escanear código de barras con cámara
   async escanearCodigoBarras() {
     try {
       // Usar la cámara para tomar foto
@@ -913,16 +1101,10 @@ export class InventarioComponent implements OnInit, AfterViewChecked {
         try {
           const resultado = await codeReader.decodeFromImageElement(img);
           
-          if (resultado && resultado.getText()) {
+            if (resultado && resultado.getText()) {
             const codigoBarras = resultado.getText();
-            this.terminoBusqueda = codigoBarras;
-            this.aplicarFiltrosYOrdenamiento();
-            
-            setTimeout(() => {
-              if (this.productosFiltrados.length === 1) {
-                this.mostrarOpcionesProducto(this.productosFiltrados[0]);
-              }
-            }, 100);
+            // Usar el método compartido para procesar el código
+            await this.procesarCodigoBarras(codigoBarras);
           } else {
             this.mostrarToast('No se pudo leer el código de barras', 'warning');
           }

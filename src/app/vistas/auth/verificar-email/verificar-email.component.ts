@@ -51,12 +51,53 @@ export class VerificarEmailComponent implements OnInit, OnDestroy {
 
     // Intentar obtener fecha de expiración de sessionStorage
     const fechaExpiracionGuardada = sessionStorage.getItem('zypos_codigo_expiracion');
+    const registroPendiente = sessionStorage.getItem('zypos_datos_registro_pendiente');
+    
     if (fechaExpiracionGuardada) {
-      this.fechaExpiracion = parseInt(fechaExpiracionGuardada);
-      this.iniciarContador();
+      const fechaExpiracionNum = parseInt(fechaExpiracionGuardada);
+      const ahora = Date.now();
+      
+      // Verificar si el código aún no ha expirado
+      if (ahora < fechaExpiracionNum) {
+        this.fechaExpiracion = fechaExpiracionNum;
+        this.iniciarContador();
+      } else {
+        // El código expiró, pero hay registro pendiente, enviar nuevo código
+        if (registroPendiente) {
+          try {
+            const datos = JSON.parse(registroPendiente);
+            this.email = datos.email || this.email;
+            this.enviarCodigo();
+          } catch (e) {
+            // Si hay error, enviar código con el email de los query params
+            if (this.email) {
+              this.enviarCodigo();
+            }
+          }
+        } else if (this.email) {
+          // No hay registro pendiente pero hay email, enviar código
+          this.enviarCodigo();
+        }
+      }
     } else {
-      // Si no hay fecha guardada, enviar código automáticamente
-      this.enviarCodigo();
+      // No hay fecha guardada
+      // Solo enviar código si hay registro pendiente o email en query params
+      if (registroPendiente) {
+        try {
+          const datos = JSON.parse(registroPendiente);
+          this.email = datos.email || this.email;
+          if (this.email) {
+            this.enviarCodigo();
+          }
+        } catch (e) {
+          if (this.email) {
+            this.enviarCodigo();
+          }
+        }
+      } else if (this.email) {
+        // Si hay email en query params pero no hay registro pendiente, enviar código
+        this.enviarCodigo();
+      }
     }
   }
 

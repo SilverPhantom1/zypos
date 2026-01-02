@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { IonHeader, IonToolbar, IonContent, IonButton, IonIcon, IonItem, IonLabel, IonInput, IonTextarea, ToastController, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonSearchbar, IonModal, IonButtons, IonTitle, AlertController } from '@ionic/angular/standalone';
-import { arrowBack, add, save, close, create, trash, checkmark, storefront, call, mail, location, link, documentText } from 'ionicons/icons';
+import { arrowBack, add, save, close, create, trash, checkmark, storefront, call, mail, location, link, documentText, person } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 import { CommonModule } from '@angular/common';
 import { Auth, onAuthStateChanged } from '@angular/fire/auth';
@@ -39,7 +39,7 @@ export class ProveedoresComponent implements OnInit {
     private toastController: ToastController,
     private alertController: AlertController
   ) {
-    addIcons({ arrowBack, add, save, close, create, trash, checkmark, storefront, call, mail, location, link, documentText });
+    addIcons({ arrowBack, add, save, close, create, trash, checkmark, storefront, call, mail, location, link, documentText, person });
   }
 
   async ngOnInit() {
@@ -64,9 +64,63 @@ export class ProveedoresComponent implements OnInit {
     });
   }
 
+  limpiarRut(rut: string): string {
+    return rut.replace(/[^0-9kK]/g, '').toUpperCase();
+  }
+
+  formatearRut(rut: string): string {
+    const rutLimpio = this.limpiarRut(rut);
+    if (rutLimpio.length < 2) return rutLimpio;
+    const cuerpo = rutLimpio.slice(0, -1);
+    const dv = rutLimpio.slice(-1);
+    const cuerpoFormateado = cuerpo.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    return `${cuerpoFormateado}-${dv}`;
+  }
+
+  validarRut(control: any) {
+    const valor = control.value;
+    if (!valor || !valor.trim()) {
+      return null; // RUT es opcional
+    }
+    const rutLimpio = this.limpiarRut(valor);
+    if (rutLimpio.length < 8 || rutLimpio.length > 9) {
+      return { rutInvalido: true };
+    }
+    const cuerpo = rutLimpio.slice(0, -1);
+    const dv = rutLimpio.slice(-1);
+    if (!/^\d+$/.test(cuerpo)) {
+      return { rutInvalido: true };
+    }
+    let suma = 0;
+    let multiplicador = 2;
+    for (let i = cuerpo.length - 1; i >= 0; i--) {
+      suma += parseInt(cuerpo.charAt(i)) * multiplicador;
+      multiplicador = multiplicador === 7 ? 2 : multiplicador + 1;
+    }
+    const resto = suma % 11;
+    let dvCalculado: number | string = 11 - resto;
+    if (dvCalculado === 11) {
+      dvCalculado = 0;
+    } else if (dvCalculado === 10) {
+      dvCalculado = 'K';
+    }
+    if (String(dvCalculado) !== dv.toUpperCase()) {
+      return { rutInvalido: true };
+    }
+    return null;
+  }
+
+  formatearRutInput(event: any) {
+    const valor = event.detail.value || '';
+    const rutFormateado = this.formatearRut(valor);
+    this.formularioProveedor.patchValue({ rut: rutFormateado }, { emitEvent: false });
+  }
+
   inicializarFormulario() {
     this.formularioProveedor = this.formBuilder.group({
       nombre: ['', [Validators.required]],
+      rut: ['', [this.validarRut.bind(this)]],
+      razonSocial: [''],
       telefono: [''],
       email: ['', [Validators.email]],
       direccion: [''],
@@ -136,11 +190,13 @@ export class ProveedoresComponent implements OnInit {
       const busqueda = this.terminoBusqueda.toLowerCase().trim();
       resultado = resultado.filter(proveedor => {
         const nombre = (proveedor.nombre || '').toLowerCase();
+        const rut = (proveedor.rut || '').toLowerCase();
+        const razonSocial = (proveedor.razonSocial || '').toLowerCase();
         const telefono = (proveedor.telefono || '').toLowerCase();
         const email = (proveedor.email || '').toLowerCase();
         const contacto = `${telefono} ${email}`.toLowerCase();
         
-        return nombre.includes(busqueda) || contacto.includes(busqueda);
+        return nombre.includes(busqueda) || rut.includes(busqueda) || razonSocial.includes(busqueda) || contacto.includes(busqueda);
       });
     }
     
@@ -179,6 +235,8 @@ export class ProveedoresComponent implements OnInit {
     this.proveedorEditando = proveedor;
     this.formularioProveedor.patchValue({
       nombre: proveedor.nombre || '',
+      rut: proveedor.rut || '',
+      razonSocial: proveedor.razonSocial || '',
       telefono: proveedor.telefono || '',
       email: proveedor.email || '',
       direccion: proveedor.direccion || '',
@@ -204,8 +262,11 @@ export class ProveedoresComponent implements OnInit {
 
     try {
       const valores = this.formularioProveedor.value;
+      const rutLimpio = valores.rut ? this.limpiarRut(valores.rut) : '';
       const datosProveedor: any = {
         nombre: valores.nombre.trim(),
+        rut: rutLimpio,
+        razonSocial: valores.razonSocial?.trim() || '',
         telefono: valores.telefono?.trim() || '',
         email: valores.email?.trim() || '',
         direccion: valores.direccion?.trim() || '',

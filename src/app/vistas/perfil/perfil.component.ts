@@ -23,6 +23,7 @@ export class PerfilComponent implements OnInit {
   verificandoAuth: boolean = true;
   
   formularioDatos: FormGroup;
+  formularioEmpresa: FormGroup;
   formularioEmail: FormGroup;
   formularioPassword: FormGroup;
   formularioTelefono: FormGroup;
@@ -47,6 +48,16 @@ export class PerfilComponent implements OnInit {
     this.formularioDatos = this.formBuilder.group({
       nombre: ['', [Validators.required]],
       nombreEmpresa: ['']
+    });
+    
+    this.formularioEmpresa = this.formBuilder.group({
+      nombreEmpresa: [''],
+      rut: ['', [this.validarRut.bind(this)]],
+      razonSocial: [''],
+      giro: [''],
+      correo: ['', [Validators.email]],
+      direccion: [''],
+      telefono: ['', [Validators.pattern(/^[0-9+\-\s()]+$/)]]
     });
     
     this.formularioEmail = this.formBuilder.group({
@@ -105,6 +116,16 @@ export class PerfilComponent implements OnInit {
           nombreEmpresa: this.datosUsuario.nombreEmpresa || ''
         });
         
+        this.formularioEmpresa.patchValue({
+          nombreEmpresa: this.datosUsuario.nombreEmpresa || '',
+          rut: this.datosUsuario.rutEmpresa || '',
+          razonSocial: this.datosUsuario.razonSocial || '',
+          giro: this.datosUsuario.giro || '',
+          correo: this.datosUsuario.correoEmpresa || '',
+          direccion: this.datosUsuario.direccionEmpresa || '',
+          telefono: this.datosUsuario.telefonoEmpresa || ''
+        });
+        
         this.formularioTelefono.patchValue({
           telefono: this.datosUsuario.telefono || ''
         });
@@ -147,6 +168,58 @@ export class PerfilComponent implements OnInit {
     return null;
   }
 
+  limpiarRut(rut: string): string {
+    return rut.replace(/[^0-9kK]/g, '').toUpperCase();
+  }
+
+  formatearRut(rut: string): string {
+    const rutLimpio = this.limpiarRut(rut);
+    if (rutLimpio.length < 2) return rutLimpio;
+    const cuerpo = rutLimpio.slice(0, -1);
+    const dv = rutLimpio.slice(-1);
+    const cuerpoFormateado = cuerpo.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    return `${cuerpoFormateado}-${dv}`;
+  }
+
+  validarRut(control: any) {
+    const valor = control.value;
+    if (!valor || !valor.trim()) {
+      return null; // RUT es opcional
+    }
+    const rutLimpio = this.limpiarRut(valor);
+    if (rutLimpio.length < 8 || rutLimpio.length > 9) {
+      return { rutInvalido: true };
+    }
+    const cuerpo = rutLimpio.slice(0, -1);
+    const dv = rutLimpio.slice(-1);
+    if (!/^\d+$/.test(cuerpo)) {
+      return { rutInvalido: true };
+    }
+    let suma = 0;
+    let multiplicador = 2;
+    for (let i = cuerpo.length - 1; i >= 0; i--) {
+      suma += parseInt(cuerpo.charAt(i)) * multiplicador;
+      multiplicador = multiplicador === 7 ? 2 : multiplicador + 1;
+    }
+    const resto = suma % 11;
+    let dvCalculado: number | string = 11 - resto;
+    if (dvCalculado === 11) {
+      dvCalculado = 0;
+    } else if (dvCalculado === 10) {
+      dvCalculado = 'K';
+    }
+    if (String(dvCalculado) !== dv.toUpperCase()) {
+      return { rutInvalido: true };
+    }
+    return null;
+  }
+
+  formatearRutInput(event: any) {
+    const valor = event.detail.value || '';
+    const rutFormateado = this.formatearRut(valor);
+    this.formularioEmpresa.patchValue({ rut: rutFormateado }, { emitEvent: false });
+  }
+
   async guardarDatos() {
     if (this.formularioDatos.invalid || !this.usuarioId) return;
     
@@ -170,14 +243,24 @@ export class PerfilComponent implements OnInit {
   }
 
   async guardarEmpresa() {
-    if (!this.usuarioId) return;
+    if (!this.usuarioId || this.formularioEmpresa.invalid) {
+      this.formularioEmpresa.markAllAsTouched();
+      return;
+    }
     
     this.estaCargando = true;
     try {
-      const { nombreEmpresa } = this.formularioDatos.value;
+      const valores = this.formularioEmpresa.value;
+      const rutLimpio = valores.rut ? this.limpiarRut(valores.rut) : '';
       
       await setDoc(doc(this.firestore, 'usuarios', this.usuarioId), {
-        nombreEmpresa: nombreEmpresa || ''
+        nombreEmpresa: valores.nombreEmpresa?.trim() || '',
+        rutEmpresa: rutLimpio,
+        razonSocial: valores.razonSocial?.trim() || '',
+        giro: valores.giro?.trim() || '',
+        correoEmpresa: valores.correo?.trim() || '',
+        direccionEmpresa: valores.direccion?.trim() || '',
+        telefonoEmpresa: valores.telefono?.trim() || ''
       }, { merge: true });
       
       this.editandoEmpresa = false;

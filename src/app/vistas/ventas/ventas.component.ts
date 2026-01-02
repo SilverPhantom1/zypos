@@ -146,7 +146,7 @@ export class VentasComponent implements OnInit {
     } catch (error) {
       console.error('Error al cargar productos:', error);
       if (!this.esTrabajador()) {
-        this.mostrarToast('Error al cargar productos', 'danger');
+      this.mostrarToast('Error al cargar productos', 'danger');
       }
     } finally {
       this.estaCargandoProductos = false;
@@ -729,7 +729,7 @@ export class VentasComponent implements OnInit {
       console.error('Error al cerrar caja automáticamente:', error);
     }
   }
-
+  
   volverAtras(): void {
     this.router.navigate(['/home'], { replaceUrl: true });
   }

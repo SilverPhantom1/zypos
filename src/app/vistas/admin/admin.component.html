@@ -1,0 +1,452 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-button fill="solid" slot="start" (click)="cerrarSesion()" class="boton-volver-header">
+      <ion-icon name="log-out" slot="start"></ion-icon>
+      <span class="texto-boton-volver">Cerrar Sesión</span>
+    </ion-button>
+    <ion-title>Panel de Administrador</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="contenido-admin" [scrollY]="true">
+  <div class="ion-padding contenedor-admin" *ngIf="!verificandoAuth">
+    
+    <!-- Botón para generar informe -->
+    <div class="seccion-boton-informe">
+      <ion-button 
+        fill="solid" 
+        (click)="abrirModalInforme()" 
+        class="boton-generar-informe">
+        <ion-icon name="download" slot="start"></ion-icon>
+        Generar Informe de Estadísticas
+      </ion-button>
+    </div>
+    
+    <!-- Estadísticas -->
+    <div class="seccion-estadisticas">
+      <h2 class="titulo-seccion">Estadísticas</h2>
+      <div class="grid-estadisticas">
+        <ion-card class="tarjeta-estadistica">
+          <ion-card-header>
+            <ion-card-title>
+              <ion-icon name="people"></ion-icon>
+              Total Clientes
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="valor-estadistica">{{ estadisticas.totalClientes }}</div>
+          </ion-card-content>
+        </ion-card>
+        
+        <ion-card class="tarjeta-estadistica">
+          <ion-card-header>
+            <ion-card-title>
+              <ion-icon name="checkmark"></ion-icon>
+              Clientes Activos
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="valor-estadistica">{{ estadisticas.clientesActivos }}</div>
+          </ion-card-content>
+        </ion-card>
+        
+        <ion-card class="tarjeta-estadistica">
+          <ion-card-header>
+            <ion-card-title>
+              <ion-icon name="cash"></ion-icon>
+              Plan Free
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="valor-estadistica">{{ estadisticas.clientesFree }}</div>
+          </ion-card-content>
+        </ion-card>
+        
+        <ion-card class="tarjeta-estadistica">
+          <ion-card-header>
+            <ion-card-title>
+              <ion-icon name="cash"></ion-icon>
+              Plan Plus
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="valor-estadistica">{{ estadisticas.clientesPlus }}</div>
+          </ion-card-content>
+        </ion-card>
+      </div>
+    </div>
+
+    <!-- Búsqueda -->
+    <div class="seccion-busqueda">
+      <ion-searchbar
+        [(ngModel)]="terminoBusqueda"
+        (ionInput)="onBuscar($event)"
+        placeholder="Buscar por nombre, email o RUT"
+        class="barra-busqueda">
+      </ion-searchbar>
+    </div>
+
+    <!-- Lista de Clientes -->
+    <div class="seccion-clientes">
+      <h2 class="titulo-seccion">Clientes Registrados</h2>
+      
+      <div *ngIf="estaCargando" class="cargando">
+        <p>Cargando clientes...</p>
+      </div>
+      
+      <div *ngIf="!estaCargando">
+        <div *ngIf="clientesFiltrados.length === 0" class="sin-clientes">
+          <p *ngIf="terminoBusqueda.trim()">No se encontraron clientes con ese criterio de búsqueda.</p>
+          <p *ngIf="!terminoBusqueda.trim()">No hay clientes registrados aún.</p>
+        </div>
+        
+        <div *ngIf="clientesFiltrados.length > 0" class="lista-clientes">
+          <ion-card *ngFor="let cliente of clientesFiltrados" class="tarjeta-cliente">
+            <ion-card-header>
+              <ion-card-title class="titulo-cliente">
+                {{ cliente.nombre }}
+                <ion-badge 
+                  [color]="obtenerEstadoSuscripcion(cliente) === 'activa' ? 'success' : (obtenerEstadoSuscripcion(cliente) === 'vencida' ? 'danger' : 'warning')"
+                  class="badge-estado">
+                  {{ obtenerEstadoSuscripcion(cliente) === 'activa' ? 'Activa' : (obtenerEstadoSuscripcion(cliente) === 'vencida' ? 'Vencida' : 'Inactiva') }}
+                </ion-badge>
+              </ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <div class="info-cliente">
+                <div class="campo-info">
+                  <span class="etiqueta">Email:</span>
+                  <span class="valor">{{ cliente.email }}</span>
+                </div>
+                <div class="campo-info">
+                  <span class="etiqueta">RUT:</span>
+                  <span class="valor">{{ cliente.rut }}</span>
+                </div>
+                <div class="campo-info" *ngIf="cliente.suscripcion">
+                  <span class="etiqueta">Plan:</span>
+                  <span class="valor">{{ cliente.suscripcion.nombre || 'free' }}</span>
+                </div>
+                <div class="campo-info" *ngIf="cliente.suscripcion?.vence">
+                  <span class="etiqueta">Vence:</span>
+                  <span class="valor">{{ formatearFecha(cliente.suscripcion.vence) }}</span>
+                </div>
+                <div class="campo-info" *ngIf="cliente.creacion">
+                  <span class="etiqueta">Fecha Registro:</span>
+                  <span class="valor">{{ formatearFecha(cliente.creacion) }}</span>
+                </div>
+                <div class="campo-info">
+                  <span class="etiqueta">Email Verificado:</span>
+                  <ion-badge [color]="cliente.emailVerificado ? 'success' : 'warning'">
+                    {{ cliente.emailVerificado ? 'Sí' : 'No' }}
+                  </ion-badge>
+                </div>
+              </div>
+              
+              <div class="acciones-cliente">
+                <ion-button 
+                  fill="outline" 
+                  size="small"
+                  (click)="abrirModalEditarCliente(cliente)"
+                  class="boton-editar">
+                  <ion-icon name="create" slot="start"></ion-icon>
+                  Editar Cliente
+                </ion-button>
+                <ion-button 
+                  fill="outline" 
+                  size="small"
+                  (click)="abrirModalEditarPlan(cliente)"
+                  class="boton-editar">
+                  <ion-icon name="settings" slot="start"></ion-icon>
+                  Gestionar Plan
+                </ion-button>
+                <ion-button 
+                  fill="outline" 
+                  size="small"
+                  color="danger"
+                  (click)="eliminarCliente(cliente)"
+                  class="boton-eliminar">
+                  <ion-icon name="trash" slot="start"></ion-icon>
+                  Eliminar
+                </ion-button>
+              </div>
+            </ion-card-content>
+          </ion-card>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>
+
+<!-- Modal de Edición de Plan -->
+<ion-modal [isOpen]="mostrandoModalPlan" (willDismiss)="cerrarModal()">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>Gestionar Plan - {{ clienteEditando?.nombre }}</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="cerrarModal()">
+            <ion-icon name="close" slot="icon-only"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="contenido-modal">
+      <div class="ion-padding contenedor-formulario-modal" *ngIf="formularioPlan">
+        <form [formGroup]="formularioPlan" (ngSubmit)="guardarPlan()">
+          
+          <ion-item class="campo-formulario">
+            <ion-label position="stacked">Plan *</ion-label>
+            <ion-select formControlName="plan">
+              <ion-select-option value="free">Free</ion-select-option>
+              <ion-select-option value="plus">Plus</ion-select-option>
+            </ion-select>
+          </ion-item>
+          
+          <ion-item class="campo-formulario">
+            <ion-label position="stacked">Fecha Inicio *</ion-label>
+            <ion-input 
+              type="date" 
+              formControlName="fechaInicio">
+            </ion-input>
+          </ion-item>
+          
+          <ion-item class="campo-formulario">
+            <ion-label position="stacked">Fecha Vencimiento *</ion-label>
+            <ion-input 
+              type="date" 
+              formControlName="fechaVencimiento">
+            </ion-input>
+          </ion-item>
+          
+          <ion-item class="campo-formulario">
+            <ion-label position="stacked">Estado *</ion-label>
+            <ion-select formControlName="estado">
+              <ion-select-option value="activa">Activa</ion-select-option>
+              <ion-select-option value="inactiva">Inactiva</ion-select-option>
+              <ion-select-option value="vencida">Vencida</ion-select-option>
+            </ion-select>
+          </ion-item>
+          
+          <div class="contenedor-botones-formulario">
+            <ion-button 
+              type="submit" 
+              expand="block"
+              [disabled]="estaCargando || formularioPlan.invalid"
+              class="boton-guardar">
+              <ion-icon name="save" slot="start"></ion-icon>
+              {{ estaCargando ? 'Guardando...' : 'Guardar Cambios' }}
+            </ion-button>
+            <ion-button 
+              fill="outline" 
+              expand="block"
+              type="button"
+              (click)="cerrarModal()"
+              class="boton-cancelar">
+              Cancelar
+            </ion-button>
+          </div>
+        </form>
+      </div>
+    </ion-content>
+  </ng-template>
+</ion-modal>
+
+<!-- Modal de Generación de Informe -->
+<ion-modal [isOpen]="mostrandoModalInforme" (willDismiss)="cerrarModalInforme()">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>Generar Informe de Estadísticas</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="cerrarModalInforme()">
+            <ion-icon name="close" slot="icon-only"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="contenido-modal">
+      <div class="ion-padding contenedor-formulario-modal">
+        <div class="info-informe">
+          <p>Selecciona el formato para generar el informe de estadísticas de clientes.</p>
+          <p class="info-detalle">El informe incluirá:</p>
+          <ul class="lista-informe">
+            <li>Resumen de estadísticas generales</li>
+            <li>Total de clientes y clientes activos</li>
+            <li>Distribución por planes (Free y Plus)</li>
+            <li>Lista completa de clientes con sus datos</li>
+          </ul>
+        </div>
+
+        <ion-item class="campo-formulario">
+          <ion-label position="stacked">Formato del Informe *</ion-label>
+          <ion-select 
+            [(ngModel)]="formatoInforme" 
+            interface="action-sheet">
+            <ion-select-option value="pdf">PDF (.pdf)</ion-select-option>
+            <ion-select-option value="excel">Excel (.xlsx)</ion-select-option>
+          </ion-select>
+        </ion-item>
+
+        <div class="contenedor-botones-formulario">
+          <ion-button 
+            expand="block"
+            (click)="generarInforme()"
+            [disabled]="estaGenerandoInforme"
+            class="boton-guardar">
+            <ion-icon name="download" slot="start"></ion-icon>
+            {{ estaGenerandoInforme ? 'Generando...' : 'Generar Informe' }}
+          </ion-button>
+          <ion-button 
+            fill="outline" 
+            expand="block"
+            type="button"
+            (click)="cerrarModalInforme()"
+            class="boton-cancelar">
+            Cancelar
+          </ion-button>
+        </div>
+      </div>
+    </ion-content>
+  </ng-template>
+</ion-modal>
+
+<!-- Modal de Edición de Cliente -->
+<ion-modal [isOpen]="mostrandoModalCliente" (willDismiss)="cerrarModal()">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>Editar Cliente - {{ clienteEditando?.nombre }}</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="cerrarModal()">
+            <ion-icon name="close" slot="icon-only"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="contenido-modal">
+      <div class="ion-padding contenedor-formulario-modal" *ngIf="formularioCliente">
+        <form [formGroup]="formularioCliente" (ngSubmit)="guardarCliente()">
+          
+          <ion-item class="campo-formulario">
+            <ion-label position="stacked">Nombre *</ion-label>
+            <ion-input 
+              type="text" 
+              formControlName="nombre"
+              placeholder="Ingresa el nombre">
+            </ion-input>
+          </ion-item>
+          <div *ngIf="formularioCliente.get('nombre')?.invalid && formularioCliente.get('nombre')?.touched" 
+               class="mensaje-error">
+            El nombre es requerido
+          </div>
+          
+          <ion-item class="campo-formulario">
+            <ion-label position="stacked">Email *</ion-label>
+            <ion-input 
+              type="email" 
+              formControlName="email"
+              placeholder="Ingresa el email">
+            </ion-input>
+          </ion-item>
+          <div *ngIf="formularioCliente.get('email')?.invalid && formularioCliente.get('email')?.touched" 
+               class="mensaje-error">
+            <span *ngIf="formularioCliente.get('email')?.errors?.['required']">El email es requerido</span>
+            <span *ngIf="formularioCliente.get('email')?.errors?.['email']">El email no es válido</span>
+          </div>
+          
+          <ion-item class="campo-formulario">
+            <ion-label position="stacked">RUT *</ion-label>
+            <ion-input 
+              type="text" 
+              formControlName="rut"
+              placeholder="12.345.678-9">
+            </ion-input>
+          </ion-item>
+          <div *ngIf="formularioCliente.get('rut')?.invalid && formularioCliente.get('rut')?.touched" 
+               class="mensaje-error">
+            El RUT es requerido
+          </div>
+          
+          <div class="contenedor-botones-formulario">
+            <ion-button 
+              type="submit" 
+              expand="block"
+              [disabled]="estaCargando || formularioCliente.invalid"
+              class="boton-guardar">
+              <ion-icon name="save" slot="start"></ion-icon>
+              {{ estaCargando ? 'Guardando...' : 'Guardar Cambios' }}
+            </ion-button>
+            <ion-button 
+              fill="outline" 
+              expand="block"
+              type="button"
+              (click)="cerrarModal()"
+              class="boton-cancelar">
+              Cancelar
+            </ion-button>
+          </div>
+        </form>
+      </div>
+    </ion-content>
+  </ng-template>
+</ion-modal>
+
+<!-- Modal de Generación de Informe -->
+<ion-modal [isOpen]="mostrandoModalInforme" (willDismiss)="cerrarModalInforme()">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>Generar Informe de Estadísticas</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="cerrarModalInforme()">
+            <ion-icon name="close" slot="icon-only"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="contenido-modal">
+      <div class="ion-padding contenedor-formulario-modal">
+        <div class="info-informe">
+          <p>Selecciona el formato para generar el informe de estadísticas de clientes.</p>
+          <p class="info-detalle">El informe incluirá:</p>
+          <ul class="lista-informe">
+            <li>Resumen de estadísticas generales</li>
+            <li>Total de clientes y clientes activos</li>
+            <li>Distribución por planes (Free y Plus)</li>
+            <li>Lista completa de clientes con sus datos</li>
+          </ul>
+        </div>
+
+        <ion-item class="campo-formulario">
+          <ion-label position="stacked">Formato del Informe *</ion-label>
+          <ion-select 
+            [(ngModel)]="formatoInforme" 
+            interface="action-sheet">
+            <ion-select-option value="pdf">PDF (.pdf)</ion-select-option>
+            <ion-select-option value="excel">Excel (.xlsx)</ion-select-option>
+          </ion-select>
+        </ion-item>
+
+        <div class="contenedor-botones-formulario">
+          <ion-button 
+            expand="block"
+            (click)="generarInforme()"
+            [disabled]="estaGenerandoInforme"
+            class="boton-guardar">
+            <ion-icon name="download" slot="start"></ion-icon>
+            {{ estaGenerandoInforme ? 'Generando...' : 'Generar Informe' }}
+          </ion-button>
+          <ion-button 
+            fill="outline" 
+            expand="block"
+            type="button"
+            (click)="cerrarModalInforme()"
+            class="boton-cancelar">
+            Cancelar
+          </ion-button>
+        </div>
+      </div>
+    </ion-content>
+  </ng-template>
+</ion-modal>
+

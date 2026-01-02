@@ -14,6 +14,9 @@
       <ion-segment-button value="trabajador">
         <ion-label>Trabajador</ion-label>
       </ion-segment-button>
+      <ion-segment-button value="administrador">
+        <ion-label>Administrador</ion-label>
+      </ion-segment-button>
     </ion-segment>
 
     <!-- Formulario Propietario -->
@@ -160,6 +163,67 @@
       <div class="link-registro">
         <p>¿Eres propietario? <a (click)="tipoLogin = 'propietario'">Inicia sesión aquí</a></p>
       </div>
+
+    </form>
+
+    <!-- Formulario Administrador -->
+    <form *ngIf="tipoLogin === 'administrador'" [formGroup]="formularioAdmin" (ngSubmit)="enviarFormulario()">
+      
+      <!-- Email -->
+      <ion-item class="campo-formulario">
+        <ion-label position="stacked">Email de Administrador</ion-label>
+        <ion-input 
+          type="email" 
+          formControlName="email"
+          placeholder="admin@zypos.com">
+        </ion-input>
+      </ion-item>
+      <div *ngIf="formularioAdmin.get('email')?.invalid && (formularioAdmin.get('email')?.touched || formularioAdmin.get('email')?.dirty)" 
+           class="mensaje-error">
+        <span *ngIf="formularioAdmin.get('email')?.errors?.['required']">
+          El email es requerido
+        </span>
+        <span *ngIf="formularioAdmin.get('email')?.errors?.['email']">
+          Ingresa un email válido
+        </span>
+      </div>
+
+      <!-- Contraseña -->
+      <ion-item class="campo-formulario">
+        <ion-label position="stacked">Contraseña</ion-label>
+        <ion-input 
+          [type]="mostrarContrasena ? 'text' : 'password'" 
+          formControlName="contraseña"
+          placeholder="Ingresa tu contraseña">
+        </ion-input>
+        <ion-button 
+          fill="clear" 
+          slot="end" 
+          (click)="alternarVisibilidadContrasena()"
+          class="boton-ojo">
+          <ion-icon [name]="mostrarContrasena ? 'eye-off' : 'eye'"></ion-icon>
+        </ion-button>
+      </ion-item>
+      <div *ngIf="formularioAdmin.get('contraseña')?.invalid && (formularioAdmin.get('contraseña')?.touched || formularioAdmin.get('contraseña')?.dirty)" 
+           class="mensaje-error">
+        <span *ngIf="formularioAdmin.get('contraseña')?.errors?.['required']">
+          La contraseña es requerida
+        </span>
+      </div>
+
+      <div class="mensaje-error" *ngIf="mensajeError">
+        {{ mensajeError }}
+      </div>
+
+      <!-- Botón para el formulario -->
+      <ion-button 
+        expand="block" 
+        type="submit" 
+        class="boton-login"
+        [disabled]="formularioAdmin.invalid || estaCargando">
+        <span *ngIf="!estaCargando">Iniciar Sesión Administrador</span>
+        <span *ngIf="estaCargando">Iniciando sesión...</span>
+      </ion-button>
 
     </form>
   </div>

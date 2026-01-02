@@ -65,5 +65,9 @@ export const routes: Routes = [
   {
     path: 'gestion-trabajadores',
     loadComponent: () => import('./vistas/gestion-trabajadores/gestion-trabajadores.component').then(m => m.GestionTrabajadoresComponent)
+  },
+  {
+    path: 'admin',
+    loadComponent: () => import('./vistas/admin/admin.component').then(m => m.AdminComponent)
   }
 ];

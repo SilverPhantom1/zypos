@@ -1,0 +1,297 @@
+.contenido-admin {
+  --background: #f5f5f5;
+}
+
+.contenedor-admin {
+  max-width: 1200px;
+  margin: 0 auto;
+  background: #f5f5f5;
+}
+
+.titulo-seccion {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #1a1a1a;
+}
+
+// Estadísticas
+.seccion-estadisticas {
+  margin-bottom: 2rem;
+}
+
+.grid-estadisticas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.tarjeta-estadistica {
+  text-align: center;
+  --background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  
+  ion-card-header {
+    padding-bottom: 0.5rem;
+    background: #ffffff;
+  }
+  
+  ion-card-title {
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    color: #333333;
+    
+    ion-icon {
+      font-size: 1.5rem;
+      color: #3880ff;
+    }
+  }
+  
+  ion-card-content {
+    background: #ffffff;
+    padding: 1rem;
+  }
+}
+
+.valor-estadistica {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #3880ff;
+}
+
+// Búsqueda
+.seccion-busqueda {
+  margin-bottom: 2rem;
+}
+
+.barra-busqueda {
+  --background: #ffffff;
+  --border-radius: 8px;
+  --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --color: #1a1a1a;
+  --placeholder-color: #666666;
+}
+
+// Clientes
+.seccion-clientes {
+  margin-bottom: 2rem;
+}
+
+.cargando, .sin-clientes {
+  text-align: center;
+  padding: 2rem;
+  color: #666666;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.lista-clientes {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.tarjeta-cliente {
+  --background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  margin: 0;
+}
+
+.titulo-cliente {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 1.2rem;
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
+.badge-estado {
+  margin-left: auto;
+}
+
+.info-cliente {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  background: #ffffff;
+}
+
+.campo-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  
+  .etiqueta {
+    font-weight: 600;
+    color: #666666;
+    min-width: 120px;
+    font-size: 0.95rem;
+  }
+  
+  .valor {
+    color: #1a1a1a;
+    font-size: 0.95rem;
+  }
+}
+
+.acciones-cliente {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e0e0e0;
+}
+
+.boton-editar {
+  --border-radius: 8px;
+  --color: #3880ff;
+  --border-color: #3880ff;
+}
+
+.boton-eliminar {
+  --border-radius: 8px;
+  --color: #dc3545;
+  --border-color: #dc3545;
+}
+
+.mensaje-error {
+  color: #dc3545;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  margin-bottom: 0.5rem;
+  padding-left: 0.5rem;
+}
+
+// Modal
+.contenido-modal {
+  --background: #f5f5f5;
+}
+
+.contenedor-formulario-modal {
+  max-width: 600px;
+  margin: 0 auto;
+  background: #f5f5f5;
+}
+
+.campo-formulario {
+  --background: #ffffff;
+  --border-radius: 8px;
+  margin-bottom: 1rem;
+  --color: #1a1a1a;
+  --border-color: #e0e0e0;
+  
+  ion-label {
+    color: #333333;
+    font-weight: 500;
+  }
+  
+  ion-input, ion-select {
+    color: #1a1a1a;
+  }
+}
+
+.contenedor-botones-formulario {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.boton-guardar {
+  --border-radius: 8px;
+}
+
+.boton-cancelar {
+  --border-radius: 8px;
+}
+
+.boton-volver-header {
+  --border-radius: 8px;
+  --background: #dc3545;
+  --color: #ffffff;
+  
+  .texto-boton-volver {
+    color: #ffffff;
+  }
+}
+
+// Asegurar que el toolbar tenga buen contraste
+ion-toolbar {
+  --background: #ffffff;
+  --color: #1a1a1a;
+  
+  ion-title {
+    color: #1a1a1a;
+    font-weight: 600;
+  }
+}
+
+// Botón de generar informe
+.seccion-boton-informe {
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.boton-generar-informe {
+  --background: #3880ff;
+  --color: #ffffff;
+  --border-radius: 8px;
+  font-weight: 500;
+}
+
+.info-informe {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  
+  p {
+    color: #333333;
+    margin: 0.5rem 0;
+    font-size: 0.95rem;
+  }
+  
+  .info-detalle {
+    font-weight: 600;
+    margin-top: 1rem;
+    color: #1a1a1a;
+  }
+  
+  .lista-informe {
+    margin: 0.5rem 0 0 1.5rem;
+    padding: 0;
+    color: #666666;
+    
+    li {
+      margin: 0.5rem 0;
+      font-size: 0.9rem;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .grid-estadisticas {
+    grid-template-columns: 1fr;
+  }
+  
+  .campo-info {
+    flex-direction: column;
+    align-items: flex-start;
+    
+    .etiqueta {
+      min-width: auto;
+    }
+  }
+}
+

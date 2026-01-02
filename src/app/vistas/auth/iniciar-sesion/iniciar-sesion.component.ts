@@ -19,10 +19,15 @@ import { Firestore, collection, getDocs, doc, getDoc, updateDoc, query, where } 
 export class IniciarSesionComponent implements OnInit {
   formularioLogin!: FormGroup;
   formularioTrabajador!: FormGroup;
-  tipoLogin: 'propietario' | 'trabajador' = 'propietario';
+  formularioAdmin!: FormGroup;
+  tipoLogin: 'propietario' | 'trabajador' | 'administrador' = 'propietario';
   estaCargando: boolean = false;
   mensajeError: string = '';
   mostrarContrasena: boolean = false;
+  
+  // Credenciales de administrador (deberían estar en variables de entorno en producción)
+  private readonly ADMIN_EMAIL = 'admin@zypos.com';
+  private readonly ADMIN_PASSWORD = 'AdminZypos2024!';
 
   constructor(
     private formBuilder: FormBuilder,
@@ -44,6 +49,11 @@ export class IniciarSesionComponent implements OnInit {
       rutTrabajador: ['', [Validators.required, this.validarRut.bind(this)]],
       rutEmpleador: ['', [Validators.required, this.validarRut.bind(this)]],
       emailEmpleador: ['', [Validators.required, Validators.email]]
+    });
+
+    this.formularioAdmin = this.formBuilder.group({
+      email: ['', [Validators.required, Validators.email]],
+      contraseña: ['', [Validators.required]]
     });
   }
 
@@ -105,7 +115,37 @@ export class IniciarSesionComponent implements OnInit {
   }
 
   async enviarFormulario() {
-    if (this.tipoLogin === 'propietario') {
+    if (this.tipoLogin === 'administrador') {
+      if (this.formularioAdmin.valid) {
+        this.estaCargando = true;
+        
+        try {
+          const { email, contraseña } = this.formularioAdmin.value;
+          
+          // Verificar credenciales de administrador
+          if (email.toLowerCase().trim() === this.ADMIN_EMAIL && contraseña === this.ADMIN_PASSWORD) {
+            // Guardar sesión de administrador en sessionStorage
+            sessionStorage.setItem('zypos_sesion_administrador', 'true');
+            sessionStorage.setItem('zypos_admin_email', email.toLowerCase().trim());
+            
+            this.router.navigate(['/admin']);
+          } else {
+            this.mensajeError = 'Credenciales de administrador incorrectas.';
+            this.mostrarToast(this.mensajeError, 'danger');
+          }
+        } catch (error: any) {
+          console.error('Error al iniciar sesión como administrador:', error);
+          this.mensajeError = 'Error al iniciar sesión. Por favor, intenta nuevamente.';
+          this.mostrarToast(this.mensajeError, 'danger');
+        } finally {
+          this.estaCargando = false;
+        }
+      } else {
+        Object.keys(this.formularioAdmin.controls).forEach(key => {
+          this.formularioAdmin.get(key)?.markAsTouched();
+        });
+      }
+    } else if (this.tipoLogin === 'propietario') {
     if (this.formularioLogin.valid) {
       this.estaCargando = true;
       

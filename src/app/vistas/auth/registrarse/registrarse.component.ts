@@ -227,51 +227,123 @@ export class RegistrarseComponent implements OnInit {
           }
         }
         
-        // NO crear cuenta en Auth todavía
-        // Guardar datos temporalmente en sessionStorage para crear la cuenta después de verificar
-        const datosRegistro = {
-          nombre: nombre,
-          rut: rutLimpio,
-          email: email,
-          contraseña: contraseña
-        };
-        sessionStorage.setItem('zypos_datos_registro_pendiente', JSON.stringify(datosRegistro));
+        // TEMPORALMENTE DESHABILITADO: Verificación de email
+        // TODO: Habilitar nuevamente cuando se configure el dominio en Resend
+        // 
+        // // NO crear cuenta en Auth todavía
+        // // Guardar datos temporalmente en sessionStorage para crear la cuenta después de verificar
+        // const datosRegistro = {
+        //   nombre: nombre,
+        //   rut: rutLimpio,
+        //   email: email,
+        //   contraseña: contraseña
+        // };
+        // sessionStorage.setItem('zypos_datos_registro_pendiente', JSON.stringify(datosRegistro));
 
-        // Enviar código de verificación
+        // // Enviar código de verificación
+        // try {
+        //   const response = await fetch(`${environment.vercelUrl}/api/enviar-codigo-verificacion`, {
+        //     method: 'POST',
+        //     headers: {
+        //       'Content-Type': 'application/json',
+        //     },
+        //     body: JSON.stringify({
+        //       email: email,
+        //       nombre: nombre
+        //     })
+        //   });
+
+        //   const data = await response.json();
+
+        //   if (!response.ok) {
+        //     console.error('Error al enviar código:', data);
+        //     sessionStorage.removeItem('zypos_datos_registro_pendiente');
+        //     throw new Error(data.error || 'Error al enviar el código de verificación');
+        //   }
+
+        //   // Guardar fecha de expiración en sessionStorage para evitar envío duplicado
+        //   if (data.fechaExpiracion) {
+        //     sessionStorage.setItem('zypos_codigo_expiracion', data.fechaExpiracion.toString());
+        //   }
+
+        //   this.mostrarToast('Código de verificación enviado a tu email', 'success');
+        // } catch (error: any) {
+        //   console.error('Error al enviar código de verificación:', error);
+        //   sessionStorage.removeItem('zypos_datos_registro_pendiente');
+        //   this.mostrarToast(error.message || 'Error al enviar el código de verificación. Intenta nuevamente.', 'danger');
+        //   this.estaCargando = false;
+        //   return;
+        // }
+
+        // // Redirigir a la página de verificación
+        // this.router.navigate(['/verificar-email'], { 
+        //   replaceUrl: true,
+        //   queryParams: { email: email }
+        // });
+
+        // CREAR CUENTA DIRECTAMENTE (SIN VERIFICACIÓN DE EMAIL - TEMPORAL)
         try {
-          const response = await fetch(`${environment.vercelUrl}/api/enviar-codigo-verificacion`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
+          // Crear usuario en Firebase Auth
+          const credencialUsuario = await createUserWithEmailAndPassword(
+            this.auth,
+            emailNormalizado,
+            contraseña
+          );
+
+          const usuarioId = credencialUsuario.user.uid;
+          
+          // Configurar plan gratuito (30 días)
+          const fechaActual = new Date();
+          const fechaInicio = Timestamp.fromDate(fechaActual);
+          const fechaVencimiento = new Date(fechaActual);
+          fechaVencimiento.setDate(fechaVencimiento.getDate() + 30);
+          const fechaVencimientoTimestamp = Timestamp.fromDate(fechaVencimiento);
+          
+          const fechaCreacion = serverTimestamp();
+
+          // Crear documento en Firestore con plan gratuito
+          const usuarioRef = doc(this.firestore, 'usuarios', usuarioId);
+          await setDoc(usuarioRef, {
+            nombre: nombre,
+            rut: rutLimpio,
+            email: emailNormalizado,
+            creacion: fechaCreacion,
+            emailVerificado: true, // Temporalmente marcado como verificado
+            fechaVerificacionEmail: Timestamp.now(),
+            suscripcion: {
+              nombre: 'free',
+              vence: fechaVencimientoTimestamp,
+              fechaInicio: fechaInicio,
+              estado: 'activa'
             },
-            body: JSON.stringify({
-              email: email,
-              nombre: nombre
-            })
+            planGratuitoUsado: true
           });
 
-          const data = await response.json();
-
-          if (!response.ok) {
-            console.error('Error al enviar código:', data);
-            sessionStorage.removeItem('zypos_datos_registro_pendiente');
-            throw new Error(data.error || 'Error al enviar el código de verificación');
+          this.mostrarToast('Cuenta creada exitosamente', 'success');
+          
+          // Redirigir a planes (igual que cuando se verificaba el email)
+          setTimeout(() => {
+            this.router.navigate(['/planes'], { replaceUrl: true });
+          }, 2000);
+        } catch (errorAuth: any) {
+          console.error('Error al crear cuenta:', errorAuth);
+          
+          let mensajeError = 'Error al crear la cuenta. Por favor, intenta nuevamente.';
+          
+          if (errorAuth.code === 'auth/email-already-in-use') {
+            mensajeError = 'Este email ya está registrado. Por favor, usa otro email o inicia sesión.';
+          } else if (errorAuth.code === 'auth/weak-password') {
+            mensajeError = 'La contraseña es muy débil. Usa una contraseña más segura.';
+          } else if (errorAuth.code === 'auth/invalid-email') {
+            mensajeError = 'El email no es válido. Por favor, verifica el formato.';
+          } else if (errorAuth.code === 'auth/network-request-failed') {
+            mensajeError = 'Error de conexión. Verifica tu internet e intenta nuevamente.';
           }
-
-          this.mostrarToast('Código de verificación enviado a tu email', 'success');
-        } catch (error: any) {
-          console.error('Error al enviar código de verificación:', error);
-          sessionStorage.removeItem('zypos_datos_registro_pendiente');
-          this.mostrarToast(error.message || 'Error al enviar el código de verificación. Intenta nuevamente.', 'danger');
+          
+          this.mostrarToast(mensajeError, 'danger');
           this.estaCargando = false;
           return;
         }
-
-        // Redirigir a la página de verificación
-        this.router.navigate(['/verificar-email'], { 
-          replaceUrl: true,
-          queryParams: { email: email }
-        });
         
       } catch (error: any) {
         console.error('Error al registrar usuario:', error);

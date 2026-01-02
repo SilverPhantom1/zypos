@@ -73,22 +73,93 @@
         <h2 class="titulo-seccion">Datos de Empresa</h2>
         
         <div *ngIf="!editandoEmpresa" class="datos-visualizacion">
-          <div class="campo-dato">
+          <div class="campo-dato" *ngIf="datosUsuario.nombreEmpresa">
             <span class="label-dato">Nombre de Empresa:</span>
-            <span class="valor-dato">{{ datosUsuario.nombreEmpresa || 'No especificado' }}</span>
+            <span class="valor-dato">{{ datosUsuario.nombreEmpresa }}</span>
+          </div>
+          <div class="campo-dato" *ngIf="datosUsuario.rutEmpresa">
+            <span class="label-dato">RUT:</span>
+            <span class="valor-dato">{{ datosUsuario.rutEmpresa }}</span>
+          </div>
+          <div class="campo-dato" *ngIf="datosUsuario.razonSocial">
+            <span class="label-dato">Razón Social:</span>
+            <span class="valor-dato">{{ datosUsuario.razonSocial }}</span>
+          </div>
+          <div class="campo-dato" *ngIf="datosUsuario.giro">
+            <span class="label-dato">Giro:</span>
+            <span class="valor-dato">{{ datosUsuario.giro }}</span>
+          </div>
+          <div class="campo-dato" *ngIf="datosUsuario.correoEmpresa">
+            <span class="label-dato">Correo:</span>
+            <span class="valor-dato">{{ datosUsuario.correoEmpresa }}</span>
+          </div>
+          <div class="campo-dato" *ngIf="datosUsuario.direccionEmpresa">
+            <span class="label-dato">Dirección:</span>
+            <span class="valor-dato">{{ datosUsuario.direccionEmpresa }}</span>
+          </div>
+          <div class="campo-dato" *ngIf="datosUsuario.telefonoEmpresa">
+            <span class="label-dato">Teléfono:</span>
+            <span class="valor-dato">{{ datosUsuario.telefonoEmpresa }}</span>
           </div>
           <ion-button fill="outline" size="small" (click)="editandoEmpresa = true" class="boton-editar">
             {{ datosUsuario.nombreEmpresa ? 'Editar' : 'Agregar' }} Empresa
           </ion-button>
         </div>
         
-        <form [formGroup]="formularioDatos" *ngIf="editandoEmpresa" class="formulario-edicion">
+        <form [formGroup]="formularioEmpresa" *ngIf="editandoEmpresa" class="formulario-edicion">
           <ion-item class="campo-formulario">
             <ion-label position="stacked">Nombre de Empresa</ion-label>
             <ion-input type="text" formControlName="nombreEmpresa" placeholder="Nombre de tu empresa"></ion-input>
           </ion-item>
           
-          <ion-button expand="block" (click)="guardarEmpresa()" [disabled]="estaCargando" class="boton-guardar">
+          <ion-item class="campo-formulario">
+            <ion-label position="stacked">RUT</ion-label>
+            <ion-input 
+              type="text" 
+              formControlName="rut"
+              placeholder="12.345.678-9 (opcional)"
+              (ionInput)="formatearRutInput($event)">
+            </ion-input>
+          </ion-item>
+          <div *ngIf="formularioEmpresa.get('rut')?.invalid && formularioEmpresa.get('rut')?.touched" 
+               class="mensaje-error">
+            El RUT no es válido
+          </div>
+          
+          <ion-item class="campo-formulario">
+            <ion-label position="stacked">Razón Social</ion-label>
+            <ion-input type="text" formControlName="razonSocial" placeholder="Razón social (opcional)"></ion-input>
+          </ion-item>
+          
+          <ion-item class="campo-formulario">
+            <ion-label position="stacked">Giro</ion-label>
+            <ion-input type="text" formControlName="giro" placeholder="Giro comercial (opcional)"></ion-input>
+          </ion-item>
+          
+          <ion-item class="campo-formulario">
+            <ion-label position="stacked">Correo</ion-label>
+            <ion-input type="email" formControlName="correo" placeholder="correo@empresa.com (opcional)"></ion-input>
+          </ion-item>
+          <div *ngIf="formularioEmpresa.get('correo')?.invalid && formularioEmpresa.get('correo')?.touched" 
+               class="mensaje-error">
+            El correo no es válido
+          </div>
+          
+          <ion-item class="campo-formulario">
+            <ion-label position="stacked">Dirección</ion-label>
+            <ion-input type="text" formControlName="direccion" placeholder="Dirección (opcional)"></ion-input>
+          </ion-item>
+          
+          <ion-item class="campo-formulario">
+            <ion-label position="stacked">Teléfono</ion-label>
+            <ion-input type="tel" formControlName="telefono" placeholder="+56 9 1234 5678 (opcional)"></ion-input>
+          </ion-item>
+          <div *ngIf="formularioEmpresa.get('telefono')?.invalid && formularioEmpresa.get('telefono')?.touched" 
+               class="mensaje-error">
+            El teléfono no es válido
+          </div>
+          
+          <ion-button expand="block" (click)="guardarEmpresa()" [disabled]="estaCargando || formularioEmpresa.invalid" class="boton-guardar">
             Guardar
           </ion-button>
           <ion-button expand="block" fill="outline" (click)="editandoEmpresa = false" class="boton-cancelar">

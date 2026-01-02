@@ -62,6 +62,16 @@
           </ion-card-header>
           <ion-card-content>
             <div class="info-proveedor">
+              <div class="campo-info" *ngIf="proveedor.rut">
+                <ion-icon name="documentText" class="icono-campo"></ion-icon>
+                <span class="etiqueta">RUT:</span>
+                <span class="valor">{{ proveedor.rut }}</span>
+              </div>
+              <div class="campo-info" *ngIf="proveedor.razonSocial">
+                <ion-icon name="storefront" class="icono-campo"></ion-icon>
+                <span class="etiqueta">Razón Social:</span>
+                <span class="valor">{{ proveedor.razonSocial }}</span>
+              </div>
               <div class="campo-info" *ngIf="proveedor.telefono">
                 <ion-icon name="call" class="icono-campo"></ion-icon>
                 <span class="etiqueta">Teléfono:</span>
@@ -143,6 +153,31 @@
                class="mensaje-error">
             El nombre es requerido
           </div>
+
+          <!-- RUT -->
+          <ion-item class="campo-formulario">
+            <ion-label position="stacked">RUT</ion-label>
+            <ion-input 
+              type="text" 
+              formControlName="rut"
+              placeholder="12.345.678-9 (opcional)"
+              (ionInput)="formatearRutInput($event)">
+            </ion-input>
+          </ion-item>
+          <div *ngIf="formularioProveedor.get('rut')?.invalid && formularioProveedor.get('rut')?.touched" 
+               class="mensaje-error">
+            El RUT no es válido
+          </div>
+
+          <!-- Razón Social -->
+          <ion-item class="campo-formulario">
+            <ion-label position="stacked">Razón Social</ion-label>
+            <ion-input 
+              type="text" 
+              formControlName="razonSocial"
+              placeholder="Ingresa la razón social (opcional)">
+            </ion-input>
+          </ion-item>
 
           <!-- Teléfono -->
           <ion-item class="campo-formulario">
