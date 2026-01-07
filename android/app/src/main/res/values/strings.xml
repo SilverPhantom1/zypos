@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">ZYPOS</string>
+    <string name="title_activity_main">ZYPOS</string>
+    <string name="package_name">com.zypos.app</string>
+    <string name="custom_url_scheme">com.zypos.app</string>
+</resources>

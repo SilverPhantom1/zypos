@@ -28,7 +28,7 @@
         Ingresa el código que recibiste en tu correo electrónico para completar tu registro.
       </p>
 
-      <!-- Contador de tiempo -->
+      
       <div *ngIf="fechaExpiracion && tiempoRestante !== '00:00'" class="contador-tiempo">
         <ion-icon name="time-outline"></ion-icon>
         <span class="texto-contador">Tiempo restante: <strong>{{ tiempoRestante }}</strong></span>
@@ -51,7 +51,7 @@
           </ion-input>
         </ion-item>
         
-        <!-- Mensaje de error -->
+        
         <div *ngIf="formularioVerificacion.get('codigo')?.invalid && (formularioVerificacion.get('codigo')?.touched || formularioVerificacion.get('codigo')?.dirty)" 
              class="mensaje-error">
           <span *ngIf="formularioVerificacion.get('codigo')?.errors?.['required']">

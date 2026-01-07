@@ -20,14 +20,14 @@
 <ion-content [fullscreen]="true" class="contenido-ventas" [scrollY]="true">
   <div class="contenedor-ventas" *ngIf="!verificandoAuth">
     
-    <!-- Sección de Productos -->
+    
     <div class="seccion-productos">
       <h2 class="titulo-seccion-productos">
         <ion-icon name="cube"></ion-icon>
         Productos
       </h2>
     
-    <!-- Búsqueda de productos -->
+    
     <div class="seccion-busqueda">
       <div class="contenedor-busqueda">
         <ion-searchbar
@@ -45,7 +45,7 @@
         </ion-button>
       </div>
       
-      <!-- Lista de productos -->
+      
       <div *ngIf="!mostrandoBusqueda && productos.length > 0" class="lista-productos-completa">
         <div class="grid-productos">
           <ion-card 
@@ -74,7 +74,7 @@
         </div>
       </div>
       
-      <!-- Resultados de búsqueda -->
+      
       <div *ngIf="mostrandoBusqueda && productosFiltrados.length > 0" class="resultados-busqueda">
         <ion-card 
           *ngFor="let producto of productosFiltrados"
@@ -108,7 +108,7 @@
       </div>
     </div>
 
-    <!-- Carrito de compras -->
+    
     <div class="seccion-carrito">
       <div class="header-carrito">
         <h2 class="titulo-carrito">
@@ -137,7 +137,7 @@
         </div>
       </div>
 
-      <!-- Lista de productos en el carrito -->
+      
       <div *ngIf="carrito.length > 0" class="lista-carrito">
         <ion-card 
           *ngFor="let item of carrito"
@@ -178,14 +178,14 @@
         </ion-card>
       </div>
 
-      <!-- Carrito vacío -->
+      
       <div *ngIf="carrito.length === 0" class="carrito-vacio">
         <ion-icon name="cart" class="icono-carrito-vacio"></ion-icon>
         <p>El carrito está vacío</p>
         <p class="subtitulo-vacio">Busca productos y agrégalos al carrito para comenzar una venta</p>
       </div>
 
-      <!-- Total y botón de pago -->
+      
       <div *ngIf="carrito.length > 0" class="resumen-venta">
         <div class="desglose-iva">
           <div class="linea-desglose">
@@ -218,7 +218,7 @@
   </div>
 </ion-content>
 
-<!-- Modal de Pago -->
+
 <ion-modal [isOpen]="mostrandoModalPago" (willDismiss)="cerrarModalPago()">
   <ng-template>
     <ion-header>
@@ -234,7 +234,7 @@
     <ion-content class="contenido-modal-pago">
       <div class="ion-padding contenedor-modal-pago">
         
-        <!-- Resumen de la venta -->
+        
         <div class="resumen-venta-modal">
           <h3>Resumen de Venta</h3>
           <div class="lista-productos-modal">
@@ -259,7 +259,7 @@
           </div>
         </div>
 
-        <!-- Selección de método de pago -->
+        
         <div class="seccion-metodo-pago">
           <h3>Método de Pago</h3>
           
@@ -284,7 +284,7 @@
           </div>
         </div>
 
-        <!-- Campos específicos según método de pago -->
+        
         <div *ngIf="metodoPago === 'efectivo'" class="campos-efectivo">
           <ion-item>
             <ion-label position="stacked">Monto Recibido (CLP)</ion-label>
@@ -322,7 +322,7 @@
           <p class="texto-ayuda">Ingresa el monto recibido por transferencia</p>
         </div>
 
-        <!-- Botón de confirmar -->
+        
         <div class="botones-accion-modal">
           <ion-button 
             expand="block"
@@ -346,7 +346,7 @@
   </ng-template>
 </ion-modal>
 
-<!-- Modal de Apertura de Caja -->
+
 <ion-modal #modalAperturaCaja [isOpen]="mostrandoModalAperturaCaja">
   <ng-template>
     <ion-header>
@@ -380,7 +380,7 @@
   </ng-template>
 </ion-modal>
 
-<!-- Modal de Cierre de Caja -->
+
 <ion-modal [isOpen]="mostrandoModalCierreCaja">
   <ng-template>
     <ion-header>

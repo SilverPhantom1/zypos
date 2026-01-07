@@ -11,6 +11,7 @@ import { CloudinaryService } from '../../servicios/cloudinary.service';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Capacitor } from '@capacitor/core';
 import { BrowserMultiFormatReader } from '@zxing/library';
+import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
 import JsBarcode from 'jsbarcode';
 
 @Component({
@@ -67,7 +68,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked, AfterViewI
   categoriaEditando: any = null;
   estaCargandoCategoria: boolean = false;
   
-  // Para pistola lectora
   procesandoCodigo: boolean = false;
   ultimaBusqueda: string = '';
   tiempoUltimaBusqueda: number = 0;
@@ -116,7 +116,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked, AfterViewI
   @ViewChild('searchbar', { static: false }) searchbar!: any;
 
   ngAfterViewInit() {
-    // Exponer función de prueba en la consola para desarrollo
     if (typeof window !== 'undefined') {
       (window as any).simularEscaneoPistola = (codigo: string) => {
         this.terminoBusqueda = codigo;
@@ -124,8 +123,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked, AfterViewI
       };
       console.log('💡 Modo de prueba activado. Usa: simularEscaneoPistola("1234567890123") en la consola');
     }
-    
-    // Agregar listener directo al input del searchbar para capturar Enter
     setTimeout(() => {
       if (this.searchbar && this.searchbar.el) {
         const inputElement = this.searchbar.el.querySelector('input');
@@ -261,8 +258,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked, AfterViewI
         ...doc.data()
       }));
     } catch (error: any) {
-      // Silenciar el error si es por permisos o colección inexistente (esperado por ahora)
-      // Solo log en consola para desarrollo, no mostrar toast al usuario
       if (error.code !== 'permission-denied' && error.code !== 'missing-or-insufficient-permissions') {
         console.error('Error al cargar proveedores:', error);
       }
@@ -284,18 +279,45 @@ export class InventarioComponent implements OnInit, AfterViewChecked, AfterViewI
       return;
     }
 
+    const actionSheet = await this.actionSheetController.create({
+      header: 'Seleccionar foto',
+      buttons: [
+        {
+          text: 'Tomar foto',
+          icon: 'camera',
+          handler: () => {
+            this.tomarFoto();
+          }
+        },
+        {
+          text: 'Elegir de galería',
+          icon: 'image',
+          handler: () => {
+            this.elegirDeGaleria();
+          }
+        },
+        {
+          text: 'Cancelar',
+          role: 'cancel'
+        }
+      ]
+    });
+
+    await actionSheet.present();
+  }
+
+  async tomarFoto() {
     try {
       const imagen = await Camera.getPhoto({
         quality: 80,
         allowEditing: false,
         resultType: CameraResultType.DataUrl,
-        source: CameraSource.Prompt // Permite elegir entre cámara o galería
+        source: CameraSource.Camera
       });
 
       if (imagen.dataUrl) {
         this.fotoSeleccionada = imagen.dataUrl;
         
-        // Convertir dataUrl a File para subir a Storage
         const respuesta = await fetch(imagen.dataUrl);
         const blob = await respuesta.blob();
         const nombreArchivo = `producto_${Date.now()}.${imagen.format || 'jpg'}`;
@@ -303,7 +325,32 @@ export class InventarioComponent implements OnInit, AfterViewChecked, AfterViewI
       }
     } catch (error: any) {
       if (error.message !== 'User cancelled photos app' && !error.message?.includes('cancel')) {
-        console.error('Error al seleccionar foto:', error);
+        console.error('Error al tomar foto:', error);
+        this.mostrarToast('Error al tomar la foto', 'danger');
+      }
+    }
+  }
+
+  async elegirDeGaleria() {
+    try {
+      const imagen = await Camera.getPhoto({
+        quality: 80,
+        allowEditing: false,
+        resultType: CameraResultType.DataUrl,
+        source: CameraSource.Photos
+      });
+
+      if (imagen.dataUrl) {
+        this.fotoSeleccionada = imagen.dataUrl;
+        
+        const respuesta = await fetch(imagen.dataUrl);
+        const blob = await respuesta.blob();
+        const nombreArchivo = `producto_${Date.now()}.${imagen.format || 'jpg'}`;
+        this.archivoFoto = new File([blob], nombreArchivo, { type: blob.type });
+      }
+    } catch (error: any) {
+      if (error.message !== 'User cancelled photos app' && !error.message?.includes('cancel')) {
+        console.error('Error al seleccionar foto de galería:', error);
         this.mostrarToast('Error al seleccionar la foto', 'danger');
       }
     }
@@ -330,7 +377,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked, AfterViewI
       }
 
       try {
-        // Leer archivo como data URL para preview
         const reader = new FileReader();
         reader.onload = (e: any) => {
           this.fotoSeleccionada = e.target.result;
@@ -344,7 +390,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked, AfterViewI
       }
     };
 
-    // Simular click en el input
     input.click();
   }
 
@@ -538,7 +583,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked, AfterViewI
     await toast.present();
   }
 
-  // Volver al home
   volverAtras() {
     this.router.navigate(['/home'], { replaceUrl: true });
   }
@@ -557,7 +601,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked, AfterViewI
         ...doc.data()
       }));
       
-      // Aplicar filtros y ordenamiento
       this.aplicarFiltrosYOrdenamiento();
       
       setTimeout(() => {
@@ -572,11 +615,9 @@ export class InventarioComponent implements OnInit, AfterViewChecked, AfterViewI
     }
   }
 
-  // Aplicar filtros y ordenamiento
   aplicarFiltrosYOrdenamiento() {
     let productosFiltrados = [...this.productos];
     
-    // Filtro por búsqueda
     if (this.terminoBusqueda.trim()) {
       const busqueda = this.terminoBusqueda.toLowerCase().trim();
       productosFiltrados = productosFiltrados.filter(producto => {
@@ -592,7 +633,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked, AfterViewI
       });
     }
     
-    // Filtro por categoría
     if (this.categoriaFiltro !== 'todas') {
       productosFiltrados = productosFiltrados.filter(producto => {
         if (this.categoriaFiltro === 'sin-categoria') {
@@ -602,7 +642,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked, AfterViewI
       });
     }
     
-    // Filtro por proveedor
     if (this.proveedorFiltro !== 'todos') {
       productosFiltrados = productosFiltrados.filter(producto => {
         if (this.proveedorFiltro === 'sin-proveedor') {
@@ -612,7 +651,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked, AfterViewI
       });
     }
     
-    // Ordenamiento
     productosFiltrados.sort((a, b) => {
       switch (this.ordenamiento) {
         case 'nombre':
@@ -662,7 +700,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked, AfterViewI
     return 'normal';
   }
 
-  // Formatear precio en pesos chilenos (CLP)
   formatearPrecio(precio: number): string {
     return new Intl.NumberFormat('es-CL', {
       style: 'currency',
@@ -672,7 +709,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked, AfterViewI
     }).format(precio);
   }
 
-  // Abrir modal de edición
   abrirModalEditar(producto: any) {
     this.productoEditando = { ...producto };
     this.inicializarFormularioEdicion();
@@ -720,8 +756,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked, AfterViewI
       
       let fotoUrl: string | null = this.productoEditando.fotoUrl || null;
       if (this.archivoFoto) {
-        // Nota: Las imágenes anteriores en Cloudinary se mantienen por seguridad
-        // Se pueden eliminar manualmente desde el dashboard de Cloudinary si es necesario
         fotoUrl = await this.subirFotoAStorage();
       }
 
@@ -767,7 +801,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked, AfterViewI
 
   async mostrarOpcionesProducto(producto: any, event?: MouseEvent) {
     if (this.esPlataformaMovil) {
-      // En móvil: usar ActionSheet
       const actionSheet = await this.actionSheetController.create({
         header: producto.nombre,
         buttons: [
@@ -803,7 +836,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked, AfterViewI
 
       await actionSheet.present();
     } else {
-      // En web: mostrar menú contextual
       if (event) {
         event.preventDefault();
         event.stopPropagation();
@@ -813,7 +845,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked, AfterViewI
         let x = event.clientX;
         let y = event.clientY;
         
-        // Ajustar horizontalmente
         if (x + menuWidth > window.innerWidth) {
           x = window.innerWidth - menuWidth - 10;
         }
@@ -821,7 +852,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked, AfterViewI
           x = 10;
         }
         
-        // Ajustar verticalmente
         if (y + menuHeight > window.innerHeight) {
           y = window.innerHeight - menuHeight - 10;
         }
@@ -847,7 +877,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked, AfterViewI
     this.productoSeleccionado = null;
   }
 
-  // Ejecutar acción desde menú contextual
   ejecutarAccion(accion: string) {
     if (!this.productoSeleccionado) return;
     
@@ -869,7 +898,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked, AfterViewI
     }, 100);
   }
 
-  // Confirmar eliminación
   async confirmarEliminacion(producto: any) {
     const alert = await this.alertController.create({
       header: 'Confirmar eliminación',
@@ -898,9 +926,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked, AfterViewI
     this.estaCargando = true;
 
     try {
-      // Nota: Las imágenes en Cloudinary se mantienen al eliminar el producto
-      // Se pueden eliminar manualmente desde el dashboard de Cloudinary si es necesario
-
       const productoRef = doc(this.firestore, 'productos', producto.id);
       await deleteDoc(productoRef);
 
@@ -920,8 +945,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked, AfterViewI
     const valor = event.detail.value || '';
     this.terminoBusqueda = valor;
     
-    // Detectar si es un escaneo rápido (pistola lectora)
-    // Las pistolas lectoras normalmente escanean muy rápido (menos de 300ms)
     const ahora = Date.now();
     
     if (this.tiempoInicioEscritura === 0) {
@@ -930,17 +953,12 @@ export class InventarioComponent implements OnInit, AfterViewChecked, AfterViewI
     
     const tiempoTranscurrido = ahora - this.tiempoInicioEscritura;
     
-    // Limpiar timeout anterior si existe
     if (this.timeoutProcesarCodigo) {
       clearTimeout(this.timeoutProcesarCodigo);
     }
     
-    // Si el texto es largo (más de 8 caracteres) y se escribió muy rápido, probablemente es un escaneo
-    // Esperamos 500ms después de que el usuario deje de escribir para procesar
     if (valor.length >= 8) {
       this.timeoutProcesarCodigo = setTimeout(async () => {
-        // Si el texto parece un código de barras (alfanumérico, longitud típica)
-        // o si se escribió muy rápido (menos de 500ms), procesarlo como código
         const tiempoTotal = Date.now() - this.tiempoInicioEscritura;
         const esEscaneoRapido = tiempoTotal < 500 && valor.length >= 8;
         const pareceCodigoBarras = /^[A-Z0-9]{8,}$/i.test(valor.trim());
@@ -1078,7 +1096,74 @@ export class InventarioComponent implements OnInit, AfterViewChecked, AfterViewI
   // Escanear código de barras con cámara
   async escanearCodigoBarras() {
     try {
-      // Usar la cámara para tomar foto
+      // Verificar si estamos en una plataforma nativa
+      if (Capacitor.isNativePlatform()) {
+        // Usar el escáner nativo para Android/iOS
+        await this.escanearCodigoBarrasNativo();
+      } else {
+        // Usar el método web (foto + ZXing) para navegador
+        await this.escanearCodigoBarrasWeb();
+      }
+    } catch (error: any) {
+      if (error.message !== 'User cancelled photos app' && !error.message?.includes('cancel') && !error.message?.includes('cancelled')) {
+        console.error('Error al escanear código de barras:', error);
+        this.mostrarToast('Error al escanear el código de barras', 'danger');
+      }
+    }
+  }
+
+  async escanearCodigoBarrasNativo() {
+    try {
+      console.log('Iniciando escaneo nativo...');
+      
+      const status = await BarcodeScanner.checkPermission({ force: true });
+      console.log('Estado de permisos:', status);
+      
+      if (status.denied) {
+        this.mostrarToast('Se necesitan permisos de cámara. Ve a Configuración de la app y permite el acceso a la cámara', 'warning');
+        return;
+      }
+
+      if (!status.granted) {
+        this.mostrarToast('Permisos de cámara no otorgados', 'warning');
+        return;
+      }
+
+      await BarcodeScanner.hideBackground();
+      console.log('Fondo ocultado, iniciando escáner...');
+      
+      const resultado = await BarcodeScanner.startScan();
+      console.log('Resultado del escáner:', resultado);
+      
+      await BarcodeScanner.showBackground();
+      
+      if (resultado && resultado.hasContent && resultado.content) {
+        const codigoBarras = resultado.content;
+        console.log('Código de barras escaneado:', codigoBarras);
+        await this.procesarCodigoBarras(codigoBarras);
+      } else {
+        this.mostrarToast('No se pudo leer el código de barras', 'warning');
+      }
+    } catch (error: any) {
+      console.error('Error en escaneo nativo:', error);
+      
+      try {
+        await BarcodeScanner.showBackground();
+      } catch (e) {
+        console.error('Error al mostrar fondo:', e);
+      }
+      
+      if (error.message?.includes('cancelled') || error.message?.includes('cancel') || error.message?.includes('User cancelled')) {
+        return;
+      }
+      
+      const mensajeError = error.message || error.toString() || 'Error desconocido';
+      console.error('Error completo:', error);
+      this.mostrarToast(`Error: ${mensajeError}`, 'danger');
+    }
+  }
+
+  async escanearCodigoBarrasWeb() {
       const imagen = await Camera.getPhoto({
         quality: 80,
         allowEditing: false,
@@ -1095,7 +1180,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked, AfterViewI
           img.onerror = reject;
         });
 
-        // Usar ZXing para leer el código de barras
         const codeReader = new BrowserMultiFormatReader();
         
         try {
@@ -1103,7 +1187,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked, AfterViewI
           
             if (resultado && resultado.getText()) {
             const codigoBarras = resultado.getText();
-            // Usar el método compartido para procesar el código
             await this.procesarCodigoBarras(codigoBarras);
           } else {
             this.mostrarToast('No se pudo leer el código de barras', 'warning');
@@ -1111,12 +1194,6 @@ export class InventarioComponent implements OnInit, AfterViewChecked, AfterViewI
         } catch (decodeError) {
           console.error('Error al decodificar código de barras:', decodeError);
           this.mostrarToast('No se pudo leer el código de barras. Asegúrate de que la imagen contenga un código de barras válido.', 'warning');
-        }
-      }
-    } catch (error: any) {
-      if (error.message !== 'User cancelled photos app' && !error.message?.includes('cancel')) {
-        console.error('Error al escanear código de barras:', error);
-        this.mostrarToast('Error al escanear el código de barras', 'danger');
       }
     }
   }

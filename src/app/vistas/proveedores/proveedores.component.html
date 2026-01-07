@@ -11,7 +11,7 @@
   <div class="ion-padding contenedor-proveedores" *ngIf="!verificandoAuth">
     <h1 class="titulo-proveedores">Proveedores</h1>
     
-    <!-- Botón para crear proveedor -->
+    
     <div class="contenedor-boton-crear">
       <ion-button 
         (click)="abrirModalCrear()" 
@@ -22,7 +22,7 @@
       </ion-button>
     </div>
 
-    <!-- Controles de búsqueda y ordenamiento -->
+    
     <div class="contenedor-controles">
       <ion-searchbar
         [(ngModel)]="terminoBusqueda"
@@ -40,12 +40,12 @@
       </ion-button>
     </div>
 
-    <!-- Estado de carga -->
+    
     <div *ngIf="estaCargandoProveedores" class="cargando-proveedores">
       <p>Cargando proveedores...</p>
     </div>
 
-    <!-- Lista de proveedores -->
+    
     <div *ngIf="!estaCargandoProveedores">
       <div *ngIf="proveedoresFiltrados.length === 0" class="sin-proveedores">
         <p *ngIf="terminoBusqueda.trim()">No se encontraron proveedores con ese criterio de búsqueda.</p>
@@ -123,7 +123,7 @@
   </div>
 </ion-content>
 
-<!-- Modal de Crear/Editar Proveedor -->
+
 <ion-modal [isOpen]="mostrandoModalProveedor" (willDismiss)="cerrarModal()">
   <ng-template>
     <ion-header>
@@ -140,7 +140,7 @@
       <div class="ion-padding contenedor-formulario-modal" *ngIf="formularioProveedor">
         <form [formGroup]="formularioProveedor" (ngSubmit)="guardarProveedor()">
           
-          <!-- Nombre (requerido) -->
+          
           <ion-item class="campo-formulario">
             <ion-label position="stacked">Nombre del Proveedor *</ion-label>
             <ion-input 
@@ -154,7 +154,7 @@
             El nombre es requerido
           </div>
 
-          <!-- RUT -->
+          
           <ion-item class="campo-formulario">
             <ion-label position="stacked">RUT</ion-label>
             <ion-input 
@@ -169,7 +169,7 @@
             El RUT no es válido
           </div>
 
-          <!-- Razón Social -->
+          
           <ion-item class="campo-formulario">
             <ion-label position="stacked">Razón Social</ion-label>
             <ion-input 
@@ -179,7 +179,7 @@
             </ion-input>
           </ion-item>
 
-          <!-- Teléfono -->
+          
           <ion-item class="campo-formulario">
             <ion-label position="stacked">Teléfono</ion-label>
             <ion-input 
@@ -189,7 +189,7 @@
             </ion-input>
           </ion-item>
 
-          <!-- Email -->
+          
           <ion-item class="campo-formulario">
             <ion-label position="stacked">Email</ion-label>
             <ion-input 
@@ -203,7 +203,7 @@
             El email no es válido
           </div>
 
-          <!-- Dirección -->
+          
           <ion-item class="campo-formulario">
             <ion-label position="stacked">Dirección</ion-label>
             <ion-input 
@@ -213,7 +213,7 @@
             </ion-input>
           </ion-item>
 
-          <!-- Enlace de compra -->
+          
           <ion-item class="campo-formulario">
             <ion-label position="stacked">Enlace de Compra (URL)</ion-label>
             <ion-input 
@@ -223,7 +223,7 @@
             </ion-input>
           </ion-item>
 
-          <!-- Descripción -->
+          
           <ion-item class="campo-formulario">
             <ion-label position="stacked">Descripción</ion-label>
             <ion-textarea 
@@ -233,7 +233,7 @@
             </ion-textarea>
           </ion-item>
 
-          <!-- Botones -->
+          
           <div class="contenedor-botones-formulario">
             <ion-button 
               type="submit" 

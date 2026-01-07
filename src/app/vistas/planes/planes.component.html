@@ -5,19 +5,19 @@
 
 <ion-content [fullscreen]="true" class="contenido-planes" [scrollY]="true">
   <div class="ion-padding contenedor-planes">
-    <!-- Estado de verificación de autenticación -->
+    
     <div *ngIf="verificandoAuth" class="cargando-planes">
       <p>Verificando autenticación...</p>
     </div>
     
-    <!-- Contenido de planes -->
+    
     <div *ngIf="!verificandoAuth">
       <h1 class="titulo-principal-planes">Planes Disponibles</h1>
       
       <h2 class="titulo-planes">Elige tu plan</h2>
       <p class="subtitulo-planes">Selecciona el plan que mejor se adapte a tus necesidades</p>
 
-      <!-- Contenedor de tarjetas de planes -->
+      
       <div class="contenedor-tarjetas" *ngIf="!estaCargandoPlanes">
       <div 
         *ngFor="let plan of planes" 
@@ -53,14 +53,14 @@
       </div>
     </div>
 
-    <!-- Estado de carga -->
+    
     <div class="cargando-planes" *ngIf="estaCargandoPlanes">
       <p>Cargando planes...</p>
     </div>
 
-      <!-- Botones de acción -->
+      
       <div class="contenedor-botones">
-      <!-- Botón de confirmación -->
+      
       <ion-button 
         expand="block" 
         class="boton-confirmar"
@@ -72,7 +72,7 @@
         <span *ngIf="estaProcesando">Procesando...</span>
       </ion-button>
 
-        <!-- Botón ver después -->
+        
         <ion-button 
           expand="block" 
           fill="outline"

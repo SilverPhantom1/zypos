@@ -10,7 +10,7 @@
 <ion-content [fullscreen]="true" class="contenido-informes" [scrollY]="true">
   <div class="ion-padding contenedor-informes" *ngIf="!verificandoAuth">
     
-    <!-- Selector de Período y Botón de Exportar -->
+    
     <div class="seccion-controls">
       <div class="selector-container">
         <ion-segment [(ngModel)]="periodoSeleccionado" (ionChange)="cambiarPeriodo()" class="selector-periodo">
@@ -36,22 +36,22 @@
       </ion-button>
     </div>
 
-    <!-- Estado de carga -->
+    
     <div *ngIf="estaCargandoVentas" class="cargando">
       <p>Cargando reportes...</p>
     </div>
 
-    <!-- Contenido de Reportes -->
+    
     <div *ngIf="!estaCargandoVentas">
       
-      <!-- ========== REPORTES POR PERÍODO ========== -->
+      
       <div class="seccion-reporte">
         <h2 class="titulo-seccion">
           <ion-icon name="bar-chart"></ion-icon>
           Reportes por Período
         </h2>
         
-        <!-- Métricas -->
+        
         <div class="tarjetas-metricas">
           <ion-card class="tarjeta-metrica">
             <ion-card-content>
@@ -90,7 +90,7 @@
           </ion-card>
         </div>
         
-        <!-- Gráfico de Tendencias -->
+        
         <ion-card class="tarjeta-grafico" *ngIf="mostrarGraficoTendencias && ventasFiltradas.length > 0">
           <ion-card-header>
             <ion-card-title>Tendencias de Ventas</ion-card-title>
@@ -108,14 +108,14 @@
         </div>
       </div>
 
-      <!-- ========== PRODUCTOS MÁS VENDIDOS ========== -->
+      
       <div class="seccion-reporte" *ngIf="productosMasVendidos.length > 0">
         <h2 class="titulo-seccion">
           <ion-icon name="trending-up"></ion-icon>
           Productos Más Vendidos
         </h2>
         
-        <!-- Gráfico Horizontal -->
+        
         <ion-card class="tarjeta-grafico">
           <ion-card-header>
             <ion-card-title>Top 5 por Ingresos</ion-card-title>
@@ -127,7 +127,7 @@
           </ion-card-content>
         </ion-card>
         
-        <!-- Lista de Productos -->
+        
         <ion-card class="tarjeta-lista">
           <ion-card-header>
             <ion-card-title>Listado Completo</ion-card-title>
@@ -157,7 +157,7 @@
         </ion-card>
       </div>
 
-      <!-- ========== PRODUCTOS MENOS VENDIDOS ========== -->
+      
       <div class="seccion-reporte" *ngIf="productosMenosVendidos.length > 0">
         <h2 class="titulo-seccion">
           <ion-icon name="trending-down"></ion-icon>
@@ -202,7 +202,7 @@
   </div>
 </ion-content>
 
-<!-- Modal de Exportación -->
+
 <ion-modal [isOpen]="mostrandoModalExportar" (willDismiss)="cerrarModalExportar()">
   <ng-template>
     <ion-header>

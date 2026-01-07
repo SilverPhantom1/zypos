@@ -10,6 +10,7 @@ import { FormsModule } from '@angular/forms';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Capacitor } from '@capacitor/core';
 import { BrowserMultiFormatReader } from '@zxing/library';
+import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
 
 interface ProductoCarrito {
   productoId: string;
@@ -244,42 +245,99 @@ export class VentasComponent implements OnInit {
   
   async escanearCodigoBarras(): Promise<void> {
     try {
-      const imagen = await Camera.getPhoto({
-        quality: 80,
-        allowEditing: false,
-        resultType: CameraResultType.DataUrl,
-        source: CameraSource.Camera
-      });
-
-      if (imagen.dataUrl) {
-        const img = new Image();
-        img.src = imagen.dataUrl;
-        
-        await new Promise((resolve, reject) => {
-          img.onload = resolve;
-          img.onerror = reject;
-        });
-
-        const codeReader = new BrowserMultiFormatReader();
-        
-        try {
-          const resultado = await codeReader.decodeFromImageElement(img);
-          
-          if (resultado && resultado.getText()) {
-            const codigoBarras = resultado.getText();
-            await this.buscarProductoPorCodigo(codigoBarras);
-          } else {
-            this.mostrarToast('No se pudo leer el código de barras', 'warning');
-          }
-        } catch (decodeError) {
-          console.error('Error al decodificar código de barras:', decodeError);
-          this.mostrarToast('No se pudo leer el código de barras', 'warning');
-        }
+      if (Capacitor.isNativePlatform()) {
+        await this.escanearCodigoBarrasNativo();
+      } else {
+        await this.escanearCodigoBarrasWeb();
       }
     } catch (error: any) {
-      if (error.message !== 'User cancelled photos app' && !error.message?.includes('cancel')) {
+      if (error.message !== 'User cancelled photos app' && !error.message?.includes('cancel') && !error.message?.includes('cancelled')) {
         console.error('Error al escanear código de barras:', error);
         this.mostrarToast('Error al escanear el código de barras', 'danger');
+      }
+    }
+  }
+
+  async escanearCodigoBarrasNativo() {
+    try {
+      console.log('Iniciando escaneo nativo...');
+      
+      const status = await BarcodeScanner.checkPermission({ force: true });
+      console.log('Estado de permisos:', status);
+      
+      if (status.denied) {
+        this.mostrarToast('Se necesitan permisos de cámara. Ve a Configuración de la app y permite el acceso a la cámara', 'warning');
+        return;
+      }
+
+      if (!status.granted) {
+        this.mostrarToast('Permisos de cámara no otorgados', 'warning');
+        return;
+      }
+
+      await BarcodeScanner.hideBackground();
+      console.log('Fondo ocultado, iniciando escáner...');
+      
+      const resultado = await BarcodeScanner.startScan();
+      console.log('Resultado del escáner:', resultado);
+      
+      await BarcodeScanner.showBackground();
+      
+      if (resultado && resultado.hasContent && resultado.content) {
+        const codigoBarras = resultado.content;
+        console.log('Código de barras escaneado:', codigoBarras);
+        await this.buscarProductoPorCodigo(codigoBarras);
+      } else {
+        this.mostrarToast('No se pudo leer el código de barras', 'warning');
+      }
+    } catch (error: any) {
+      console.error('Error en escaneo nativo:', error);
+      
+      try {
+        await BarcodeScanner.showBackground();
+      } catch (e) {
+        console.error('Error al mostrar fondo:', e);
+      }
+      
+      if (error.message?.includes('cancelled') || error.message?.includes('cancel') || error.message?.includes('User cancelled')) {
+        return;
+      }
+      
+      this.mostrarToast(`Error al escanear: ${error.message || 'Error desconocido'}`, 'danger');
+    }
+  }
+
+  async escanearCodigoBarrasWeb() {
+    const imagen = await Camera.getPhoto({
+      quality: 80,
+      allowEditing: false,
+      resultType: CameraResultType.DataUrl,
+      source: CameraSource.Camera
+    });
+
+    if (imagen.dataUrl) {
+      const img = new Image();
+      img.src = imagen.dataUrl;
+      
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+      });
+
+      const codeReader = new BrowserMultiFormatReader();
+      
+      try {
+        const resultado = await codeReader.decodeFromImageElement(img);
+        
+        if (resultado && resultado.getText()) {
+          const codigoBarras = resultado.getText();
+          await this.buscarProductoPorCodigo(codigoBarras);
+        } else {
+          this.mostrarToast('No se pudo leer el código de barras', 'warning');
+        }
+      } catch (decodeError) {
+        console.error('Error al decodificar código de barras:', decodeError);
+        this.mostrarToast('No se pudo leer el código de barras', 'warning');
       }
     }
   }
@@ -632,7 +690,6 @@ export class VentasComponent implements OnInit {
 
       if (cajaDoc.exists()) {
         const cajaData = cajaDoc.data();
-        // Sumamos el monto recibido y restamos el vuelto
         const totalVentasActual = cajaData['totalVentasEfectivo'] || 0;
         const totalVueltosActual = cajaData['totalVueltos'] || 0;
         const nuevoTotalVentas = totalVentasActual + montoRecibido;
@@ -682,7 +739,6 @@ export class VentasComponent implements OnInit {
         const montoInicial = cajaData['montoInicial'] || 0;
         const totalVentas = cajaData['totalVentasEfectivo'] || 0;
         const totalVueltos = cajaData['totalVueltos'] || 0;
-        // Monto final = monto inicial + dinero recibido - vueltos dados
         const montoFinal = montoInicial + totalVentas - totalVueltos;
 
         await updateDoc(cajaRef, {
@@ -716,7 +772,6 @@ export class VentasComponent implements OnInit {
         const montoInicial = cajaData['montoInicial'] || 0;
         const totalVentas = cajaData['totalVentasEfectivo'] || 0;
         const totalVueltos = cajaData['totalVueltos'] || 0;
-        // Monto final = monto inicial + dinero recibido - vueltos dados
         const montoFinal = montoInicial + totalVentas - totalVueltos;
 
         await updateDoc(cajaRef, {

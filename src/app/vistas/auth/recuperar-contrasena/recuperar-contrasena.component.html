@@ -6,17 +6,17 @@
 <ion-content [fullscreen]="true" class="contenido-recuperacion" [scrollY]="true">
   <div class="ion-padding contenedor-recuperacion">
     
-    <!-- Si el email no se a enviado aun, se muestra formulario -->
+    
     <div *ngIf="!emailEnviado">
       <h2 class="titulo-recuperacion">Recuperar Contraseña</h2>
       <p class="descripcion-recuperacion">
         Ingresa tu email y te enviaremos un enlace para restablecer tu contraseña.
       </p>
       
-      <!-- Formulario -->
+      
       <form [formGroup]="formularioRecuperacion" (ngSubmit)="enviarFormulario()">
         
-        <!-- Email -->
+        
         <ion-item class="campo-formulario">
           <ion-label position="stacked">Email</ion-label>
           <ion-input 
@@ -25,7 +25,7 @@
             placeholder="tu@email.com">
           </ion-input>
         </ion-item>
-        <!-- Mensaje de error para el email -->
+        
         <div *ngIf="formularioRecuperacion.get('email')?.invalid && formularioRecuperacion.get('email')?.touched" 
              class="mensaje-error">
           <span *ngIf="formularioRecuperacion.get('email')?.errors?.['required']">
@@ -36,7 +36,7 @@
           </span>
         </div>
 
-        <!-- Botón para el formulario -->
+        
         <ion-button 
           expand="block" 
           type="submit" 
@@ -46,7 +46,7 @@
           <span *ngIf="estaCargando">Enviando...</span>
         </ion-button>
 
-        <!-- Boton para volver al login -->
+        
         <div class="link-login">
           <a routerLink="/iniciar-sesion">Volver al inicio de sesión</a>
         </div>
@@ -54,7 +54,7 @@
       </form>
     </div>
 
-    <!-- Mensaje que te confirma si el email se envio -->
+    
     <div *ngIf="emailEnviado" class="confirmacion-enviada">
       <div class="icono-exito">
         <ion-icon name="checkmark-circle" size="large"></ion-icon>
@@ -70,7 +70,7 @@
         Haz clic en el enlace del email para restablecer tu contraseña.
       </p>
       
-      <!-- Botón para reenviar email -->
+      
       <ion-button 
         expand="block" 
         fill="outline"
@@ -81,7 +81,7 @@
         <span *ngIf="estaCargando">Reenviando...</span>
       </ion-button>
       
-      <!-- Botón para volver al login -->
+      
       <ion-button 
         expand="block" 
         routerLink="/iniciar-sesion"

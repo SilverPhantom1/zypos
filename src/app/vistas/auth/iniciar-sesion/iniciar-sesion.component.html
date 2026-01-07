@@ -19,10 +19,10 @@
       </ion-segment-button>
     </ion-segment>
 
-    <!-- Formulario Propietario -->
+    
     <form *ngIf="tipoLogin === 'propietario'" [formGroup]="formularioLogin" (ngSubmit)="enviarFormulario()">
       
-      <!-- Email -->
+      
       <ion-item class="campo-formulario">
         <ion-label position="stacked">Email</ion-label>
         <ion-input 
@@ -31,7 +31,7 @@
           placeholder="tu@email.com">
         </ion-input>
       </ion-item>
-      <!-- Mensaje de error para email -->
+      
       <div *ngIf="formularioLogin.get('email')?.invalid && (formularioLogin.get('email')?.touched || formularioLogin.get('email')?.dirty)" 
            class="mensaje-error">
         <span *ngIf="formularioLogin.get('email')?.errors?.['required']">
@@ -42,7 +42,7 @@
         </span>
       </div>
 
-      <!-- Contraseña -->
+      
       <ion-item class="campo-formulario">
         <ion-label position="stacked">Contraseña</ion-label>
         <ion-input 
@@ -58,7 +58,7 @@
           <ion-icon [name]="mostrarContrasena ? 'eye-off' : 'eye'"></ion-icon>
         </ion-button>
       </ion-item>
-      <!-- Mensaje de error para contraseña -->
+      
       <div *ngIf="formularioLogin.get('contraseña')?.invalid && (formularioLogin.get('contraseña')?.touched || formularioLogin.get('contraseña')?.dirty)" 
            class="mensaje-error">
         <span *ngIf="formularioLogin.get('contraseña')?.errors?.['required']">
@@ -66,12 +66,12 @@
         </span>
       </div>
 
-      <!-- Botom para recuperar contraseña -->
+      
       <div class="link-recuperar">
         <a routerLink="/recuperar-contrasena">¿Olvidaste tu contraseña?</a>
       </div>
 
-      <!-- Botón para el formuario -->
+      
       <ion-button 
         expand="block" 
         type="submit" 
@@ -81,14 +81,14 @@
         <span *ngIf="estaCargando">Iniciando sesión...</span>
       </ion-button>
 
-      <!-- ir a registro -->
+      
       <div class="link-registro">
         <p>¿No tienes cuenta? <a routerLink="/registrarse">Regístrate</a></p>
       </div>
 
     </form>
 
-    <!-- Formulario Trabajador -->
+    
     <form *ngIf="tipoLogin === 'trabajador'" [formGroup]="formularioTrabajador" (ngSubmit)="enviarFormulario()">
 
       <ion-item class="campo-formulario">
@@ -166,10 +166,10 @@
 
     </form>
 
-    <!-- Formulario Administrador -->
+    
     <form *ngIf="tipoLogin === 'administrador'" [formGroup]="formularioAdmin" (ngSubmit)="enviarFormulario()">
       
-      <!-- Email -->
+      
       <ion-item class="campo-formulario">
         <ion-label position="stacked">Email de Administrador</ion-label>
         <ion-input 
@@ -188,7 +188,7 @@
         </span>
       </div>
 
-      <!-- Contraseña -->
+      
       <ion-item class="campo-formulario">
         <ion-label position="stacked">Contraseña</ion-label>
         <ion-input 
@@ -215,7 +215,7 @@
         {{ mensajeError }}
       </div>
 
-      <!-- Botón para el formulario -->
+      
       <ion-button 
         expand="block" 
         type="submit" 

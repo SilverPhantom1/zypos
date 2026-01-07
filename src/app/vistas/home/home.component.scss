@@ -40,7 +40,6 @@
   }
 }
 
-// Sección Superior
 .seccion-superior {
   display: flex;
   flex-direction: column;
@@ -89,7 +88,6 @@
   }
 }
 
-// Tarjeta de Plan
 .tarjeta-plan-dashboard {
   background: linear-gradient(135deg, #ffffff 0%, var(--zypos-color-background) 100%); // Usando color de fondo corporativo
   border-radius: 16px;
@@ -213,7 +211,6 @@
   }
 }
 
-// Grid de Módulos
 .grid-modulos-dashboard {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -250,7 +247,6 @@
     box-shadow: 0 6px 20px rgba(var(--ion-color-accent-rgb), 0.25);
     border-color: rgba(var(--ion-color-accent-rgb), 0.3);
     
-    // Efecto especial para la tarjeta de proveedores (que usa color coral)
     &.proveedores-card {
       box-shadow: 0 6px 20px rgba(var(--ion-color-primary-rgb), 0.3);
       border-color: rgba(var(--ion-color-primary-rgb), 0.4);
@@ -364,7 +360,6 @@
   }
 }
 
-// Footer Completo
 .footer-dashboard {
   position: fixed;
   bottom: 0;
@@ -420,7 +415,6 @@
   margin: 0 0 0.5rem 0;
   position: relative;
   
-  // Línea decorativa con color coral
   &::after {
     content: '';
     position: absolute;
@@ -535,7 +529,6 @@
   }
 }
 
-// Botón cerrar sesión en header
 .boton-cerrar-sesion-header {
   --color: var(--zypos-color-primary); // Color coral
   margin: 0;

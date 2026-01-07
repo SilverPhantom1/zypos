@@ -9,16 +9,16 @@
 
 <ion-content [fullscreen]="true" class="contenido-gestion-suscripcion" [scrollY]="true">
   <div class="ion-padding contenedor-gestion-suscripcion">
-    <!-- Estado de verificación de autenticación -->
+    
     <div *ngIf="verificandoAuth" class="cargando">
       <p>Verificando autenticación...</p>
     </div>
     
-    <!-- Contenido -->
+    
     <div *ngIf="!verificandoAuth">
       <h1 class="titulo-principal">Gestión de Suscripción</h1>
       
-      <!-- Estado de Suscripción Actual -->
+      
       <div *ngIf="suscripcionActual" class="estado-suscripcion-card">
         <h2 class="titulo-estado-suscripcion">Estado de Suscripción</h2>
         <div class="info-suscripcion">
@@ -68,7 +68,7 @@
         </ion-button>
       </div>
 
-      <!-- Tabla Comparativa de Planes -->
+      
       <div class="tabla-comparativa" *ngIf="!estaCargandoPlanes && planes.length >= 2">
         <h3 class="titulo-tabla">Comparación de Planes</h3>
         <table class="tabla-planes">
@@ -153,7 +153,7 @@
         </table>
       </div>
 
-      <!-- Botón para cambiar de plan -->
+      
       <div class="contenedor-botones">
         <ion-button 
           expand="block" 

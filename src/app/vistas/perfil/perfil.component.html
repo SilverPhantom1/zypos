@@ -11,20 +11,20 @@
   <div class="ion-padding contenedor-perfil">
     <h1 class="titulo-perfil">Mi Perfil</h1>
     
-    <!-- Estado de verificación de autenticación -->
+    
     <div *ngIf="verificandoAuth" class="cargando">
       <p>Verificando autenticación...</p>
     </div>
     
-    <!-- Estado de carga -->
+    
     <div *ngIf="estaCargando && !datosUsuario && !verificandoAuth" class="cargando">
       <p>Cargando datos...</p>
     </div>
     
-    <!-- Contenido del perfil -->
+    
     <div *ngIf="datosUsuario && !verificandoAuth">
       
-      <!-- Sección: Datos Personales -->
+      
       <div class="seccion-perfil">
         <h2 class="titulo-seccion">Datos Personales</h2>
         
@@ -68,7 +68,7 @@
         </form>
       </div>
       
-      <!-- Sección: Datos de Empresa -->
+      
       <div class="seccion-perfil">
         <h2 class="titulo-seccion">Datos de Empresa</h2>
         
@@ -168,7 +168,7 @@
         </form>
       </div>
       
-      <!-- Sección: Teléfono -->
+      
       <div class="seccion-perfil">
         <h2 class="titulo-seccion">Teléfono</h2>
         
@@ -200,7 +200,7 @@
         </form>
       </div>
       
-      <!-- Sección: Cambiar Email -->
+      
       <div class="seccion-perfil">
         <h2 class="titulo-seccion">Cambiar Email</h2>
         
@@ -250,7 +250,7 @@
         </form>
       </div>
       
-      <!-- Sección: Cambiar Contraseña -->
+      
       <div class="seccion-perfil">
         <h2 class="titulo-seccion">Cambiar Contraseña</h2>
         
@@ -309,7 +309,7 @@
         </form>
       </div>
       
-      <!-- Sección: Plan y Membresía -->
+      
       <div class="seccion-perfil">
         <h2 class="titulo-seccion">Plan y Membresía</h2>
         
@@ -339,7 +339,7 @@
       
     </div>
     
-    <!-- Botón de volver atrás en la parte inferior -->
+    
     <ion-button expand="block" (click)="volverAtras()" class="boton-volver-inferior">
       <ion-icon name="arrow-back" slot="start"></ion-icon>
       <span>Volver</span>

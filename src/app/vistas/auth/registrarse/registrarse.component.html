@@ -7,7 +7,7 @@
   <div class="ion-padding contenedor-registro">
     <h2 class="titulo-registro">Crear cuenta</h2>
     
-    <!-- Formulario -->
+    
     <form [formGroup]="formularioRegistro" (ngSubmit)="enviarFormulario()">
       
       <ion-item class="campo-formulario">
@@ -18,7 +18,7 @@
           placeholder="Ingresa tu nombre">
         </ion-input>
       </ion-item>
-      <!-- Mensaje de error -->
+      
       <div *ngIf="formularioRegistro.get('nombre')?.invalid && (formularioRegistro.get('nombre')?.touched || formularioRegistro.get('nombre')?.dirty)" 
            class="mensaje-error">
         <span *ngIf="formularioRegistro.get('nombre')?.errors?.['required']">
@@ -29,7 +29,7 @@
         </span>
       </div>
 
-      <!-- RUT -->
+      
       <ion-item class="campo-formulario">
         <ion-label position="stacked">RUT</ion-label>
         <ion-input
@@ -39,7 +39,7 @@
           (ionInput)="formatearRutInput($event)">
         </ion-input>
       </ion-item>
-      <!-- Mensaje de error para RUT -->
+      
       <div *ngIf="formularioRegistro.get('rut')?.invalid && (formularioRegistro.get('rut')?.touched || formularioRegistro.get('rut')?.dirty)"
            class="mensaje-error">
         <span *ngIf="formularioRegistro.get('rut')?.errors?.['required']">
@@ -50,7 +50,7 @@
         </span>
       </div>
 
-      <!-- Email -->
+      
       <ion-item class="campo-formulario">
         <ion-label position="stacked">Email</ion-label>
         <ion-input 
@@ -60,7 +60,7 @@
         </ion-input>
       </ion-item>
 
-      <!-- Mensaje de error para email -->
+      
       <div *ngIf="formularioRegistro.get('email')?.invalid && (formularioRegistro.get('email')?.touched || formularioRegistro.get('email')?.dirty)" 
            class="mensaje-error">
         <span *ngIf="formularioRegistro.get('email')?.errors?.['required']">
@@ -71,7 +71,7 @@
         </span>
       </div>
 
-      <!-- Contraseña -->
+      
       <ion-item class="campo-formulario">
         <ion-label position="stacked">Contraseña</ion-label>
         <ion-input 
@@ -88,7 +88,7 @@
         </ion-button>
       </ion-item>
 
-      <!-- Mensaje de error para contraseña -->
+      
       <div *ngIf="formularioRegistro.get('contraseña')?.invalid && (formularioRegistro.get('contraseña')?.touched || formularioRegistro.get('contraseña')?.dirty)" 
            class="mensaje-error">
         <span *ngIf="formularioRegistro.get('contraseña')?.errors?.['required']">
@@ -108,7 +108,7 @@
         </span>
       </div>
 
-      <!-- Confirmar Contraseña -->
+      
       <ion-item class="campo-formulario">
         <ion-label position="stacked">Confirmar Contraseña</ion-label>
         <ion-input 
@@ -125,7 +125,7 @@
         </ion-button>
       </ion-item>
 
-      <!-- Mensaje de error para confirmar contraseña -->
+      
       <div *ngIf="formularioRegistro.get('confirmarContraseña')?.invalid && (formularioRegistro.get('confirmarContraseña')?.touched || formularioRegistro.get('confirmarContraseña')?.dirty)" 
            class="mensaje-error">
         <span *ngIf="formularioRegistro.get('confirmarContraseña')?.errors?.['required']">
@@ -136,7 +136,7 @@
         </span>
       </div>
 
-      <!-- Botón para envíar el formulario -->
+      
       <ion-button 
         expand="block" 
         type="submit" 
@@ -146,7 +146,7 @@
         <span *ngIf="estaCargando">Creando cuenta...</span>
       </ion-button>
 
-      <!-- Link para ir a iniciar sesión -->
+      
       <div class="link-login">
         <p>¿Ya tienes cuenta? <a routerLink="/iniciar-sesion">Inicia sesión</a></p>
       </div>

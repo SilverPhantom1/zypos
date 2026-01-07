@@ -11,7 +11,7 @@
   <div class="ion-padding contenedor-inventario" *ngIf="!verificandoAuth">
     <h1 class="titulo-inventario">Inventario</h1>
     
-    <!-- Botones para crear producto, gestionar categorías y proveedores -->
+    
     <div class="contenedor-botones-crear">
       <ion-button 
         (click)="toggleFormulario()" 
@@ -36,11 +36,11 @@
       </ion-button>
     </div>
 
-    <!-- Formulario de creación de producto -->
+    
     <div *ngIf="mostrandoFormulario" class="contenedor-formulario">
       <form [formGroup]="formularioProducto" (ngSubmit)="guardarProducto()">
         
-        <!-- Nombre (requerido) -->
+        
         <ion-item class="campo-formulario">
           <ion-label position="stacked">Nombre del Producto *</ion-label>
           <ion-input 
@@ -54,7 +54,7 @@
           El nombre es requerido
         </div>
 
-        <!-- Descripción (opcional) -->
+        
         <ion-item class="campo-formulario">
           <ion-label position="stacked">Descripción</ion-label>
           <ion-textarea 
@@ -64,7 +64,7 @@
           </ion-textarea>
         </ion-item>
 
-        <!-- Precio (requerido) -->
+        
         <ion-item class="campo-formulario">
           <ion-label position="stacked">Precio (CLP) *</ion-label>
           <ion-input 
@@ -85,7 +85,7 @@
           </span>
         </div>
 
-        <!-- Stock inicial (requerido) -->
+        
         <ion-item class="campo-formulario">
           <ion-label position="stacked">Stock Inicial *</ion-label>
           <ion-input 
@@ -105,7 +105,7 @@
           </span>
         </div>
 
-        <!-- Código de barras (opcional) -->
+        
         <ion-item class="campo-formulario">
           <ion-label position="stacked">Código de Barras</ion-label>
           <ion-input 
@@ -116,13 +116,13 @@
         </ion-item>
         <p class="texto-ayuda">Si no ingresas un código de barras, se generará uno automáticamente.</p>
 
-        <!-- Foto del producto (opcional) -->
+        
         <div class="campo-foto">
           <ion-label class="label-foto">Foto del Producto (opcional)</ion-label>
           
-          <!-- Preview de la foto seleccionada -->
+          
           <div *ngIf="fotoSeleccionada" class="preview-foto">
-            <img [src]="fotoSeleccionada" alt="Preview" class="imagen-preview">
+            <img [src]="fotoSeleccionada" alt="Vista previa" class="imagen-preview">
             <ion-button 
               fill="clear" 
               color="danger" 
@@ -133,7 +133,7 @@
             </ion-button>
           </div>
           
-          <!-- Botón para seleccionar foto -->
+          
           <ion-button 
             *ngIf="!fotoSeleccionada"
             fill="outline" 
@@ -146,7 +146,7 @@
           </ion-button>
         </div>
 
-        <!-- Categoría (opcional) -->
+        
         <ion-item class="campo-formulario">
           <ion-label position="stacked">Categoría</ion-label>
           <ion-select formControlName="categoriaId" interface="popover" placeholder="Selecciona una categoría (opcional)">
@@ -160,7 +160,7 @@
           Seleccionado: <strong>{{ obtenerTextoCategoria() }}</strong>
         </p>
 
-        <!-- Proveedor (opcional) -->
+        
         <ion-item class="campo-formulario">
           <ion-label position="stacked">Proveedor</ion-label>
           <ion-select formControlName="proveedorId" interface="popover" placeholder="Selecciona un proveedor (opcional)">
@@ -174,7 +174,7 @@
           Seleccionado: <strong>{{ obtenerTextoProveedor() }}</strong>
         </p>
 
-        <!-- Estado (requerido) -->
+        
         <ion-item class="campo-formulario">
           <ion-label position="stacked">Estado *</ion-label>
           <ion-select formControlName="estado" interface="popover" placeholder="Selecciona el estado">
@@ -186,7 +186,7 @@
           Seleccionado: <strong>{{ obtenerTextoEstado() }}</strong>
         </p>
 
-        <!-- Botón guardar -->
+        
         <div class="contenedor-botones-formulario">
           <ion-button 
             type="submit" 
@@ -201,12 +201,12 @@
       </form>
     </div>
 
-    <!-- Lista de productos -->
+    
     <div *ngIf="!mostrandoFormulario" class="contenedor-lista-productos">
       
-      <!-- Controles de búsqueda y filtros -->
+      
       <div class="contenedor-controles">
-        <!-- Búsqueda -->
+        
         <div class="contenedor-busqueda">
           <ion-searchbar
             #searchbar
@@ -217,24 +217,22 @@
             class="barra-busqueda">
           </ion-searchbar>
           <ion-button 
+            *ngIf="esPlataformaMovil"
             fill="outline" 
             (click)="escanearCodigoBarras()"
             class="boton-escanear">
             <ion-icon name="barcode" slot="start"></ion-icon>
-            <span *ngIf="!esPlataformaMovil">Escanear con Cámara</span>
-            <span *ngIf="esPlataformaMovil">Escanear</span>
+            Escanear
           </ion-button>
         </div>
         
         <p class="ayuda-lectora" style="margin: 0.5rem 0; padding: 0.5rem; background: #f0f0f0; border-radius: 8px; font-size: 0.9rem; color: #666;">
           💡 <strong>Pistola lectora:</strong> Simplemente escanea cualquier código de barras en el buscador de arriba y presiona Enter. El sistema lo detectará automáticamente.
-          <br>
-          💡 <strong>Cámara del móvil:</strong> Usa el botón "Escanear con Cámara" de arriba.
         </p>
 
-        <!-- Filtros y ordenamiento -->
+        
         <div class="contenedor-filtros">
-          <!-- Filtro por categoría -->
+          
           <ion-item class="filtro-item">
             <ion-label>Categoría:</ion-label>
             <ion-select 
@@ -249,7 +247,7 @@
             </ion-select>
           </ion-item>
 
-          <!-- Filtro por proveedor -->
+          
           <ion-item class="filtro-item">
             <ion-label>Proveedor:</ion-label>
             <ion-select 
@@ -264,7 +262,7 @@
             </ion-select>
           </ion-item>
 
-          <!-- Ordenamiento -->
+          
           <ion-button 
             fill="outline" 
             (click)="cambiarOrdenamiento()"
@@ -273,7 +271,7 @@
             <span>Ordenar: {{ ordenamiento === 'nombre' ? 'Nombre' : (ordenamiento === 'precio' ? 'Precio' : 'Stock') }}</span>
           </ion-button>
 
-          <!-- Cambiar vista -->
+          
           <ion-button 
             fill="outline" 
             (click)="cambiarVista()"
@@ -283,15 +281,15 @@
         </div>
       </div>
 
-      <!-- Estado de carga -->
+      
       <div *ngIf="estaCargandoProductos" class="cargando-productos">
         <p>Cargando productos...</p>
       </div>
 
-      <!-- Lista de productos -->
+      
       <div *ngIf="!estaCargandoProductos">
         
-        <!-- Vista Grid -->
+        
         <ion-grid *ngIf="vistaGrid && productosFiltrados.length > 0" class="grid-productos">
           <ion-row>
             <ion-col 
@@ -311,7 +309,7 @@
                     <ion-icon name="image" class="icono-sin-foto"></ion-icon>
                     <p>Sin foto</p>
                   </div>
-                  <!-- Badge de estado de stock -->
+                  
                   <ion-badge 
                     *ngIf="obtenerEstadoStock(producto.stock) === 'sin-stock'"
                     color="danger"
@@ -370,7 +368,7 @@
           </ion-row>
         </ion-grid>
 
-        <!-- Vista Lista -->
+        
         <div *ngIf="!vistaGrid && productosFiltrados.length > 0" class="lista-productos">
           <ion-card 
             *ngFor="let producto of productosFiltrados"
@@ -446,7 +444,7 @@
           </ion-card>
         </div>
 
-        <!-- Mensaje cuando no hay resultados -->
+        
         <div *ngIf="productosFiltrados.length === 0 && !estaCargandoProductos" class="sin-resultados">
           <ion-icon name="search" class="icono-sin-resultados"></ion-icon>
           <p>No se encontraron productos</p>
@@ -455,7 +453,7 @@
       </div>
     </div>
 
-    <!-- Modal de Edición -->
+    
     <ion-modal [isOpen]="mostrandoModalEditar" (willDismiss)="cerrarModalEditar()">
       <ng-template>
         <ion-header>
@@ -472,7 +470,7 @@
           <div class="ion-padding contenedor-formulario-modal" *ngIf="formularioEdicion">
             <form [formGroup]="formularioEdicion" (ngSubmit)="guardarEdicion()">
               
-              <!-- Nombre -->
+              
               <ion-item class="campo-formulario">
                 <ion-label position="stacked">Nombre del Producto *</ion-label>
                 <ion-input 
@@ -486,7 +484,7 @@
                 El nombre es requerido
               </div>
 
-              <!-- Descripción -->
+              
               <ion-item class="campo-formulario">
                 <ion-label position="stacked">Descripción</ion-label>
                 <ion-textarea 
@@ -496,7 +494,7 @@
                 </ion-textarea>
               </ion-item>
 
-              <!-- Precio -->
+              
               <ion-item class="campo-formulario">
                 <ion-label position="stacked">Precio (CLP) *</ion-label>
                 <ion-input 
@@ -517,7 +515,7 @@
                 </span>
               </div>
 
-              <!-- Stock -->
+              
               <ion-item class="campo-formulario">
                 <ion-label position="stacked">Stock *</ion-label>
                 <ion-input 
@@ -537,7 +535,7 @@
                 </span>
               </div>
 
-              <!-- Código de barras -->
+              
               <ion-item class="campo-formulario">
                 <ion-label position="stacked">Código de Barras</ion-label>
                 <ion-input 
@@ -547,11 +545,11 @@
                 </ion-input>
               </ion-item>
 
-              <!-- Foto -->
+              
               <div class="campo-foto">
                 <ion-label class="label-foto">Foto del Producto</ion-label>
                 <div *ngIf="fotoSeleccionada" class="preview-foto">
-                  <img [src]="fotoSeleccionada" alt="Preview" class="imagen-preview">
+                  <img [src]="fotoSeleccionada" alt="Vista previa" class="imagen-preview">
                   <ion-button 
                     fill="clear" 
                     color="danger" 
@@ -573,7 +571,7 @@
                 </ion-button>
               </div>
 
-              <!-- Categoría -->
+              
               <ion-item class="campo-formulario">
                 <ion-label position="stacked">Categoría</ion-label>
                 <ion-select formControlName="categoriaId" interface="popover" placeholder="Selecciona una categoría">
@@ -584,7 +582,7 @@
                 </ion-select>
               </ion-item>
 
-              <!-- Proveedor -->
+              
               <ion-item class="campo-formulario">
                 <ion-label position="stacked">Proveedor</ion-label>
                 <ion-select formControlName="proveedorId" interface="popover" placeholder="Selecciona un proveedor">
@@ -595,7 +593,7 @@
                 </ion-select>
               </ion-item>
 
-              <!-- Estado -->
+              
               <ion-item class="campo-formulario">
                 <ion-label position="stacked">Estado *</ion-label>
                 <ion-select formControlName="estado" interface="popover" placeholder="Selecciona el estado">
@@ -604,7 +602,7 @@
                 </ion-select>
               </ion-item>
 
-              <!-- Botones -->
+              
               <div class="contenedor-botones-formulario">
                 <ion-button 
                   type="submit" 
@@ -628,7 +626,7 @@
       </ng-template>
     </ion-modal>
 
-    <!-- Modal de Ajuste de Stock -->
+    
     <ion-modal [isOpen]="mostrandoModalAjusteStock" (willDismiss)="cerrarModalAjusteStock()">
       <ng-template>
         <ion-header>
@@ -678,7 +676,7 @@
       </ng-template>
     </ion-modal>
 
-    <!-- Modal de Gestión de Categorías -->
+    
     <ion-modal [isOpen]="mostrandoModalCategorias" (willDismiss)="cerrarModalCategorias()">
       <ng-template>
         <ion-header>
@@ -694,7 +692,7 @@
         <ion-content class="contenido-modal">
           <div class="ion-padding contenedor-modal-categorias">
             
-            <!-- Formulario para crear/editar categoría -->
+            
             <div class="seccion-formulario-categoria">
               <h3 class="titulo-seccion-categoria">
                 {{ categoriaEditando ? 'Editar Categoría' : 'Crear Nueva Categoría' }}
@@ -734,7 +732,7 @@
               </form>
             </div>
 
-            <!-- Lista de categorías -->
+            
             <div class="seccion-lista-categorias">
               <h3 class="titulo-seccion-categoria">Categorías Existentes</h3>
               
@@ -780,14 +778,14 @@
       </ng-template>
     </ion-modal>
 
-    <!-- Overlay para cerrar menú contextual -->
+    
     <div 
       *ngIf="mostrandoMenuContextual && !esPlataformaMovil"
       class="overlay-menu-contextual"
       (click)="cerrarMenuContextual()">
     </div>
 
-    <!-- Menú contextual para web -->
+    
     <div 
       *ngIf="mostrandoMenuContextual && !esPlataformaMovil" 
       class="menu-contextual-web"

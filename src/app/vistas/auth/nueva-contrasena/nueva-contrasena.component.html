@@ -6,12 +6,12 @@
 <ion-content [fullscreen]="true" class="contenido-nueva-contrasena" [scrollY]="true">
   <div class="ion-padding contenedor-nueva-contrasena">
     
-    <!-- Mensaje mientras se verifica el token -->
+    
     <div *ngIf="!tokenVerificado && estaCargando" class="verificando-token">
       <p>Verificando enlace de recuperación...</p>
     </div>
 
-    <!-- Formulario solo si el token es válido -->
+    
     <div *ngIf="!contrasenaCambiada && tokenVerificado && tokenValido">
       <h2 class="titulo-nueva-contrasena">Nueva Contraseña</h2>
       <p class="descripcion-nueva-contrasena">
@@ -95,7 +95,7 @@
       </form>
     </div>
 
-    <!-- Mensaje si el token es inválido o expirado -->
+    
     <div *ngIf="tokenVerificado && !tokenValido && !contrasenaCambiada" class="token-invalido">
       <h2 class="titulo-error">Enlace Inválido o Expirado</h2>
       <p class="mensaje-error-token">

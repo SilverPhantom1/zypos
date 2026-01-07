@@ -10,7 +10,7 @@
 <ion-content [fullscreen]="true" class="contenido-historial" [scrollY]="true">
   <div class="ion-padding contenedor-historial" *ngIf="!verificandoAuth">
     
-    <!-- Búsqueda y Filtros -->
+    
     <div class="seccion-filtros">
       <ion-searchbar
         [(ngModel)]="terminoBusqueda"
@@ -35,12 +35,12 @@
       </ion-item>
     </div>
 
-    <!-- Estado de carga -->
+    
     <div *ngIf="estaCargandoVentas" class="cargando">
       <p>Cargando ventas...</p>
     </div>
 
-    <!-- Lista de ventas -->
+    
     <div *ngIf="!estaCargandoVentas">
       <div *ngIf="ventasFiltradas.length > 0" class="lista-ventas">
         <ion-card 
@@ -139,7 +139,7 @@
         </ion-card>
       </div>
 
-      <!-- Sin resultados -->
+      
       <div *ngIf="ventasFiltradas.length === 0" class="sin-resultados">
         <ion-icon name="receipt" class="icono-sin-resultados"></ion-icon>
         <p>No se encontraron ventas</p>
@@ -154,7 +154,7 @@
   </div>
 </ion-content>
 
-<!-- Modal de Detalle de Venta -->
+
 <ion-modal [isOpen]="mostrandoModalDetalle" (willDismiss)="cerrarModalDetalle()">
   <ng-template>
     <ion-header>
@@ -224,7 +224,7 @@
   </ng-template>
 </ion-modal>
 
-<!-- Modal de Anulación -->
+
 <ion-modal [isOpen]="mostrandoModalAnular" (willDismiss)="cerrarModalAnular()">
   <ng-template>
     <ion-header>
@@ -307,7 +307,7 @@
   </ng-template>
 </ion-modal>
 
-<!-- Modal de Modificación -->
+
 <ion-modal [isOpen]="mostrandoModalModificar" (willDismiss)="cerrarModalModificar()">
   <ng-template>
     <ion-header>

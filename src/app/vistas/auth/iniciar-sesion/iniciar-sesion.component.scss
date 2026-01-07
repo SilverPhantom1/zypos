@@ -12,7 +12,6 @@
   flex-direction: column;
   justify-content: center;
   
-  // Responsividad para pantallas pequeñas
   @media (max-width: 576px) {
     padding: 1.5rem 0.75rem;
     max-width: 100%;
@@ -20,13 +19,11 @@
     min-height: calc(100vh - 100px);
   }
   
-  // Responsividad pantallas medianas
   @media (min-width: 577px) and (max-width: 768px) {
     max-width: 600px;
     padding: 1.5rem;
   }
   
-  // Responsividad para pantallas grandes
   @media (min-width: 769px) {
     max-width: 500px;
     padding: 2rem;
@@ -39,7 +36,6 @@
   margin-bottom: 2rem;
   font-size: 1.75rem;
   
-  // Tamaño de fuente más pequeño para móvil
   @media (max-width: 576px) {
     font-size: 1.5rem;
     margin-bottom: 1.5rem;

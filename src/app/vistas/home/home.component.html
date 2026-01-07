@@ -9,21 +9,21 @@
 
 <ion-content [fullscreen]="true" class="contenido-home">
   <div class="contenedor-home">
-    <!-- Estado de verificación de autenticación -->
+    
     <div *ngIf="verificandoAuth" class="cargando">
       <p>Verificando autenticación...</p>
     </div>
     
-    <!-- Contenido del home -->
+    
     <div *ngIf="!verificandoAuth" class="dashboard-content">
-      <!-- Sección Superior: Saludo y Plan -->
+      
       <div class="seccion-superior">
         <div class="header-bienvenida">
           <h1 class="titulo-principal">¡Bienvenido, {{ obtenerNombreUsuario() }}!</h1>
           <p class="subtitulo-principal">Gestiona tu negocio de forma eficiente</p>
         </div>
 
-        <!-- Tarjeta de Plan -->
+        
         <ion-card class="tarjeta-plan-dashboard" routerLink="/gestion-suscripcion">
           <ion-card-header>
             <div class="plan-header-dashboard">
@@ -49,9 +49,9 @@
         </ion-card>
       </div>
       
-      <!-- Grid de Módulos -->
+      
       <div class="grid-modulos-dashboard">
-        <!-- Módulo Perfil -->
+        
         <ion-card class="modulo-card" routerLink="/perfil">
           <ion-card-content>
             <div class="modulo-card-content">
@@ -66,7 +66,7 @@
           </ion-card-content>
         </ion-card>
 
-        <!-- Módulo Proveedores -->
+        
         <ion-card class="modulo-card proveedores-card" routerLink="/proveedores">
           <ion-card-content>
             <div class="modulo-card-content">
@@ -81,7 +81,7 @@
           </ion-card-content>
         </ion-card>
       
-        <!-- Módulo Trabajadores -->
+        
         <ion-card class="modulo-card" routerLink="/gestion-trabajadores">
           <ion-card-content>
             <div class="modulo-card-content">
@@ -96,7 +96,7 @@
           </ion-card-content>
         </ion-card>
       
-        <!-- Módulo Inventario -->
+        
         <ion-card class="modulo-card" routerLink="/inventario">
           <ion-card-content>
             <div class="modulo-card-content">
@@ -111,7 +111,7 @@
           </ion-card-content>
         </ion-card>
 
-        <!-- Módulo Ventas -->
+        
         <ion-card class="modulo-card" routerLink="/ventas">
           <ion-card-content>
             <div class="modulo-card-content">
@@ -126,7 +126,7 @@
           </ion-card-content>
         </ion-card>
 
-        <!-- Módulo Historial de Ventas -->
+        
         <ion-card class="modulo-card" routerLink="/historial-ventas">
           <ion-card-content>
             <div class="modulo-card-content">
@@ -141,7 +141,7 @@
           </ion-card-content>
         </ion-card>
 
-        <!-- Módulo Informes -->
+        
         <ion-card class="modulo-card" routerLink="/informes">
           <ion-card-content>
             <div class="modulo-card-content">
@@ -159,7 +159,7 @@
     </div>
   </div>
 
-  <!-- Footer Completo -->
+  
   <footer class="footer-dashboard">
     <div class="footer-container">
       <div class="footer-seccion">
